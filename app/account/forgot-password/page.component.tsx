@@ -35,7 +35,8 @@ const KeymanForgotPassword: React.FC = () => {
     setIsSubmitted(false);
 
   };
-
+const  share=`We've sent a password reset link to`;
+const didntReceive=`Didn't receive the email? Check your spam folder or try again.`
   if (isSubmitted) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
@@ -49,13 +50,13 @@ const KeymanForgotPassword: React.FC = () => {
               Check your email
             </Text>
             <Text size="sm" c="dimmed" className="mb-6 leading-relaxed">
-              We've sent a password reset link to{' '}
+              {share}
               <Text component="span" fw={500} c="dark">
                 {form.values.email}
               </Text>
             </Text>
             <Text size="xs" c="dimmed" className="mb-8">
-              Didn't receive the email? Check your spam folder or try again.
+              {didntReceive}
             </Text>
           </div>
 

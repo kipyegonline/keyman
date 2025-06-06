@@ -5,7 +5,7 @@ import LoginComponent from './page.component'
 export default function Page() {
   return (
     
-      <Container mih="40vh" className='border-red' maw="fluid" >
+      <Container mih="40vh" className='border-reds' maw="fluid" >
       
         <LoginComponent/>
       </Container>

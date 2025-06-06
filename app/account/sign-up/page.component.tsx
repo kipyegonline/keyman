@@ -15,6 +15,7 @@ interface SignupFormValues {
   confirmPassword: string;
 }
 
+
 const KeymanSignupComponent: React.FC = () => {
   const form = useForm<SignupFormValues>({
     initialValues: {
@@ -207,7 +208,7 @@ const KeymanSignupComponent: React.FC = () => {
             fullWidth
             size="md"
             className="bg-keyman-green hover:bg-keyman-accent-hover text-white font-medium py-3 rounded-lg transition-colors duration-200"
-            disabled={!form.isValid()}
+            disabled={!form.isValid() }
           >
             Create Account
           </Button>

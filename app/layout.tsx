@@ -27,7 +27,7 @@ export default function RootLayout({
         className={`${poppins.variable}  antialiased`}
       >
         <AppProviders>
-          <NavigationComponent darkMode={false} toggleDarkMode={()=>{}}/>
+          <NavigationComponent />
             <main className="pt-18"> {children}</main>
          
          <ProgressBar  

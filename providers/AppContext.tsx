@@ -1,9 +1,15 @@
 import React from 'react'
-
-const AppContext=React.createContext({});
+interface AppContext{darkMode:boolean,toggleDarkMode:()=>void}
+const AppContext=React.createContext({} as AppContext);
+export const useAppContext=()=>React.useContext(AppContext)
 type Props={children:React.ReactNode}
 export default function AppContextProvider({children}:Props) {
+     const [darkMode, setDarkMode] = React.useState(false);
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
   return (
-   <AppContext.Provider value={{}}>{children}</AppContext.Provider>
+   <AppContext.Provider value={{toggleDarkMode,darkMode}}>{children}</AppContext.Provider>
   )
 }

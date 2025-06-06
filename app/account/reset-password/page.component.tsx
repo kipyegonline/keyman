@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react';
 import { useForm } from '@mantine/form';
-import { PasswordInput, Button, Text, Checkbox, Alert, TextInput } from '@mantine/core';
+import { PasswordInput, Button, Text, Checkbox,  TextInput } from '@mantine/core';
 import { Eye, EyeOff, Lock, CheckCircle, ArrowLeft, Key } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 

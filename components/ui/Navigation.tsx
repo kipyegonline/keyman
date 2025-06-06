@@ -4,8 +4,10 @@ import { Sun, Moon, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { Image } from '@mantine/core';
 import { usePathname } from 'next/navigation';
-export const NavigationComponent: React.FC<{ darkMode: boolean; toggleDarkMode: () => void }> = ({ darkMode, toggleDarkMode }) => {
+import { useAppContext } from '@/providers/AppContext';
+export const NavigationComponent: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { darkMode, toggleDarkMode }=useAppContext()
 const pathname=usePathname()
 const paths=["/account/login","/account/sign-up",'/account/forgot-password',"/account/reset-password"]
   const isAccountPage = paths.includes(pathname);

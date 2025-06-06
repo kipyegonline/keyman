@@ -61,7 +61,8 @@ const KeymanLogin: React.FC = () => {
           </Text>
           <Group gap={4} justify="center">
             <Text size="sm" c="dimmed">
-              Don't have an account?
+                {" Don't have an account?"}
+             
             </Text>
             <Link href="/account/sign-up"   className="text-keyman-green font-medium hover:text-keyman-green-hover transition-colors duration-200">
               CREATE ACCOUNT
@@ -92,7 +93,8 @@ const KeymanLogin: React.FC = () => {
             />
             
             <div className="text-right">
-              <Link href="/account/forgot-password"  className="text-keyman-green hover:text-keyman-green-hover transition-colors duration-200" href="/account/forgot-password">
+              <Link href="/account/forgot-password"  className="text-keyman-green hover:text-keyman-green-hover transition-colors duration-200"
+               >
                 <Text size="xs" c="dimmed">
                 Forgot Password?
                 </Text>

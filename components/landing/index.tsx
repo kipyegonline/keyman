@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 
 import AnimatedHeroSection from './HeroComponent';
+import { useAppContext } from '@/providers/AppContext';
 
 
 
@@ -282,11 +283,7 @@ const RegistrationSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
 
 // Main Landing Page Component
 const KeymanLanding: React.FC = () => {
-  const [darkMode, setDarkMode] = useState(false);
-
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+ const {darkMode}=useAppContext()
 const createElement=(style:HTMLElement)=>{ 
     
     style.textContent = `
