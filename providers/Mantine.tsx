@@ -1,5 +1,6 @@
 
 import { createTheme, MantineProvider } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 const theme=createTheme({
     primaryColor: 'keymanGreen',
     primaryShade: 6,
@@ -35,6 +36,8 @@ export default function MantineAppProvider({children}: Readonly<{
   children: React.ReactNode;}>) {
   // MantineThemeProvider is used to provide the theme to the application
   return (
-    <MantineProvider theme={theme}>{children}</MantineProvider>
+    <MantineProvider theme={theme}>
+      <Notifications/>
+      {children}</MantineProvider>
   )
 }

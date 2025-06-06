@@ -7,6 +7,7 @@ import { NavigationComponent } from "@/components/ui/Navigation";
 import { COLOUR } from "@/CONSTANTS/color";
 import "./globals.css";
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 
 
 

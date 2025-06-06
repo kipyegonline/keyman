@@ -14,7 +14,7 @@ import {
   CreditCard,
   UserPlus
 } from 'lucide-react';
-import { NavigationComponent } from '../ui/Navigation';
+
 import AnimatedHeroSection from './HeroComponent';
 
 

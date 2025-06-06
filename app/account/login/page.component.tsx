@@ -2,9 +2,11 @@
 import React from 'react';
 import { useForm } from '@mantine/form';
 import { TextInput, PasswordInput, Button, Text, Anchor, Group } from '@mantine/core';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, Check } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { notifications } from '@mantine/notifications';
+import { COLOUR } from '@/CONSTANTS/color';
 
 interface LoginFormValues {
   email: string;
@@ -19,13 +21,23 @@ const KeymanLogin: React.FC = () => {
     },
     validate: {
       email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
-      password: (value) => (value.length < 1 ? 'Password is required' : null),
+      password: (value) => (value.length < 5 ? 'Password is required' : null),
     },
   });
 
   const handleSubmit = (values: LoginFormValues) => {
     console.log('Login submitted:', values);
     // Handle login submission here
+    notifications.show({
+      title: 'Login Successful',    
+        message: `Welcome back, ${values.email}!`,
+        color: 'green',
+        withBorder: true,
+        style: { borderRadius: '8px' ,background:COLOUR.secondary, color: 'white',},
+        icon: <Check size={16} />,
+        autoClose: 3000,
+        
+    });
   };
 
   return (
@@ -41,11 +53,9 @@ const KeymanLogin: React.FC = () => {
             </div>
           </div>
           <Text size="xl" fw={600} className="text-gray-900 mb-2">
-            Welcome to the
+            Welcome to the  <span className=' text-transparent bg-clip-text bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50]'>KeyMan App!</span>
           </Text>
-          <Text size="xl" fw={700} className="text-gray-900 mb-4">
-            KeyMan App!
-          </Text>
+          
           <Text size="sm" c="dimmed" className="mb-4">
             Sign into Your Account
           </Text>
