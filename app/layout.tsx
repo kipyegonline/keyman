@@ -1,10 +1,12 @@
 "use client"
 import { Poppins } from "next/font/google";
-import { AppProgressBar as ProgressBar } from 'next-nprogress-bar';
-import "./globals.css";
+import { AppProgressProvider as ProgressBar  } from '@bprogress/next';
+
 import AppProviders from "@/providers";
 import { NavigationComponent } from "@/components/ui/Navigation";
-
+import { COLOUR } from "@/CONSTANTS/color";
+import "./globals.css";
+import '@mantine/core/styles.css';
 
 
 
@@ -25,10 +27,11 @@ export default function RootLayout({
       >
         <AppProviders>
           <NavigationComponent darkMode={false} toggleDarkMode={()=>{}}/>
-          {children}
+            <main className="pt-18"> {children}</main>
+         
          <ProgressBar  
          height="4px"
-          color="#3D6B2C"
+          color={COLOUR.secondary}
           options={{ showSpinner: !false }}
           shallowRouting/>
         </AppProviders>

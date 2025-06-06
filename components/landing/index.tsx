@@ -22,7 +22,7 @@ import AnimatedHeroSection from './HeroComponent';
 // Hero Section Component
 const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
   return (
-    <section className={`pt-20 pb-16 px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
+    <section className={`pt-20 pb-16 px-4 sm:px-6  lg:px-8 ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-gray-50 to-white'}`}>
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8 animate-fade-in">

@@ -1,5 +1,7 @@
+"use client"
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Sparkles, Zap, Building2, ShoppingCart } from 'lucide-react';
+import Link from 'next/link';
 
 const AnimatedHeroSection: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -138,7 +140,7 @@ const AnimatedHeroSection: React.FC = () => {
   };
 
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50 overflow-hidden pt-[60px]">
+    <section className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50 overflow-hidden pt-[60px] ">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-[#3D6B2C]/10 to-[#4CAF50]/10 rounded-full blur-3xl floating-animation"></div>
@@ -212,11 +214,11 @@ const AnimatedHeroSection: React.FC = () => {
                 {/* Shimmer Effect */}
                 <div className="absolute inset-0 shimmer-effect opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 
-                <div className="relative flex items-center space-x-3">
+                <Link  href={`/account/login`} className="relative flex items-center space-x-3 cursor-pointer" role="button" >
                   <ShoppingCart className={`w-6 h-6 transition-transform duration-300 ${isHovering ? 'rotate-12 scale-110' : ''}`} />
                   <span>Get Started</span>
                   <ArrowRight className={`w-6 h-6 transition-transform duration-300 ${isHovering ? 'translate-x-2' : ''}`} />
-                </div>
+                </Link>
               </button>
               
               {/* Additional Info */}

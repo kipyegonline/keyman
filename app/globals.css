@@ -3,14 +3,23 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary:#3D6B2C;
+  --secondary: ##F08C23;
+  --accent:#4CAF50;
   color-scheme: light dark;
 }
 
-@theme inline {
+@theme  {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-keyman-green:var(--primary);
+  --color-keyman-green-hover: #4CAF50;
+  --color-keyman-orange:var(--secondary);
+  --color-keyman-accent:var(--accent);
+  --color-keyman-accent-hover: #3D6B2C;
+  --color-keyman-accent-active: #2c4f22;
 }
 
 @media (prefers-color-scheme: dark) {
