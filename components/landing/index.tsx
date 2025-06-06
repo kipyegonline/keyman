@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-
+import Link from 'next/link';
 import { 
  
   ArrowRight, 
@@ -233,6 +233,7 @@ const TokenSystemSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
 
 // Registration Section Component
 const RegistrationSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
+  const text=`Whether you're looking to order construction materials or supply them, we've got you covered.`
   return (
     <section className={`py-20 px-4 sm:px-6 lg:px-8 ${darkMode ? 'bg-gradient-to-br from-gray-900 to-gray-800' : 'bg-gradient-to-br from-[#3D6B2C] to-[#4CAF50]'}`}>
       <div className="max-w-4xl mx-auto text-center space-y-8">
@@ -241,7 +242,7 @@ const RegistrationSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
             Join the Keyman Community
           </h2>
           <p className="text-lg text-green-100">
-            Whether you're looking to order construction materials or supply them, we've got you covered.
+            {text}
           </p>
         </div>
         
@@ -253,10 +254,10 @@ const RegistrationSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
               </div>
               <h3 className="text-xl font-semibold">Join as Buyer</h3>
               <p className="text-green-100">Order materials, get quotes, and manage your construction projects</p>
-              <button className="w-full bg-white text-[#3D6B2C] py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2">
+              <Link href="/account/sign-up" className="w-full bg-white text-[#3D6B2C] py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2">
                 <UserPlus className="w-4 h-4" />
                 <span>Sign Up as Buyer</span>
-              </button>
+              </Link>
             </div>
           </div>
           
@@ -267,10 +268,10 @@ const RegistrationSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
               </div>
               <h3 className="text-xl font-semibold">Join as Supplier</h3>
               <p className="text-green-100">List your products, respond to orders, and grow your business</p>
-              <button className="w-full bg-[#F08C23] text-white py-3 rounded-lg font-medium hover:bg-orange-500 transition-colors flex items-center justify-center space-x-2">
+              <Link  href="/account/sign-up" className="w-full bg-[#F08C23] text-white py-3 rounded-lg font-medium hover:bg-orange-500 transition-colors flex items-center justify-center space-x-2">
                 <UserPlus className="w-4 h-4" />
                 <span>Sign Up as Supplier</span>
-              </button>
+              </Link>
             </div>
           </div>
         </div>

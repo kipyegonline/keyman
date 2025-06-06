@@ -200,6 +200,7 @@ const KeymanSignupComponent: React.FC = () => {
             }
             {...form.getInputProps('confirmPassword')}
           />
+{form.values.password.length>6 && form.isDirty("confirmPassword") && form.values.confirmPassword !== form.values.password ? <Text color="red" size="xs" mb="sm">Passwords do not match</Text>:null}
 
           <Button
             onClick={() => form.onSubmit(handleSubmit)()}

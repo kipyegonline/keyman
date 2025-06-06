@@ -47,9 +47,9 @@ const paths=["/account/login","/account/sign-up",'/account/forgot-password',"/ac
         {isMenuOpen && (
           <div className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <button className="w-full bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50] text-white px-4 py-2 rounded-lg font-medium">
+              <Link  href="/account/sign-up" className="w-full bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50] text-white px-4 py-2 rounded-lg font-medium">
                 Sign Up
-              </button>
+              </Link>
             </div>
           </div>
         )}

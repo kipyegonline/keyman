@@ -1,8 +1,8 @@
 "use client"
 import React, { useState } from 'react';
 import { useForm } from '@mantine/form';
-import { TextInput, Button, Text, Anchor, Alert } from '@mantine/core';
-import { Mail, CheckCircle, ArrowLeft } from 'lucide-react';
+import { TextInput, Button, Text, Anchor, Image } from '@mantine/core';
+import { Mail, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface ForgotPasswordFormValues {
@@ -43,7 +43,7 @@ const KeymanForgotPassword: React.FC = () => {
           {/* Logo Section */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-              <CheckCircle size={40} className="text-green-600" />
+              <Image src="/keyman_logo.png" alt="" className='w-20 h-20'/>
             </div>
             <Text size="xl" fw={600} className="text-gray-900 mb-4">
               Check your email
@@ -92,14 +92,9 @@ const KeymanForgotPassword: React.FC = () => {
       <div className="w-full max-w-md">
         {/* Logo Section */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-            <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center relative">
-              {/* Key icon representation */}
-              <div className="w-6 h-6 relative">
-                <div className="absolute top-1 left-1 w-3 h-3 border-2 border-white rounded-full"></div>
-                <div className="absolute top-2.5 left-4 w-2 h-0.5 bg-white"></div>
-                <div className="absolute top-3.5 left-4 w-1.5 h-0.5 bg-white"></div>
-              </div>
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full mb-6">
+            <div className=" rounded-full flex items-center justify-center relative">
+             <Image src="/keyman_logo.png" alt="" className='w-20 h-20'/>
             </div>
           </div>
           <Text size="xl" fw={600} className="text-gray-900 mb-4">
