@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight, Sparkles, Zap, Building2, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { useAppContext } from '@/providers/AppContext';
-import { Card } from '@mantine/core';
+
 
 const AnimatedHeroSection: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
