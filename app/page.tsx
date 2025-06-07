@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 export default function Home() {
   return (
-    <div  className="px-4 pt-4 md:pt-2 md:px-20  border-green max-w-full"><KeymanLanding/></div>
+    <div  className="px-4 pt-4 md:pt-2 md:px-10  max-w-full"><KeymanLanding/></div>
    
   );
 }

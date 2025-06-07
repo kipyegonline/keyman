@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowRight, Sparkles, Zap, Building2, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
 import { useAppContext } from '@/providers/AppContext';
+import { Card } from '@mantine/core';
 
 const AnimatedHeroSection: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -141,7 +142,7 @@ const {darkMode}=useAppContext()
   };
 
   return (
-    <section className="relative min-h-screen border-red mb-4 md:mb-8 bg-gradient-to-br from-gray-50 via-white to-orange-50 overflow-hidden ">
+    <section className="relative min-h-screen  mb-4 md:mb-8 bg-gradient-to-br from-gray-50 via-white to-orange-50 overflow-hidden ">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-[#3D6B2C]/10 to-[#4CAF50]/10 rounded-full blur-3xl floating-animation"></div>
@@ -186,7 +187,7 @@ const {darkMode}=useAppContext()
                     transform: `translate(${mousePosition.x * 0.5}px, ${mousePosition.y * 0.5}px)` 
                   }}
                 >
-                  <Sparkles className="w-6 h-6 text-[#F08C23] animate-bounce-slow" />
+                  <Sparkles className="w-6 h-6 text-[#F08C23] animate-bounce-slow hidden" />
                 </div>
                 
                 <div 
@@ -244,14 +245,23 @@ const {darkMode}=useAppContext()
                 </div>
               ))}
             </div>
-            <QualityAssured/>
+           
           </div>
 
           {/* Right Image Section */}
           <div className={`relative  ${isVisible ? 'animate-slideInRight' : 'opacity-0'}`}>
-            
+              {/* Floating Icons */}
+                <div 
+                  className="absolute left-1/2 top-4 parallax-element  "
+                  style={{ 
+                    transform: `translate(${mousePosition.x * 0.5}px, ${mousePosition.y * 0.5}px)` 
+                  }}
+                >
+                  <Sparkles className="w-6 h-6 text-[#F08C23] animate-bounce-slow " />
+                </div>
             
            <AskKeymanSection darkMode={darkMode}/>
+            <QualityAssured/>
           
           </div>
         </div>
@@ -272,9 +282,10 @@ export default AnimatedHeroSection;
 // Ask Keyman Section Component
 const AskKeymanSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const cardStyles="rounded-3xl p-8 shadow-2xl transform hover:rotate-1 transition-transform duration-500"
 
   return (
-    <section className={`py-16 px-4   sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-800' : 'bg-auto'}`}>
+    <section  className={`py-16 px-4    sm:px-6 lg:px-8 ${cardStyles}  ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
       <div className="max-w-6xl mx-auto text-center space-y-4">
         <div className="space-y-4">
           <h2 className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} text-transparent bg-clip-text bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50]`}>

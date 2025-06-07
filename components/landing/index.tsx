@@ -152,7 +152,7 @@ const RequestOrderSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
             </button>
           </div>
           
-          <div className="relative">
+          <div className="relative ">
             <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-3xl p-8 shadow-2xl transform hover:rotate-1 transition-transform duration-500`}>
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
@@ -305,7 +305,7 @@ const createElement=(style:HTMLElement)=>{
   }, []);
 
   return (
-    <div className={`min-h-screen border-red transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+    <div className={`min-h-screen  transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
       {/*<NavigationComponent darkMode={darkMode} toggleDarkMode={toggleDarkMode} />*/}
      <AnimatedHeroSection/>
      <RegistrationSection darkMode={darkMode} />
