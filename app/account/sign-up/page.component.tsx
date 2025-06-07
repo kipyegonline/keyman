@@ -6,6 +6,7 @@ import { Eye, EyeOff, User, Mail, Phone, Lock } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
+
 interface SignupFormValues {
   firstName: string;
   lastName: string;
@@ -17,6 +18,7 @@ interface SignupFormValues {
 
 
 const KeymanSignupComponent: React.FC = () => {
+ 
   const form = useForm<SignupFormValues>({
     initialValues: {
       firstName: '',
@@ -72,7 +74,7 @@ const KeymanSignupComponent: React.FC = () => {
             </div>
           </div>
           <Text size="xl" fw={600} className="text-gray-900 mb-2">
-            Create Your Account
+            Create Your  Account
           </Text>
           <Group gap={4} justify="center">
             <Text size="sm" c="dimmed">

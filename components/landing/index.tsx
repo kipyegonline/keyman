@@ -69,7 +69,7 @@ const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
 };
 
 // Ask Keyman Section Component
-const AskKeymanSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
+export const AskKeymanSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (
@@ -197,9 +197,9 @@ const TokenSystemSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
         
         <div className="grid md:grid-cols-3 gap-6">
           {[
-            { tokens: '100', price: '$10', popular: false },
-            { tokens: '500', price: '$45', popular: true },
-            { tokens: '1000', price: '$80', popular: false }
+            { tokens: '1', price: 'Ksh20', popular: false },
+            { tokens: '20', price: 'Ksh100', popular: true },
+            { tokens: '100', price: 'ksh500', popular: false }
           ].map((plan, index) => (
             <div key={index} className={`relative ${darkMode ? 'bg-gray-700' : 'bg-gray-50'} rounded-2xl p-6 ${plan.popular ? 'ring-2 ring-[#F08C23] transform scale-105' : ''}`}>
               {plan.popular && (
@@ -210,7 +210,7 @@ const TokenSystemSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
               <div className="space-y-4">
                 <div className="text-center">
                   <div className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>{plan.tokens}</div>
-                  <div className="text-sm text-gray-500">Tokens</div>
+                  <div className="text-sm text-gray-500">{index===0 ? "Token":"Tokens"}</div>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-[#3D6B2C]">{plan.price}</div>
@@ -255,7 +255,7 @@ const RegistrationSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
               </div>
               <h3 className="text-xl font-semibold">Join as Buyer</h3>
               <p className="text-green-100">Order materials, get quotes, and manage your construction projects</p>
-              <Link href="/account/sign-up" className="w-full bg-white text-[#3D6B2C] py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2">
+              <Link href="/account/sign-up?q=buyer" className="w-full bg-white text-[#3D6B2C] py-3 rounded-lg font-medium hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2">
                 <UserPlus className="w-4 h-4" />
                 <span>Sign Up as Buyer</span>
               </Link>
@@ -269,7 +269,7 @@ const RegistrationSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
               </div>
               <h3 className="text-xl font-semibold">Join as Supplier</h3>
               <p className="text-green-100">List your products, respond to orders, and grow your business</p>
-              <Link  href="/account/sign-up" className="w-full bg-[#F08C23] text-white py-3 rounded-lg font-medium hover:bg-orange-500 transition-colors flex items-center justify-center space-x-2">
+              <Link  href="/account/sign-up?q=suplier" className="w-full bg-[#F08C23] text-white py-3 rounded-lg font-medium hover:bg-orange-500 transition-colors flex items-center justify-center space-x-2">
                 <UserPlus className="w-4 h-4" />
                 <span>Sign Up as Supplier</span>
               </Link>
@@ -305,14 +305,15 @@ const createElement=(style:HTMLElement)=>{
   }, []);
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+    <div className={`min-h-screen border-red transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
       {/*<NavigationComponent darkMode={darkMode} toggleDarkMode={toggleDarkMode} />*/}
      <AnimatedHeroSection/>
-      <AskKeymanSection darkMode={darkMode} />
+     <RegistrationSection darkMode={darkMode} />
+     {/** <AskKeymanSection darkMode={darkMode} />*/} 
        <HeroSection darkMode={darkMode} />
       <RequestOrderSection darkMode={darkMode} />
       <TokenSystemSection darkMode={darkMode} />
-      <RegistrationSection darkMode={darkMode} />
+      
     </div>
   );
 };

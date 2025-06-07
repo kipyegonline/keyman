@@ -8,6 +8,7 @@ import { COLOUR } from "@/CONSTANTS/color";
 import "./globals.css";
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import '@mantine/nprogress/styles.css';
 
 
 
@@ -28,7 +29,7 @@ export default function RootLayout({
       >
         <AppProviders>
           <NavigationComponent />
-            <main className="pt-18"> {children}</main>
+            <main className="pt-18 "> {children}</main>
          
          <ProgressBar  
          height="4px"

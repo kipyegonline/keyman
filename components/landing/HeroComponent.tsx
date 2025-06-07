@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Sparkles, Zap, Building2, ShoppingCart } from 'lucide-react';
 import Link from 'next/link';
+import { useAppContext } from '@/providers/AppContext';
 
 const AnimatedHeroSection: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
-
+const {darkMode}=useAppContext()
   useEffect(() => {
     setIsVisible(true);
     
@@ -140,7 +141,7 @@ const AnimatedHeroSection: React.FC = () => {
   };
 
   return (
-    <section className="relative min-h-screen bg-gradient-to-br from-gray-50 via-white to-orange-50 overflow-hidden pt-[60px] ">
+    <section className="relative min-h-screen border-red mb-4 md:mb-8 bg-gradient-to-br from-gray-50 via-white to-orange-50 overflow-hidden ">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-[#3D6B2C]/10 to-[#4CAF50]/10 rounded-full blur-3xl floating-animation"></div>
@@ -180,7 +181,7 @@ const AnimatedHeroSection: React.FC = () => {
                 
                 {/* Floating Icons */}
                 <div 
-                  className="absolute -right-4 top-4 parallax-element "
+                  className="absolute -right-4 top-4 parallax-element  "
                   style={{ 
                     transform: `translate(${mousePosition.x * 0.5}px, ${mousePosition.y * 0.5}px)` 
                   }}
@@ -224,7 +225,7 @@ const AnimatedHeroSection: React.FC = () => {
               {/* Additional Info */}
               <p className="text-sm text-gray-500 mt-3 flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                <span>Join 10,000+ satisfied builders</span>
+                <span>Join 1,000+ satisfied builders</span>
               </p>
             </div>
 
@@ -243,11 +244,76 @@ const AnimatedHeroSection: React.FC = () => {
                 </div>
               ))}
             </div>
+            <QualityAssured/>
           </div>
 
           {/* Right Image Section */}
-          <div className={`relative ${isVisible ? 'animate-slideInRight' : 'opacity-0'}`}>
-            <div className="relative h-96 sm:h-[500px] lg:h-[600px] rounded-3xl overflow-hidden group">
+          <div className={`relative  ${isVisible ? 'animate-slideInRight' : 'opacity-0'}`}>
+            
+            
+           <AskKeymanSection darkMode={darkMode}/>
+          
+          </div>
+        </div>
+      </div>
+      
+      {/* Bottom Wave Decoration */}
+      <div className="absolute bottom-0 left-0 right-0">
+        <svg viewBox="0 0 1440 120" className="w-full h-16 sm:h-20 lg:h-24 fill-white">
+          <path d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,64C960,75,1056,85,1152,80C1248,75,1344,53,1392,42.7L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
+        </svg>
+      </div>
+    </section>
+  );
+};
+
+export default AnimatedHeroSection;
+
+// Ask Keyman Section Component
+const AskKeymanSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  return (
+    <section className={`py-16 px-4   sm:px-6 lg:px-8 ${darkMode ? 'bg-gray-800' : 'bg-auto'}`}>
+      <div className="max-w-6xl mx-auto text-center space-y-4">
+        <div className="space-y-4">
+          <h2 className={`text-3xl md:text-4xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'} text-transparent bg-clip-text bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50]`}>
+            KEYMAN
+          </h2>
+          <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+            Your platform for trusted construction products and pros.
+          </p>
+        </div>
+        
+        <div className="space-y-4">
+          <h3 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+            Ask Keyman
+          </h3>
+          
+          <div className="relative max-w-2xl mx-auto">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="What do I need to build a 3 bedroom house?"
+              className={`w-full px-6 py-4 pr-16 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3D6B2C] ${
+                darkMode 
+                  ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                  : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+              }`}
+            />
+            <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50] p-3 rounded-lg hover:shadow-lg transition-all duration-200 group">
+              <ArrowRight className="w-5 h-5 text-white group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export const RightSection=()=>{
+  return(<div className="relative h-96 sm:h-[500px] lg:h-[600px] hidden rounded-3xl overflow-hidden group">
               {/* Main Image Container */}
               <div className="absolute inset-0 bg-gradient-to-br from-[#F08C23] to-orange-400 rounded-3xl transform group-hover:scale-105 transition-transform duration-700">
                 {/* Construction Tools Illustration */}
@@ -291,27 +357,13 @@ const AnimatedHeroSection: React.FC = () => {
               {/* Decorative Elements */}
               <div className="absolute -top-4 -right-4 w-8 h-8 bg-[#4CAF50] rounded-full animate-bounce-slow"></div>
               <div className="absolute -bottom-4 -left-4 w-6 h-6 bg-[#F08C23] rounded-full floating-animation" style={{ animationDelay: '1s' }}></div>
-            </div>
-            
-            {/* Quality Badge */}
-            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg transform group-hover:scale-105 transition-transform duration-300">
+            </div>)
+}
+const QualityAssured=()=>{
+  return   <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg transform group-hover:scale-105 transition-transform duration-300">
               <div className="flex items-center space-x-2">
                 <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
                 <span className="text-sm font-semibold text-gray-800">Quality Assured</span>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Bottom Wave Decoration */}
-      <div className="absolute bottom-0 left-0 right-0">
-        <svg viewBox="0 0 1440 120" className="w-full h-16 sm:h-20 lg:h-24 fill-white">
-          <path d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,64C960,75,1056,85,1152,80C1248,75,1344,53,1392,42.7L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
-        </svg>
-      </div>
-    </section>
-  );
-};
-
-export default AnimatedHeroSection;
+}
