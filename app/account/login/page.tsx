@@ -1,4 +1,4 @@
-import { Container } from '@mantine/core'
+
 import React from 'react'
 import LoginComponent from './page.component'
 
@@ -10,10 +10,9 @@ export const metadata = {
 export default function Page() {
   return (
     
-      <Container mih="40vh" className='border-reds' maw="fluid" >
-      
+      <main >      
         <LoginComponent/>
-      </Container>
+      </main>
     
   )
 }

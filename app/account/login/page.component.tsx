@@ -1,7 +1,7 @@
 "use client"
 import React from 'react';
 import { useForm } from '@mantine/form';
-import { TextInput, PasswordInput, Button, Text, Anchor, Group } from '@mantine/core';
+import { TextInput, PasswordInput, Button, Text, Anchor, Group,Box,Title } from '@mantine/core';
 import { Eye, EyeOff, Mail, Lock, Check } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -68,8 +68,17 @@ const KeymanLogin: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen -m-2 bg-gray-50 flex flex-col md:flex-row items-stretch justify-center  ">
+       <section className='min-h-[360px] md:min-h-screen   text-white flex flex-col items-center justify-start  bg-keyman-orange   shadow-lg p-8 md:p-16    w-full md:w-1/2 max-w-full '>
+             
+             <Box className='py-8 md:py-12 px-6 md:px-12  text-center flex flex-col items-center justify-center'>
+              <Title order={1} fw={700}> Welcome to the  <span className='  text-transparent bg-clip-text bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50]'>KeyMan App!</span></Title>
+             </Box>
+              <Title fw={500} order={2} mb="md" c="white">Buy Smart, Build Smart</Title>
+              <Text>Your platform for trusted construction products and pros.</Text>
+      
+            </section>
+      <div className=" w-full md:w-1/2  p-8 md:p-16  max-w-full">
         {/* Logo Section */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-24 h-24rounded-full mb-6">
@@ -79,13 +88,11 @@ const KeymanLogin: React.FC = () => {
              </div>
             </div>
           </div>
-          <Text size="xl" fw={600} className="text-gray-900 mb-2">
-            Welcome to the  <span className=' text-transparent bg-clip-text bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50]'>KeyMan App!</span>
-          </Text>
+         
           
-          <Text size="sm" c="dimmed" className="mb-4">
+          <Title order={1}   className="mb-4 text-gray-900">
             Sign into Your Account
-          </Text>
+          </Title>
           <Group gap={4} justify="center">
             <Text size="sm" c="dimmed">
                 {" Don't have an account?"}

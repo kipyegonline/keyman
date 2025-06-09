@@ -1,7 +1,7 @@
 "use client"
 import React from 'react';
 import { useForm } from '@mantine/form';
-import { TextInput, PasswordInput, Button, Text, Anchor, Checkbox,  Group,Box } from '@mantine/core';
+import { TextInput, PasswordInput, Button, Text, Anchor, Checkbox,  Group,Box, Title } from '@mantine/core';
 import { Eye, EyeOff, User, Mail, Phone, Lock,Check,X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -115,20 +115,28 @@ const KeymanSignupComponent: React.FC = () => {
   const passwordStrength = getPasswordStrength(form.values.password);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex flex-col md:flex-row  justify-evenly ">
+      <section className=' text-white flex flex-col items-center justify-start bg-keyman-accent border-2  shadow-lg p-8 md:p-16  min-h-[360px] md:min-h-screen w-full md:w-1/2 max-w-full '>
+       
+       <Box className='p-8 md:p-12 flex flex-col justify-center'>
+        <Title order={1} fw={700} className='text-transparent bg-clip-text bg-gradient-to-r from-orange-300 to-orange-400'>KEYMAN Stores</Title>
+       </Box>
+        <Title fw={500} order={2} mb="md" c="white">Buy Smart, Build Smart</Title>
+        <Text>Every order saves you money</Text>
+
+      </section>
+      <div className="w-full md:w-1/2  max-w-full bg-gray-50 p-8 md:px-16 md:py-4 ">
         {/* Logo Section */}
         <div className="text-center mb-8">
-                      <div className="inline-flex items-center justify-center w-24 h-24 0 rounded-full mb-4">
+                      <div className="inline-flex items-center justify-center w-28 h-28 0 rounded-full mb-4">
             <div className="  rounded-full flex items-center justify-center">
-              <Image src="/keyman_logo.png" alt="Keyman Logo" width={100} height={100} className="rounded-full" />
+              <Image src="/keyman_logo.png" alt="Keyman Logo" width={110} height={110} className="rounded-full" />
             </div>
           </div>
-          <Text size="xl" fw={600} className="text-gray-900 mb-2">
-            Create Your  Account
-          </Text>
+         
+          <Title order={1} fw={700} className="text-gray-900 mb-4">Create Your  Account</Title>
           <Group gap={4} justify="center">
-            <Text size="sm" c="dimmed">
+            <Text size="md" c="dimmed">
               Already have an account?
             </Text>
             <Link href="/account/login"  className=" text-keyman-green font-semibold  hover:keyman-green-hover transition-colors duration-200">

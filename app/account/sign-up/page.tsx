@@ -1,4 +1,4 @@
-import { Container} from '@mantine/core'
+
 import React from 'react'
 import type { Metadata } from 'next'
 import KeymanSignupComponent from './page.component'
@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 };
 export default function Page() {
   return (
-   <Container maw="fluid">
+   <main className=' -m-2'>
    
   <KeymanSignupComponent/>
-   </Container>
+   </main>
   )
 }

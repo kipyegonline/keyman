@@ -16,8 +16,10 @@ import {
 } from 'lucide-react';
 
 import AnimatedHeroSection from './HeroComponent';
-import { useAppContext } from '@/providers/AppContext';
+import { getUser, useAppContext } from '@/providers/AppContext';
 import { NavigationComponent } from '../ui/Navigation';
+import { KeymanSkeleton } from '@/lib/helperComponents';
+import { useRouter } from 'next/navigation';
 
 
 
@@ -284,7 +286,8 @@ const RegistrationSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
 
 // Main Landing Page Component
 const KeymanLanding: React.FC = () => {
- const {darkMode}=useAppContext()
+ const {darkMode,user}=useAppContext()
+ const router=useRouter()
 const createElement=(style:HTMLElement)=>{ 
     
     style.textContent = `
@@ -299,12 +302,26 @@ const createElement=(style:HTMLElement)=>{
     document.head.appendChild(style);
     
   }
+  // Create and append the style element for animations
   useEffect(()=>{
     const style = document.createElement('style');
     createElement(style)
     return () =>{ document.head.removeChild(style)};
   }, []);
+  // redirect if user is already logged in
+  useEffect(() => {
+    const _user=getUser();
+    if(_user){
+      router.push('/keyman/dashboard');
+    }
+  }, []);
 
+  if(user) return (<>
+  <NavigationComponent  />
+      <div className='pt-18'></div>
+      <KeymanSkeleton/>
+  </>)
+  
   return (
     <div className={`min-h-screen  transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
       <NavigationComponent  />
