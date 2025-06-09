@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation'
 import React from 'react'
 type Props={children:React.ReactNode}
 export default function Keymanlayout({children}:Props) {
+  
   const {logOutUser,user}=useAppContext()
   const router=useRouter()
   React.useEffect(() => {
@@ -25,7 +26,8 @@ logOutUser()
     console.log("Logout clicked");
     navigateTo()
     // For example, you might clear user data and redirect to login page
-    window.location.href = '/account/login';
+    //window.location.href = '/account/login';
+    router.push('/account/login');
    logOutKeymanUser();
   }
   if(user===null){

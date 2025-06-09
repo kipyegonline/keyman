@@ -14,12 +14,24 @@ export const useAppContext=()=>React.useContext(AppContext)
 type Props={children:React.ReactNode}
 const token_name="auth_token";
 const keymanUser="keyman_user";
-export const getUser=()=>JSON.parse(localStorage.getItem(keymanUser)||"null") as KeymanUser|null;  
-export const setUser=(user:KeymanUser)=>localStorage.setItem(keymanUser,JSON.stringify(user));
-export const removeUser=()=>localStorage.removeItem(keymanUser);
-export const getToken=()=>localStorage.getItem(token_name) || null;
-export const setToken=(token:string)=>localStorage.setItem(token_name,token);
-export const removeToken=()=>localStorage.removeItem(token_name);
+export const getUser=()=>{
+  if(globalThis?.window){ return JSON.parse(localStorage.getItem(keymanUser)||"null") as KeymanUser|null;  }else return null;
+} 
+export const setUser=(user:KeymanUser)=>{
+  if(globalThis?.window){ return localStorage.setItem(keymanUser,JSON.stringify(user));}else return null;
+}
+export const removeUser=()=>{
+  if(globalThis?.window){ return localStorage.removeItem(keymanUser); }else return null;
+}
+export const getToken=()=>{
+  if(globalThis?.window){ return localStorage.getItem(token_name) || null; }else return null;
+}
+export const setToken=(token:string)=>{
+  if(globalThis?.window){ return localStorage.setItem(token_name,token); }else return null;
+}
+export const removeToken=()=>{
+  if(globalThis?.window){ return localStorage.removeItem(token_name); }else return null;
+}
 
 export default function AppContextProvider({children}:Props) {
      const [darkMode, setDarkMode] = React.useState(false);
