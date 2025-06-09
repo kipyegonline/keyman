@@ -17,6 +17,7 @@ import {
 
 import AnimatedHeroSection from './HeroComponent';
 import { useAppContext } from '@/providers/AppContext';
+import { NavigationComponent } from '../ui/Navigation';
 
 
 
@@ -306,7 +307,9 @@ const createElement=(style:HTMLElement)=>{
 
   return (
     <div className={`min-h-screen  transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
-      {/*<NavigationComponent darkMode={darkMode} toggleDarkMode={toggleDarkMode} />*/}
+      <NavigationComponent  />
+      <div className='pt-18'></div>
+      
      <AnimatedHeroSection/>
      <RegistrationSection darkMode={darkMode} />
      {/** <AskKeymanSection darkMode={darkMode} />*/} 

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { notifications } from '@mantine/notifications';
 import { COLOUR } from '@/CONSTANTS/color';
 import { login } from '@/api/registration';
+import { useAppContext } from '@/providers/AppContext';
 
 interface LoginFormValues {
   email: string;
@@ -16,6 +17,7 @@ interface LoginFormValues {
 
 const KeymanLogin: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
+  const {loginUser}=useAppContext();
   const form = useForm<LoginFormValues>({
     initialValues: {
       email: '',
@@ -30,11 +32,10 @@ const KeymanLogin: React.FC = () => {
   const handleSubmit = async(values: LoginFormValues) => {
     
     setLoading(true);
-    await login(values.email, values.password)
-      .then((response) => {
-        console.log('Login successful:', response);
-         // Handle login submission here
-    notifications.show({
+    const response=await login(values.email, values.password);
+    if(response.status){
+      loginUser(response.user,response.token);
+      notifications.show({
       title: 'Login Successful',    
         message: `Welcome back, ${response?.user?.name ?? ""}!`,
         color: 'green',
@@ -43,27 +44,26 @@ const KeymanLogin: React.FC = () => {
         icon: <Check size={16} />,
         autoClose: 3000,
         
-    });
-    setTimeout(() => {
+    })
+    form.reset();
+      setTimeout(() => {
         window.location.href = '/keyman/dashboard'; // Redirect to dashboard or home page
     }, 3000); 
-      })
-      .catch((error) => {
-        console.error('Login failed:', error);
-        // Handle login failure, e.g., show error message
+    }else{
+       // Handle login failure, e.g., show error message
         notifications.show({
           title: 'Login Failed',
-          message: 'Invalid email or password. Please try again.',
+          message:  'Invalid email or password',
           color: 'red',
           withBorder: true,
           style: { borderRadius: '8px', background: COLOUR.secondary, color: 'white' },
           icon: <Check size={16} />,
           autoClose: 3000,
         });
-      })
-      .finally(() => {
-        setLoading(false);
-      });
+    }
+    setLoading(false)
+      
+    
    
   };
 

@@ -1,6 +1,8 @@
 
+import { COLOUR } from '@/CONSTANTS/color';
 import { createTheme, MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
+import { NavigationProgress } from '@mantine/nprogress';
 const theme=createTheme({
     primaryColor: 'keymanGreen',
     primaryShade: 6,
@@ -38,6 +40,8 @@ export default function MantineAppProvider({children}: Readonly<{
   return (
     <MantineProvider theme={theme}>
       <Notifications/>
+      <NavigationProgress  color={COLOUR.secondary} />
+      {/* MantineProvider is used to provide the theme to the application */}
       {children}</MantineProvider>
   )
 }

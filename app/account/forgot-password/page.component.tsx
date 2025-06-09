@@ -2,8 +2,14 @@
 import React, { useState } from 'react';
 import { useForm } from '@mantine/form';
 import { TextInput, Button, Text, Anchor, Image } from '@mantine/core';
-import { Mail, ArrowLeft } from 'lucide-react';
+import { Mail, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { requestPasswordReset } from '@/api/registration';
+import { notifications } from '@mantine/notifications';
+import { COLOUR } from '@/CONSTANTS/color';
+import { navigateTo } from '@/lib/helpers';
+import Link from 'next/link';
+
 
 interface ForgotPasswordFormValues {
   email: string;
@@ -11,6 +17,7 @@ interface ForgotPasswordFormValues {
 
 const KeymanForgotPassword: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);  
   const router=useRouter()
   
   const form = useForm<ForgotPasswordFormValues>({
@@ -22,15 +29,33 @@ const KeymanForgotPassword: React.FC = () => {
     },
   });
 
-  const handleSubmit = (values: ForgotPasswordFormValues) => {
-    console.log('Password reset requested for:', values.email);
+  const handleSubmit =async (values: ForgotPasswordFormValues) => {
+   
+    setLoading(true);
+    const response=await requestPasswordReset(values.email);
+    setLoading(false);
+    if(response.status){
+          setIsSubmitted(true);
+          
+     
+       }else{
+        const errorMessage=response?.message?.email?.[0] || 'An error occurred while sending the password reset link.'; 
+         notifications.show({
+        title: 'Password Reset Failed',  
+        message:errorMessage ,
+        color: COLOUR.primary, 
+        withBorder: true,
+        style: { borderRadius: '8px', background: COLOUR.secondary, color: '#fff' }, // Example styles  
+      })
+       }
+   
     // Handle password reset submission here
-    setIsSubmitted(true);
+
   };
 
   const handleBackToLogin = () => {
     // Handle navigation back to login
-    console.log('Navigate back to login');
+   navigateTo();
     router.push('/account/login');
     setIsSubmitted(false);
 
@@ -51,30 +76,34 @@ const didntReceive=`Didn't receive the email? Check your spam folder or try agai
             </Text>
             <Text size="sm" c="dimmed" className="mb-6 leading-relaxed">
               {share}
-              <Text component="span" fw={500} c="dark">
+              <Text component="span" fw={500} c="dark" ml="xs" className='ml-2'>
                 {form.values.email}
               </Text>
             </Text>
+            
             <Text size="xs" c="dimmed" className="mb-8">
               {didntReceive}
             </Text>
           </div>
 
           {/* Actions */}
-          <div className="space-y-3">
+          <div className="space-y-3 flex flex-col md:flex-row  justify-between items-center">
             <Button
               onClick={() => setIsSubmitted(false)}
-              fullWidth
+          //    fullWidth
               size="md"
+              hidden
               variant="outline"
-              className="border-green-600 text-green-600 hover:bg-green-50"
+              className="border-green-600 text-green-600 hover:bg-green-50 "
             >
               Try again
             </Button>
             
+            
+            
             <Button
               onClick={handleBackToLogin}
-              fullWidth
+              //fullWidth
               size="md"
               variant="subtle"
               leftSection={<ArrowLeft size={16} />}
@@ -82,6 +111,8 @@ const didntReceive=`Didn't receive the email? Check your spam folder or try agai
             >
               Back to login
             </Button>
+             <Link href="/account/reset-password" className="text-keyman-green-hover font-medium hover:text-keyman-green-hover transition-colors duration-200">
+              Reset Password <ArrowRight size={16} className='inline-block'/>  </Link>
           </div>
         </div>
       </div>
@@ -121,7 +152,8 @@ const didntReceive=`Didn't receive the email? Check your spam folder or try agai
             fullWidth
             size="md"
             className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors duration-200"
-            disabled={!form.isValid() || !form.values.email}
+            disabled={!form.isValid() || !form.values.email || loading}
+            loading={loading}
           >
             Send Pin
           </Button>
@@ -134,6 +166,7 @@ const didntReceive=`Didn't receive the email? Check your spam folder or try agai
             variant="subtle"
             leftSection={<ArrowLeft size={16} />}
             className="text-gray-600 hover:bg-gray-100"
+            loading={loading}
           >
             Back to login
           </Button>

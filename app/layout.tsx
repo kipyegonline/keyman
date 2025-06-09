@@ -3,7 +3,7 @@ import { Poppins } from "next/font/google";
 import { AppProgressProvider as ProgressBar  } from '@bprogress/next';
 
 import AppProviders from "@/providers";
-import { NavigationComponent } from "@/components/ui/Navigation";
+
 import { COLOUR } from "@/CONSTANTS/color";
 import "./globals.css";
 import '@mantine/core/styles.css';
@@ -22,14 +22,15 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  
   return (
     <html lang="en">
       <body
         className={`${poppins.variable}  antialiased`}
       >
         <AppProviders>
-          <NavigationComponent />
-            <main className="pt-18 "> {children}</main>
+         
+            <main className=""> {children}</main>
          
          <ProgressBar  
          height="4px"

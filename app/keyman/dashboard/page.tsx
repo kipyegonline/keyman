@@ -1,6 +1,9 @@
 import { Container } from '@mantine/core'
 import React from 'react'
-
+export const metadata = {
+  title: 'Keyman Dashboard',
+  description: 'Welcome to the Keyman Dashboard',
+  keywords: ['Keyman', 'Dashboard', 'Placeholder'],}
 export default function page() {
   return (
     <Container>

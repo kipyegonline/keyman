@@ -16,7 +16,7 @@ const AxiosClient = axios.create({
 AxiosClient.interceptors.request.use(
   config => {
     // Example: Add an authorization token if available
-    const token = localStorage.getItem('authToken'); // Or from your state management
+    const token = localStorage.getItem('auth_token'); // Or from your state management
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
