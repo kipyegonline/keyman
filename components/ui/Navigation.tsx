@@ -12,7 +12,7 @@ const pathname=usePathname()
 const paths=["/account/login","/account/sign-up",'/account/forgot-password',"/account/reset-password"]
   const isAccountPage = paths.includes(pathname);
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${darkMode ? 'bg-gray-900/95' : 'bg-white/95'} backdrop-blur-md border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
+    <nav className={`fixed   w-full z-50 transition-all duration-300 px-4  md:px-8 ${darkMode ? 'bg-gray-900/95' : 'bg-white/95'} backdrop-blur-md border-b ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           

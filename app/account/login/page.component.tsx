@@ -7,6 +7,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notifications } from '@mantine/notifications';
 import { COLOUR } from '@/CONSTANTS/color';
+import { login } from '@/api/registration';
 
 interface LoginFormValues {
   email: string;
@@ -14,6 +15,7 @@ interface LoginFormValues {
 }
 
 const KeymanLogin: React.FC = () => {
+  const [loading, setLoading] = React.useState(false);
   const form = useForm<LoginFormValues>({
     initialValues: {
       email: '',
@@ -25,12 +27,16 @@ const KeymanLogin: React.FC = () => {
     },
   });
 
-  const handleSubmit = (values: LoginFormValues) => {
-    console.log('Login submitted:', values);
-    // Handle login submission here
+  const handleSubmit = async(values: LoginFormValues) => {
+    
+    setLoading(true);
+    await login(values.email, values.password)
+      .then((response) => {
+        console.log('Login successful:', response);
+         // Handle login submission here
     notifications.show({
       title: 'Login Successful',    
-        message: `Welcome back, ${values.email}!`,
+        message: `Welcome back, ${response?.user?.name ?? ""}!`,
         color: 'green',
         withBorder: true,
         style: { borderRadius: '8px' ,background:COLOUR.secondary, color: 'white',},
@@ -38,6 +44,27 @@ const KeymanLogin: React.FC = () => {
         autoClose: 3000,
         
     });
+    setTimeout(() => {
+        window.location.href = '/keyman/dashboard'; // Redirect to dashboard or home page
+    }, 3000); 
+      })
+      .catch((error) => {
+        console.error('Login failed:', error);
+        // Handle login failure, e.g., show error message
+        notifications.show({
+          title: 'Login Failed',
+          message: 'Invalid email or password. Please try again.',
+          color: 'red',
+          withBorder: true,
+          style: { borderRadius: '8px', background: COLOUR.secondary, color: 'white' },
+          icon: <Check size={16} />,
+          autoClose: 3000,
+        });
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+   
   };
 
   return (
@@ -108,7 +135,7 @@ const KeymanLogin: React.FC = () => {
               fullWidth
               size="md"
               className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors duration-200"
-              disabled={!form.isValid() || !form.values.email || !form.values.password}
+              disabled={!form.isValid() || !form.values.email || !form.values.password || loading}
             >
               Sign In
             </Button>

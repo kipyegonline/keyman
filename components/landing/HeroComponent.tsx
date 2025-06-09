@@ -282,7 +282,7 @@ export default AnimatedHeroSection;
 // Ask Keyman Section Component
 const AskKeymanSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const cardStyles="rounded-3xl p-8 shadow-2xl transform hover:rotate-1 transition-transform duration-500"
+  const cardStyles="rounded-3xl p-8 shadow-2xl ";
 
   return (
     <section  className={`py-16 px-4    sm:px-6 lg:px-8 ${cardStyles}  ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>

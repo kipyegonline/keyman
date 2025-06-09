@@ -10,6 +10,6 @@ export default function AppContextProvider({children}:Props) {
     setDarkMode(!darkMode);
   };
   return (
-   <AppContext.Provider value={{toggleDarkMode,darkMode}}>{children}</AppContext.Provider>
+   <AppContext value={{toggleDarkMode,darkMode}}>{children}</AppContext>
   )
 }

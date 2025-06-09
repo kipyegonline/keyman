@@ -18,7 +18,7 @@ interface SignupFormValues {
 
 
 const KeymanSignupComponent: React.FC = () => {
- 
+ const [loading,setLoading]=React.useState(false)
   const form = useForm<SignupFormValues>({
     initialValues: {
       firstName: '',
@@ -48,6 +48,7 @@ const KeymanSignupComponent: React.FC = () => {
 
   const handleSubmit = (values: SignupFormValues) => {
     console.log('Form submitted:', values);
+    const payload={}
     // Handle form submission here
   };
 
