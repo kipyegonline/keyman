@@ -1,4 +1,5 @@
-import { Container } from '@mantine/core'
+
+import MainContent from '@/components/dashboard/content'
 import React from 'react'
 export const metadata = {
   title: 'Keyman Dashboard',
@@ -6,9 +7,8 @@ export const metadata = {
   keywords: ['Keyman', 'Dashboard', 'Placeholder'],}
 export default function page() {
   return (
-    <Container>
-        <h1>Keyman Dashboard</h1>
-        <p>Welcome to the Keyman Dashboard. This is a placeholder page.</p>
-    </Container>
+    <main className=' px-10'>
+        <MainContent/>
+    </main>
   )
 }
