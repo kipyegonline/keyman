@@ -5,10 +5,10 @@ import { TextInput, Button, Text, Anchor, Image } from '@mantine/core';
 import { Mail, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { requestPasswordReset } from '@/api/registration';
-import { notifications } from '@mantine/notifications';
-import { COLOUR } from '@/CONSTANTS/color';
+
 import { navigateTo } from '@/lib/helpers';
 import Link from 'next/link';
+import { notify } from '@/lib/notifications';
 
 
 interface ForgotPasswordFormValues {
@@ -40,13 +40,8 @@ const KeymanForgotPassword: React.FC = () => {
      
        }else{
         const errorMessage=response?.message?.email?.[0] || 'An error occurred while sending the password reset link.'; 
-         notifications.show({
-        title: 'Password Reset Failed',  
-        message:errorMessage ,
-        color: COLOUR.primary, 
-        withBorder: true,
-        style: { borderRadius: '8px', background: COLOUR.secondary, color: '#fff' }, // Example styles  
-      })
+        notify.error(errorMessage,'Password Reset Failed');
+       
        }
    
     // Handle password reset submission here

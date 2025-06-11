@@ -22,15 +22,15 @@ const MainContent: React.FC = () => {
   ];
 
   return (
-    <Container fluid p="xl" className={isDark ? 'bg-gray-900' : 'bg-gray-50 bordeer-green'}>
+    <Container fluid p="xl" className={isDark ? 'bg-gray-900' : 'bg-gray-50 '}>
       {/* AI Search Bar */}
-      <Paper p="lg" mb="xl" className="shadow-lg">
+      <Paper p="lg" mb="xl" className="!shadow-lg max-w-[768px] mx-auto" >
         <TextInput
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.currentTarget.value)}
           placeholder="Ask Keyman AI about materials, prices, or construction tips..."
           size="lg"
-          
+          radius="lg"
           leftSection={<Brain size={20} className="text-[#3D6B2C]" />}
           rightSection={
             <Button

@@ -7,7 +7,7 @@ export const metadata = {
   keywords: ['Keyman', 'Dashboard', 'Placeholder'],}
 export default function page() {
   return (
-    <main className=' px-10'>
+    <main className=' px-4 md:px-10 '>
         <MainContent/>
     </main>
   )

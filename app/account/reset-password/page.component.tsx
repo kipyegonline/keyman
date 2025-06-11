@@ -6,9 +6,9 @@ import { Eye, EyeOff, Lock, CheckCircle, ArrowLeft, Key, Mail } from 'lucide-rea
 import { useRouter } from 'next/navigation';
 import { navigateTo } from '@/lib/helpers';
 import { resetPassword } from '@/api/registration';
-import { notifications } from '@mantine/notifications';
-import { COLOUR } from '@/CONSTANTS/color';
+
 import Image from 'next/image';
+import { notify } from '@/lib/notifications';
 
 interface ResetPasswordFormValues {
   email:string
@@ -59,14 +59,8 @@ const KeymanResetPassword: React.FC = () => {
       form.reset();}
       else{
       const errorMessage=response?.message?.reset_code?.[0] || 'An error occurred while resetting your password.';
-    
-      notifications.show({
-        title: 'Password Reset Failed',
-        message: errorMessage,
-        color: COLOUR.primary, 
-        withBorder: true,
-        style: { borderRadius: '8px', background: COLOUR.secondary, color: '#721c24' }, // Example styles
-      });
+    notify.error(errorMessage,'Password Reset Failed');
+     
     }
     
   };

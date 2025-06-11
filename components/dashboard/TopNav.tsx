@@ -11,7 +11,8 @@ import {
   UnstyledButton,
   Indicator,Flex,
   Box,
-  Image
+  Image,
+  Text
 } from '@mantine/core';
 import { Bell, ChevronDown, Sun, Moon,  } from 'lucide-react';
 import { useAppContext } from '@/providers/AppContext';
@@ -76,21 +77,46 @@ const handleClickedItem=(key:string)=>{
             console.log("default clicked");
             break;}
 }
-  return (
-    <nav   style={{height:70,padding:12,}}className={isDark ? 'bg-gray-900 border-gray-700' : 'bg-white border-gray-200' }>
-      <Flex style={{ height: '100%' }}  justify={"space-between"} align="center">
-        <Group display={{ base: 'none', lg: 'flex' }}>
+const randomNumber = ()=>{
+    const num=Math.floor(Math.random() * 10);
+    if(num===0) return randomNumber()
+    return num
+}
+const MobileNav=(<Flex>
+    <Group display={{ base: 'flex', lg: 'none' }} align='center' className=''>
             <Box>
                 <Link href="/keyman/dashboard"><Image src="/keyman_logo.png" alt="logo" h={40} w={40}/></Link>
                 
             </Box>
+            <Box> <Text  fw={700} size="xl" c={isDark ? 'white' : 'dark'} className=' text-transparent background-gradient from-orange-300 to-orange-500'>
+          Keyman 
+        </Text></Box>
             
             
-               <Title order={2} c={isDark ? 'white' : 'dark'}>
+              
+        </Group>
+</Flex>)
+const PCMenu=(  <Group  display={{ base: 'none', md: 'flex' }} align='center' className=''>
+            
+                <Link href="/keyman/dashboard"><Image src="/keyman_logo.png" alt="logo" h={40} w={40}/></Link>
+                
+            
+            <Box> <Title order={2} c={isDark ? 'white' : 'dark'} className=' text-transparent background-gradient from-orange-300 to-orange-500'>
           Keyman 
         </Title>
-        </Group>
+        </Box>
+            
+            
+              
+        </Group>)
+  return (
+    <nav   style={{height:70,padding:12,}}className={isDark ? 'bg-gray-900 border-gray-700 border-b' : 'bg-white border-gray-200 border-b shadow-lg' }>
+     
+      <Flex   style={{ height: '100%' }}  justify={"space-between"} align="center">
+         {PCMenu}
+         {MobileNav}
        
+        
 
         <Group >
           {/* Dark Mode Toggle */}
@@ -98,13 +124,13 @@ const handleClickedItem=(key:string)=>{
             variant="subtle"
             onClick={toggleDarkMode}
             size="lg"
-            className={isDark ? 'hover:bg-gray-800' : 'hover:bg-gray-100'}
+            className={isDark ? 'hover:bg-gray-800 ' : 'hover:bg-gray-100'}
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </ActionIcon>
 
           {/* Notifications */}
-          <Indicator inline label="3" size={16}>
+          <Indicator inline label={randomNumber()} size={16}>
             <ActionIcon
               variant="subtle"
               size="lg"
@@ -119,7 +145,7 @@ const handleClickedItem=(key:string)=>{
             <Menu.Target>
               <UnstyledButton className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
                 <Avatar
-                  size="sm"
+                  size="md"
                   src={user?.profile_photo_url}
                   className="bg-gradient-to-br from-[#F08C23] to-[#3D6B2C] font-bold"
                />

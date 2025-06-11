@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react";
-import { LayoutDashboard, ClipboardList, ShoppingCart, Coins, Package, Settings } from "lucide-react";
+import { LayoutDashboard, ClipboardList, ShoppingCart, Coins,  } from "lucide-react";
 import { Group, Text, Box, ActionIcon, Avatar, UnstyledButton, Tooltip, Stack } from "@mantine/core";
 import { User, X, Menu as MenuIcon } from "lucide-react";
 import { Hammer } from "lucide-react";
@@ -18,8 +18,9 @@ const {user,darkMode:isDark}=useAppContext()
     { id: 'requests', label: 'Requests', icon: ClipboardList },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
     { id: 'tokens', label: 'Tokens', icon: Coins },
-    { id: 'materials', label: 'Materials', icon: Package },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    {id:"supplier",label:"Become a supplier",icon:User}
+    //{ id: 'materials', label: 'Materials', icon: Package },
+    //{ id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -68,12 +69,13 @@ const {user,darkMode:isDark}=useAppContext()
                 disabled={!isCollapsed}
               >
                 <UnstyledButton
+                p="xs"
                   onClick={() => setActiveItem(item.id)}
                   className={`
                     w-full p-3 rounded-lg transition-all duration-200 flex items-center
                     ${isActive 
-                      ? 'bg-[#3D6B2C]/10 text-[#3D6B2C] border-r-4 border-[#3D6B2C]'
-                      : `${isDark ? 'text-gray-300 hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-50'}`
+                      ? '!bg-keyman-orange !text-white !border-r-4 !border-[#3D6B2C]'
+                      : `${isDark ? '!text-white hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-50'}`
                     }
                   `}
                 >

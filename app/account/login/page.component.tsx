@@ -2,13 +2,14 @@
 import React from 'react';
 import { useForm } from '@mantine/form';
 import { TextInput, PasswordInput, Button, Text, Anchor, Group,Box,Title } from '@mantine/core';
-import { Eye, EyeOff, Mail, Lock, Check } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock,  } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { notifications } from '@mantine/notifications';
-import { COLOUR } from '@/CONSTANTS/color';
+
 import { login } from '@/api/registration';
 import { useAppContext } from '@/providers/AppContext';
+import { navigateTo } from '@/lib/helpers';
+import { notify } from '@/lib/notifications';
 
 interface LoginFormValues {
   email: string;
@@ -33,35 +34,22 @@ const KeymanLogin: React.FC = () => {
     
     setLoading(true);
     const response=await login(values.email, values.password);
+    setLoading(false)
     if(response.status){
       loginUser(response.user,response.token);
-      notifications.show({
-      title: 'Login Successful',    
-        message: `Welcome back, ${response?.user?.name ?? ""}!`,
-        color: 'green',
-        withBorder: true,
-        style: { borderRadius: '8px' ,background:COLOUR.secondary, color: 'white',},
-        icon: <Check size={16} />,
-        autoClose: 3000,
-        
-    })
+     
+    notify.success(`Welcome back, ${response?.user?.name ?? ""}!`,"Login Successful")
     form.reset();
       setTimeout(() => {
         window.location.href = '/keyman/dashboard'; // Redirect to dashboard or home page
-    }, 3000); 
+        navigateTo()
+    }, 2000); 
     }else{
        // Handle login failure, e.g., show error message
-        notifications.show({
-          title: 'Login Failed',
-          message:  'Invalid email or password',
-          color: 'red',
-          withBorder: true,
-          style: { borderRadius: '8px', background: COLOUR.secondary, color: 'white' },
-          icon: <Check size={16} />,
-          autoClose: 3000,
-        });
+       
+        notify.error(response?.message?.email?.[0]|| 'Invalid email or password',"Login Failed")
     }
-    setLoading(false)
+    
       
     
    

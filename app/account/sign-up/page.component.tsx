@@ -2,12 +2,12 @@
 import React from 'react';
 import { useForm } from '@mantine/form';
 import { TextInput, PasswordInput, Button, Text, Anchor, Checkbox,  Group,Box, Title } from '@mantine/core';
-import { Eye, EyeOff, User, Mail, Phone, Lock,Check,X } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Phone, Lock, } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { registerUser } from '@/api/registration';
-import { notifications } from '@mantine/notifications';
-import { COLOUR } from '@/CONSTANTS/color';
+
+import { notify } from '@/lib/notifications';
 
 
 interface SignupFormValues {
@@ -68,16 +68,8 @@ const KeymanSignupComponent: React.FC = () => {
         form.reset();
         setLoading(false);
         
+      notify.success(`Welcome, ${response?.user?.name ?? ""}!`,'Registration Successful')
       
-      notifications.show({
-          title: 'Registration Successful',
-          message: `Welcome, ${response?.user?.name ?? ""}!`,
-          color: 'green',
-          withBorder: true,
-          style: { borderRadius: '8px', background: COLOUR.secondary, color: 'white' },
-          icon: <Check size={16} />,
-          autoClose: 3000,
-        });
         form.reset();
         setTimeout(() => {
          // window.location.href = '/account/login'; // Redirect to login page after successful registration
@@ -86,16 +78,8 @@ const KeymanSignupComponent: React.FC = () => {
         // Handle registration failure, e.g., show error message
         
         const errorMessage=response.message.email[0] || response.message.password[0] || 'An error occurred during registration';
-        
-        notifications.show({
-          title: 'Registration Failed',
-          message: errorMessage,
-          color: 'red',
-          withBorder: true,
-          style: { borderRadius: '8px', background: COLOUR.secondary, color: 'white' },
-          icon: <X size={16} />,
-          autoClose: 3000,
-        });
+        notify.error(errorMessage,'Registration Failed')
+       
     }
     setLoading(false);
      
