@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react";
+
 import { LayoutDashboard, ClipboardList, ShoppingCart, Coins,  } from "lucide-react";
 import { Group, Text, Box, ActionIcon, Avatar, UnstyledButton, Tooltip, Stack } from "@mantine/core";
 import { User, X, Menu as MenuIcon } from "lucide-react";
@@ -11,8 +11,8 @@ const Sidebar: React.FC<{
   onToggle: () => void; 
  
 }> = ({ isCollapsed, onToggle }) => {
-  const [activeItem, setActiveItem] = useState('dashboard');
-const {user,darkMode:isDark}=useAppContext()
+  
+const {user,darkMode:isDark,activeItem,setActiveItem}=useAppContext()
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'requests', label: 'Requests', icon: ClipboardList },

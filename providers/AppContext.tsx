@@ -3,6 +3,8 @@ import { KeymanUser } from '@/types';
 import React from 'react'
 
 interface AppContext{
+  activeItem:string,
+  setActiveItem:(item:string)=>void,
   darkMode:boolean,
   toggleDarkMode:()=>void,
   user:KeymanUser|null,
@@ -35,6 +37,7 @@ export const removeToken=()=>{
 
 export default function AppContextProvider({children}:Props) {
      const [darkMode, setDarkMode] = React.useState(false);
+     const [activeItem, setActiveItem] = React.useState('dashboard');
      const [user, _setUser] = React.useState<KeymanUser|null>(null);
       React.useEffect(() => {
         const storedUser = getUser();
@@ -56,6 +59,6 @@ export default function AppContextProvider({children}:Props) {
     removeToken();
     _setUser(null);}
   return (
-   <AppContext value={{toggleDarkMode,darkMode,user,loginUser,logOutUser}}>{children}</AppContext>
+   <AppContext value={{toggleDarkMode,darkMode,user,loginUser,logOutUser,activeItem,setActiveItem}}>{children}</AppContext>
   )
 }
