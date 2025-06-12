@@ -5,6 +5,11 @@ import { Group, Text, Box, ActionIcon, Avatar, UnstyledButton, Tooltip, Stack } 
 import { User, X, Menu as MenuIcon } from "lucide-react";
 import { Hammer } from "lucide-react";
 import { useAppContext } from "@/providers/AppContext";
+import { useRouter } from "next/navigation";
+import { navigateTo } from "@/lib/helpers";
+import { useQuery } from "@tanstack/react-query";
+import { getUserDetails } from "@/api/registration";
+
 
 const Sidebar: React.FC<{ 
   isCollapsed: boolean; 
@@ -13,16 +18,50 @@ const Sidebar: React.FC<{
 }> = ({ isCollapsed, onToggle }) => {
   
 const {user,darkMode:isDark,activeItem,setActiveItem}=useAppContext()
+const router=useRouter();
+const {data}=useQuery({queryKey:["user"],queryFn:getUserDetails})
+const isSupplier=data?.user?.roles.length>0
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'requests', label: 'Requests', icon: ClipboardList },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
     { id: 'tokens', label: 'Tokens', icon: Coins },
-    {id:"supplier",label:"Become a supplier",icon:User}
+    {id:"supplier",label: isSupplier ? "Supplier profile":"Become a supplier",icon:User}
     //{ id: 'materials', label: 'Materials', icon: Package },
     //{ id: 'settings', label: 'Settings', icon: Settings },
   ];
+  const handleSupplyRoute=()=>{
+    navigateTo()
+    if(isSupplier)
+      router.push('/keyman/supplier')
+    else router.push("/keyman/supplier/register")
+  }
+const handleItemClick=(id:string)=>{
+  if(id===activeItem)return;
+  
+  setActiveItem(id)
+  // create switch for menuitems using id
+  switch(id){
+    case 'dashboard':
+       navigateTo()
+      router.push('/keyman/dashboard')
+      break;
+    case 'requests':
+      break;
+    case 'orders':
+      break;
+    case 'tokens':
+      break;
+    case 'supplier':
+      handleSupplyRoute()
+      break;
+    default:
+      break;
+  }
+}
+console.log(data,'dara')
 
+  
   return (
     <Box
       className={`
@@ -70,7 +109,7 @@ const {user,darkMode:isDark,activeItem,setActiveItem}=useAppContext()
               >
                 <UnstyledButton
                 p="xs"
-                  onClick={() => setActiveItem(item.id)}
+                  onClick={() => handleItemClick(item.id)}
                   className={`
                     w-full p-3 rounded-lg transition-all duration-200 flex items-center
                     ${isActive 
@@ -109,6 +148,7 @@ const {user,darkMode:isDark,activeItem,setActiveItem}=useAppContext()
                 {user?.is_supplier}
                 
               </Text>
+            
             </Box>
           )}
         </Group>

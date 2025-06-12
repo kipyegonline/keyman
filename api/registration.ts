@@ -79,3 +79,20 @@ export const logOutKeymanUser = async () => {
         }
     }
 }
+
+export const getUserDetails = async () => {
+    try {
+        const response = await AxiosClient.get(`${BASE_URL}${ENDPOINTS.auth.GET_USER}`);
+        return response.data;
+    } catch (error) {
+        if (error instanceof AxiosError) {
+            return error.response?.data || { message: 'An error occurred while fetching user details', status: false };
+        } else {
+            // It's good practice to log the unexpected error for server-side debugging
+            console.error('An unexpected error occurred while fetching user details:', error);
+            // And then re-throw or return a generic error message
+            // throw error; // Option 1: Re-throw the error
+            return { message: 'An unexpected error occurred while fetching user details', status: false }; // Option 2: Return a generic error
+        }
+    }
+}
