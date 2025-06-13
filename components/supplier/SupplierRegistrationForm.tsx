@@ -309,7 +309,7 @@ const [loading,setLoading]=useState(false)
     },
     validate: {
       name: (value) => (value.length < 2 ? 'Name must have at least 2 characters' : null),
-      phone: (value) => (/^\+?[1-9]\d{1,14}$/.test(value) ? null : 'Invalid phone number'),
+      phone: (value) => (/^\+?[0-9]\d{1,14}$/.test(value) ? null : 'Invalid phone number'),
       email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
       type: (value) => (value.length < 1 ? 'Supplier type is required' : null),
       address: (value) => (value.length < 5 ? 'Address must be at least 5 characters' : null),

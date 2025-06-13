@@ -110,7 +110,7 @@ const PCMenu=(  <Group  display={{ base: 'none', md: 'flex' }} align='center' cl
               
         </Group>)
   return (
-    <nav   style={{height:70,padding:12,}}className={isDark ? 'bg-gray-900 border-gray-700 border-b' : 'bg-white border-gray-200 border-b shadow-lg' }>
+    <nav   style={{height:70,padding:12,}}className={isDark ? 'bg-gray-900 border-gray-700 border-b' : 'bg-white border-gray-200 border-b shadow-lg  relative -top-2' }>
      
       <Flex   style={{ height: '100%' }}  justify={"space-between"} align="center">
          {PCMenu}

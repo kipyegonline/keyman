@@ -34,7 +34,9 @@ export const becomeSupplier = async (payload: SupplierInfo) => {
 
 export const updateSupplierDetails = async (id: string, payload: Partial<SupplierInfo>) => {
     try {
-        const response = await AxiosClient.put(ENDPOINTS.supplier.UPDATE_SUPPLIER_DETAILS(id), payload);
+       
+        const response = await AxiosClient.post(ENDPOINTS.supplier.UPDATE_SUPPLIER_DETAILS(id), payload);
+        
         return response.data;
     } catch (error) {
         if (error instanceof AxiosError) {
