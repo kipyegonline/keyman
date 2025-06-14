@@ -263,7 +263,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
                       radius="lg"
                       className="bg-gradient-to-r from-green-600 to-green-700 shadow-lg"
                     >
-                      {_supplierInfo?.name.split(' ').map(n => n[0]).join('') ?? "KS"}
+                      {_supplierInfo?.name?.split(' ').map(n => n[0]).join('') ?? "KS"}
                     </Avatar>
                     <div className="flex-1">
                       <Group align="center" gap="sm" mb="xs">
