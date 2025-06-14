@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { navigateTo } from "@/lib/helpers";
 import { useQuery } from "@tanstack/react-query";
 import { getUserDetails } from "@/api/registration";
-import { useCallback } from "react";
+import { useCallback, } from "react";
 
 
 const Sidebar: React.FC<{ 
@@ -34,6 +34,8 @@ const getSupplierName=useCallback(()=>{
     //{ id: 'materials', label: 'Materials', icon: Package },
     //{ id: 'settings', label: 'Settings', icon: Settings },
   ];
+  
+ 
   const handleSupplyRoute=()=>{
     navigateTo()
     toggleDashboard()
@@ -65,7 +67,7 @@ const handleItemClick=(id:string)=>{
   }
 }
 
-
+console.log(data,"___data__")
   
   return (
     <Box

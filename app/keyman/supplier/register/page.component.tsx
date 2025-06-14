@@ -12,7 +12,7 @@ export default function SupplierComponent() {
     })
    
   return (
-    <div>
+    <div className=''>
         <SupplierRegistrationForm supplierTypes={supplierTypes?.supplier}/>
       
     </div>

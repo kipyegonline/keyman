@@ -389,10 +389,10 @@ const categoriesError=(<>
           </Text>
         )}</>)
   return (
-    <Container size="md" className="py-8">
-      <Paper className="p-8 shadow-2xl rounded-2xl bg-gradient-to-br from-white to-gray-50 border border-gray-100">
+    <Container size="fluid" p={{base:"xs",md:"md"}} className="py-3 md:py-8 ">
+      <Paper className="p-2 md:p-8   shadow-2xl rounded-2xl bg-gradient-to-br from-white to-gray-50 border border-gray-100">
         <div className="text-center mb-8">
-          <Title className="text-3xl font-bold text-[#3D6B2C] mb-2">
+          <Title className="text-xl md:text-3xl font-bold text-[#3D6B2C] mb-2">
             Join Keyman Network
           </Title>
           <Text className="text-gray-600 text-lg">
@@ -428,7 +428,7 @@ const categoriesError=(<>
           {active === 0 && (
             <Transition mounted={active === 0} transition="slide-right" duration={300}>
               {(styles) => (
-                <div style={styles} className="space-y-6">
+                <div style={styles} className="space-y-6 ">
                   <Grid>
                     <Grid.Col span={12}>
                       <TextInput
@@ -441,7 +441,7 @@ const categoriesError=(<>
                       />
                     </Grid.Col>
                     
-                    <Grid.Col span={6}>
+                    <Grid.Col span={{base:12, md:6}}>
                       <TextInput
                         label="Phone Number"
                         placeholder="+1234567890"
@@ -452,7 +452,7 @@ const categoriesError=(<>
                       />
                     </Grid.Col>
                     
-                    <Grid.Col span={6}>
+                    <Grid.Col span={{base:12, md:6}}>
                       <TextInput
                         label="Email Address"
                         placeholder="business@example.com"

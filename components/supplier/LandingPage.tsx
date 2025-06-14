@@ -57,7 +57,10 @@ import {
   User,
   Building,
   Navigation,
+  LucideProps,
 } from 'lucide-react';
+
+import { SupplierDetails } from '@/types';
 
 interface StaffMember {
   id: string;
@@ -74,41 +77,18 @@ interface DashboardStats {
   ordersCompleted: number;
 }
 
-interface SupplierInfo {
-  name: string;
-  phone: string;
-  email: string;
-  type: 'individual' | 'company';
-  address: string;
-  latitude: number;
-  longitude: number;
-  categories: string[];
-  shopName: string;
-  keymanNumber: string;
-  totalStaff: number;
-  // Optional fields
-  tiktok_link?: string;
-  facebook_link?: string;
-  youtube_link?: string;
-  instagram_link?: string;
-  twitter_link?: string;
-  offers_transport?: boolean;
-  internet_access?: boolean;
-  has_pos?: boolean;
-  has_inventory?: boolean;
-  is_escrow_only?: boolean;
-  photo?: File|null;
-  comments?: string;
-}
 
-const SupplierDashboard: React.FC = () => {
+type Props={supplierDetails:SupplierDetails}
+
+const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => {
+
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffRole, setNewStaffRole] = useState('');
   const [animateCards, setAnimateCards] = useState(false);
-
+  
   // Mock data - replace with your actual API data
-  const supplierInfo: SupplierInfo = {
+  const supplierInfo = {
     name: "John Kamau",
     phone: "+254 712 345 678",
     email: "john.kamau@premiumhardware.co.ke",
@@ -143,7 +123,7 @@ const SupplierDashboard: React.FC = () => {
   const staffMembers: StaffMember[] = [
     {
       id: '1',
-      name: 'John Doe',
+      name: 'John Kamau',
       role: 'Store Manager',
     },
   ];
@@ -163,7 +143,11 @@ const SupplierDashboard: React.FC = () => {
   };
 
   const openGoogleMaps = () => {
-    window.open(`https://maps.google.com/?q=${supplierInfo.latitude},${supplierInfo.longitude}`, '_blank');
+    const [long,lat]=_supplierInfo?.location?.coordinates
+    if(lat && long){
+ window.open(`https://maps.google.com/?q=${long},${lat}`, '_blank');
+    }
+   
   };
 
   const StatCard = ({ 
@@ -174,7 +158,7 @@ const SupplierDashboard: React.FC = () => {
     color = "#3D6B2C",
     delay = 0 
   }: {
-    icon: React.ReactElement;
+    icon: React.FC<LucideProps>;
     title: string;
     value: string | number;
     subtitle?: string;
@@ -243,7 +227,7 @@ const SupplierDashboard: React.FC = () => {
   const SocialIcon = ({ platform, link, icon: Icon, color }: { 
     platform: string; 
     link: string; 
-    icon: React.ReactElement; 
+    icon: React.FC<LucideProps>; 
     color: string; 
   }) => (
     <Tooltip label={`Visit ${platform}`}>
@@ -263,32 +247,32 @@ const SupplierDashboard: React.FC = () => {
   );
 
   return (
-    <div className="p-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+    <div className=" p-2 md:p-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Enhanced Header Section */}
       <Transition mounted={animateCards} transition="fade" duration={800}>
         {(styles) => (
-          <div style={styles} className="mb-8">
-            <Paper p="xl" radius="lg" shadow="sm" className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200">
+          <div style={styles} className="mb-8 ">
+            <Paper p={{base:"sm",md:"xl"}} radius="lg" shadow="sm" className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200">
               <Grid>
                 <Grid.Col span={{ base: 12, md: 8 }}>
                   <Group align="flex-start" gap="lg">
                     <Avatar
                       src={""}
-                      alt={supplierInfo.name}
+                      alt={_supplierInfo?.name ?? "Keyman Store"}
                       size={80}
                       radius="lg"
                       className="bg-gradient-to-r from-green-600 to-green-700 shadow-lg"
                     >
-                      {supplierInfo.name.split(' ').map(n => n[0]).join('')}
+                      {_supplierInfo?.name.split(' ').map(n => n[0]).join('') ?? "KS"}
                     </Avatar>
                     <div className="flex-1">
                       <Group align="center" gap="sm" mb="xs">
                         <Store size={24} color="#3D6B2C" />
-                        <Title order={2} className="text-gray-800">
-                          {supplierInfo.shopName}
+                        <Title order={2} className="text-gray-800 ">
+                          {_supplierInfo?.name}
                         </Title>
                       </Group>
-                      <Text size="lg" fw={500} className="text-gray-700 mb-2">
+                      <Text size="lg" fw={500} className="text-gray-700 mb-2 hidden">
                         {supplierInfo.name}
                       </Text>
                       <Group gap="xs" mb="sm">
@@ -297,24 +281,25 @@ const SupplierDashboard: React.FC = () => {
                           color={supplierInfo.type === 'company' ? 'blue' : 'green'}
                           leftSection={supplierInfo.type === 'company' ? <Building size={12} /> : <User size={12} />}
                         >
-                          {supplierInfo.type === 'company' ? 'Company' : 'Individual'}
+                          {_supplierInfo?.type?.includes("_")?_supplierInfo?.type?.replace("_"," ") : _supplierInfo?.type}
                         </Badge>
                         <Badge
                           variant="gradient"
                           gradient={{ from: '#3D6B2C', to: '#388E3C' }}
-                          leftSection={<Crown size={12} />}
+                          leftSection={<Crown size={16} />}
+                          size='xl'
                         >
-                          Keyman #{supplierInfo.keymanNumber}
+                          Keyman #{_supplierInfo?.keyman_number}
                         </Badge>
                       </Group>
                       <Group gap="lg">
                         <Group gap="xs">
                           <Phone size={16} color="#666" />
-                          <Text size="sm" c="dimmed">{supplierInfo.phone}</Text>
+                          <Text size="sm" c="dimmed">{_supplierInfo?.phone}</Text>
                         </Group>
                         <Group gap="xs">
                           <Mail size={16} color="#666" />
-                          <Text size="sm" c="dimmed">{supplierInfo.email}</Text>
+                          <Text size="sm" c="dimmed">{_supplierInfo?.email}</Text>
                         </Group>
                       </Group>
                     </div>
@@ -332,46 +317,46 @@ const SupplierDashboard: React.FC = () => {
                       View Location
                     </Button>
                     {/* Social Media Links */}
-                    {(supplierInfo.facebook_link || supplierInfo.instagram_link || 
-                      supplierInfo.twitter_link || supplierInfo.youtube_link || 
-                      supplierInfo.tiktok_link) && (
+                    {(_supplierInfo?.facebook_link || _supplierInfo?.instagram_link || 
+                      _supplierInfo?.twitter_link || _supplierInfo?.youtube_link || 
+                      _supplierInfo?.tiktok_link) && (
                       <Group gap="xs">
-                        {supplierInfo.facebook_link && (
+                        {_supplierInfo.facebook_link && (
                           <SocialIcon 
                             platform="Facebook" 
-                            link={supplierInfo.facebook_link} 
+                            link={_supplierInfo.facebook_link} 
                             icon={Facebook} 
                             color="blue" 
                           />
                         )}
-                        {supplierInfo.instagram_link && (
+                        {_supplierInfo.instagram_link && (
                           <SocialIcon 
                             platform="Instagram" 
-                            link={supplierInfo.instagram_link} 
+                            link={_supplierInfo.instagram_link} 
                             icon={Instagram} 
                             color="pink" 
                           />
                         )}
-                        {supplierInfo.twitter_link && (
+                        {_supplierInfo?.twitter_link && (
                           <SocialIcon 
                             platform="Twitter" 
-                            link={supplierInfo.twitter_link} 
+                            link={_supplierInfo.twitter_link} 
                             icon={Twitter} 
                             color="cyan" 
                           />
                         )}
-                        {supplierInfo.youtube_link && (
+                        {_supplierInfo.youtube_link && (
                           <SocialIcon 
                             platform="YouTube" 
-                            link={supplierInfo.youtube_link} 
+                            link={_supplierInfo.youtube_link} 
                             icon={Youtube} 
                             color="red" 
                           />
                         )}
-                        {supplierInfo.tiktok_link && (
+                        {_supplierInfo.tiktok_link && (
                           <SocialIcon 
                             platform="TikTok" 
-                            link={supplierInfo.tiktok_link} 
+                            link={_supplierInfo.tiktok_link} 
                             icon={Music2} 
                             color="dark" 
                           />
@@ -407,12 +392,28 @@ const SupplierDashboard: React.FC = () => {
                   </Text>
                   <Group align="baseline" gap="xs">
                     <Text size="3xl" fw={900}>
-                      KES {stats.totalRevenue.toLocaleString()}
+                      KES {_supplierInfo?.coin_balance?.total?.toLocaleString()}
                     </Text>
                   </Group>
                   <Text size="sm" className="text-green-100 mt-2">
                     Last 30 days
                   </Text>
+                </div>
+                <div>
+                   <Text size="sm" className="text-green-100 mb-2">
+                    BREAKDOWN
+                  </Text>
+                  <Group justify='space-between' align="flex-end">
+                      <Text>Free: <Badge  size="md"
+                        variant="filled" color='keymanOrange'>{_supplierInfo?.coin_balance?.breakdown?.free}</Badge></Text>
+                  <Text>Paid: <Badge  size="md"
+                       // variant="gradient"
+                        //</Text>gradient={{ from: '#3D6B2C', to: '#388E3C' }}
+                         variant="filled" color='keymanOrange'
+                        > {_supplierInfo?.coin_balance?.breakdown?.paid}</Badge></Text>
+                  </Group>
+                
+
                 </div>
                 <ActionIcon
                   size="xl"
@@ -441,7 +442,7 @@ const SupplierDashboard: React.FC = () => {
             <StatCard
               icon={FileText}
               title="REQUESTS RECEIVED"
-              value={stats.requestsReceived}
+              value={_supplierInfo?.requests_count ?? 0}
               color="#3D6B2C"
               delay={100}
             />
@@ -451,7 +452,7 @@ const SupplierDashboard: React.FC = () => {
             <StatCard
               icon={CheckCircle}
               title="QUOTES DONE"
-              value={stats.quotesDone}
+              value={_supplierInfo?.quotes_count ?? 0}
               color="#F08C23"
               delay={200}
             />
@@ -461,7 +462,7 @@ const SupplierDashboard: React.FC = () => {
             <StatCard
               icon={ShoppingCart}
               title="ORDERS RECEIVED"
-              value={stats.ordersReceived}
+              value={_supplierInfo?.orders_count ?? 0}
               color="#388E3C"
               delay={300}
             />
@@ -503,7 +504,7 @@ const SupplierDashboard: React.FC = () => {
                           <Text size="sm" fw={500}>Address:</Text>
                         </Group>
                         <Text size="sm" c="dimmed" mb="md">
-                          {supplierInfo.address}
+                          {_supplierInfo?.address}
                         </Text>
                       </Grid.Col>
                       <Grid.Col span={{ base: 12, sm: 6 }}>
@@ -512,9 +513,9 @@ const SupplierDashboard: React.FC = () => {
                           <Text size="sm" fw={500}>Categories:</Text>
                         </Group>
                         <Group gap="xs">
-                          {supplierInfo.categories.map((category, index) => (
+                          {_supplierInfo?.categories.map((category, index) => (
                             <Badge key={index} variant="light" color="green" size="sm">
-                              {category}
+                              {category?.item_category?.name}
                             </Badge>
                           ))}
                         </Group>
@@ -535,15 +536,15 @@ const SupplierDashboard: React.FC = () => {
                           <ThemeIcon
                             size="xl"
                             radius="xl"
-                            variant={supplierInfo.offers_transport ? "filled" : "light"}
-                            color={supplierInfo.offers_transport ? "green" : "gray"}
+                            variant={_supplierInfo?.offers_transport ? "filled" : "light"}
+                            color={_supplierInfo?.offers_transport ? "green" : "gray"}
                             mb="sm"
                           >
                             <Truck size={24} />
                           </ThemeIcon>
                           <Text size="sm" fw={500}>Transport</Text>
-                          <Text size="xs" c={supplierInfo.offers_transport ? "green" : "dimmed"}>
-                            {supplierInfo.offers_transport ? "Available" : "Not Available"}
+                          <Text size="xs" c={_supplierInfo?.offers_transport ? "green" : "dimmed"}>
+                            {_supplierInfo?.offers_transport ? "Available" : "Not Available"}
                           </Text>
                         </Paper>
                       </Grid.Col>
@@ -553,15 +554,15 @@ const SupplierDashboard: React.FC = () => {
                           <ThemeIcon
                             size="xl"
                             radius="xl"
-                            variant={supplierInfo.internet_access ? "filled" : "light"}
-                            color={supplierInfo.internet_access ? "blue" : "gray"}
+                            variant={_supplierInfo?.internet_access ? "filled" : "light"}
+                            color={_supplierInfo?.internet_access ? "blue" : "gray"}
                             mb="sm"
                           >
                             <Wifi size={24} />
                           </ThemeIcon>
                           <Text size="sm" fw={500}>Internet</Text>
-                          <Text size="xs" c={supplierInfo.internet_access ? "blue" : "dimmed"}>
-                            {supplierInfo.internet_access ? "Available" : "Not Available"}
+                          <Text size="xs" c={_supplierInfo?.internet_access ? "blue" : "dimmed"}>
+                            {_supplierInfo?.internet_access ? "Available" : "Not Available"}
                           </Text>
                         </Paper>
                       </Grid.Col>
@@ -571,15 +572,15 @@ const SupplierDashboard: React.FC = () => {
                           <ThemeIcon
                             size="xl"
                             radius="xl"
-                            variant={supplierInfo.has_pos ? "filled" : "light"}
-                            color={supplierInfo.has_pos ? "orange" : "gray"}
+                            variant={_supplierInfo?.has_pos ? "filled" : "light"}
+                            color={_supplierInfo?.has_pos ? "orange" : "gray"}
                             mb="sm"
                           >
                             <CreditCard size={24} />
                           </ThemeIcon>
                           <Text size="sm" fw={500}>POS System</Text>
-                          <Text size="xs" c={supplierInfo.has_pos ? "orange" : "dimmed"}>
-                            {supplierInfo.has_pos ? "Available" : "Not Available"}
+                          <Text size="xs" c={_supplierInfo?.has_pos ? "orange" : "dimmed"}>
+                            {_supplierInfo?.has_pos ? "Available" : "Not Available"}
                           </Text>
                         </Paper>
                       </Grid.Col>
@@ -589,15 +590,15 @@ const SupplierDashboard: React.FC = () => {
                           <ThemeIcon
                             size="xl"
                             radius="xl"
-                            variant={supplierInfo.has_inventory ? "filled" : "light"}
-                            color={supplierInfo.has_inventory ? "teal" : "gray"}
+                            variant={_supplierInfo?.has_inventory ? "filled" : "light"}
+                            color={_supplierInfo?.has_inventory ? "teal" : "gray"}
                             mb="sm"
                           >
                             <Archive size={24} />
                           </ThemeIcon>
                           <Text size="sm" fw={500}>Inventory</Text>
-                          <Text size="xs" c={supplierInfo.has_inventory ? "teal" : "dimmed"}>
-                            {supplierInfo.has_inventory ? "Managed" : "Not Managed"}
+                          <Text size="xs" c={_supplierInfo?.has_inventory ? "teal" : "dimmed"}>
+                            {_supplierInfo?.has_inventory ? "Managed" : "Not Managed"}
                           </Text>
                         </Paper>
                       </Grid.Col>
@@ -615,17 +616,17 @@ const SupplierDashboard: React.FC = () => {
                       <ThemeIcon
                         size="xl"
                         radius="xl"
-                        variant={supplierInfo.is_escrow_only ? "filled" : "light"}
-                        color={supplierInfo.is_escrow_only ? "red" : "green"}
+                        variant={_supplierInfo?.is_escrow_only ? "filled" : "light"}
+                        color={_supplierInfo?.is_escrow_only ? "red" : "green"}
                       >
                         <Shield size={24} />
                       </ThemeIcon>
                       <div>
                         <Text size="sm" fw={500}>
-                          {supplierInfo.is_escrow_only ? "Escrow Only" : "Multiple Payment Options"}
+                          {_supplierInfo?.is_escrow_only ? "Escrow Only" : "Multiple Payment Options"}
                         </Text>
                         <Text size="xs" c="dimmed">
-                          {supplierInfo.is_escrow_only 
+                          {_supplierInfo?.is_escrow_only 
                             ? "This supplier only accepts escrow payments for security"
                             : "This supplier accepts various payment methods including direct payments"
                           }
@@ -636,7 +637,7 @@ const SupplierDashboard: React.FC = () => {
                 </Accordion.Item>
 
                 {/* Additional Comments */}
-                {supplierInfo.comments && (
+                {_supplierInfo?.comments && (
                   <Accordion.Item value="comments">
                     <Accordion.Control icon={<MessageSquare size={16} color="#666" />}>
                       Additional Information
@@ -644,7 +645,7 @@ const SupplierDashboard: React.FC = () => {
                     <Accordion.Panel>
                       <Paper p="md" radius="md" className="bg-blue-50 border border-blue-200">
                         <Text size="sm" style={{ lineHeight: 1.6 }}>
-                          {supplierInfo.comments}
+                          {_supplierInfo?.comments}
                         </Text>
                       </Paper>
                     </Accordion.Panel>
@@ -668,7 +669,7 @@ const SupplierDashboard: React.FC = () => {
                     <Text fw={600}>Staff Members</Text>
                   </Group>
                   <Badge variant="light" color="green">
-                    {supplierInfo.totalStaff} Staff
+                    {_supplierInfo?.staff_count ?? "-"} Staff
                   </Badge>
                 </Group>
                 

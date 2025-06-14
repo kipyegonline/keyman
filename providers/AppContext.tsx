@@ -77,6 +77,11 @@ const _setDashboard=(value:string)=>{
     localStorage.setItem('dashboard', value);
    
   }}
+  const _getDash=()=>{
+    if(isBrowser){
+      return localStorage.getItem("dashboard")
+    }
+  }
   return {
     getUser: _getUser,
     setUser: _setUser,
@@ -84,7 +89,8 @@ const _setDashboard=(value:string)=>{
     getToken: _getToken,
     setToken: _setToken,
     removeToken: _removeToken,
-    setDashboard:_setDashboard
+    setDashboard:_setDashboard,
+    getDash:_getDash
   };
 }
   
@@ -101,20 +107,31 @@ export const {
   getToken, 
  setToken, 
   removeToken ,
-  setDashboard
+  setDashboard,
+  getDash
 } = storageManager;
 
+const checkCurrentDash=()=>{
+  const storeDash=getDash();
+  if(storeDash){
+return storeDash==="dashboard";
+  }
+  return true
+}
 export default function AppContextProvider({children}:Props) {
+
      const [darkMode, setDarkMode] = React.useState(false);
-     const [mainDashboard,setMainDashboard]=React.useState(true)
+     const [mainDashboard,setMainDashboard]=React.useState(checkCurrentDash())
      
-     const [activeItem, setActiveItem] = React.useState('dashboard');
+     const [activeItem, setActiveItem] = React.useState( getDash() ??'dashboard');
      const [user, _setUser] = React.useState<KeymanUser|null>(null);
+      
       React.useEffect(() => {
         const storedUser = getUser();
         if (storedUser) {
           _setUser(storedUser);
         }
+       
       }, []);
       
 
@@ -124,7 +141,9 @@ export default function AppContextProvider({children}:Props) {
   const toggleDashboard=()=>{
     
     setMainDashboard(!mainDashboard)
-    //mainDashboard ? setDashboard("supplier") : setDashboard("dashboard")
+    if(mainDashboard)
+     setDashboard("supplier") 
+    else setDashboard("dashboard")
 
   } 
   const loginUser=(user:KeymanUser,token:string)=>{

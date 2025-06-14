@@ -7,7 +7,7 @@ export const metadata:Metadata={ title: "Keyman stores",
   description: "Become Supplier",}
 export default function page() {
   return (
-   <main>
+   <main className=''>
     <SupplierComponent/>
    </main>
   )

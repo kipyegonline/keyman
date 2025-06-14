@@ -105,3 +105,81 @@ export interface categories{
     professional_services:{name:"professional_services",categories:{id:string,name:string}[]}
     services:{name:"services",categories:{id:string,name:string}[]}
 }
+export interface SupplierDetails{
+  address: string;
+  categories: Category[];
+  coin_balance: CoinBalance;
+  coin_usage: CoinUsageItem[];
+  comments: string;
+  created_at: string;
+  email: string;
+  facebook_link: string | null;
+  has_inventory: number;
+  has_pos: number;
+  id: string;
+  instagram_link: string | null;
+  internet_access: number;
+  is_escrow_only: number;
+  keyman_number: string;
+  level: string;
+  location: Location;
+  media: string[];
+  name: string;
+  offers_transport: number;
+  orders_by_status: string[];
+  orders_count: number;
+  phone: string;
+  photo: string[]|null;
+  quotes_count: number;
+  requests_count: number;
+  staff_count: number;
+  tiktok_link: string | null;
+  twitter_link: string | null;
+  type: string;
+  updated_at: string;
+  user_id: number;
+  youtube_link: string | null;
+}
+
+interface Category {
+ 
+created_at:string
+id:string
+
+item_category
+: 
+{id: string, 
+  name: string,
+item_category_id
+: string
+supplier_detail_id:string
+updated_at:string
+}
+}
+
+interface CoinBalance {
+ 
+breakdown: {free: string, paid: number}
+total: number
+}
+
+interface CoinUsageItem {
+   coinable_id: string;
+  coinable_type: string;
+  created_at: string;
+  credit: string;
+  debit: string;
+  expiry: string;
+  id: string;
+  notes: string;
+  ownable_id: string;
+  ownable_type: string;
+  type: string;
+  updated_at: string;
+  value: string;
+}
+
+interface Location {
+  type: string;
+  coordinates: [number,number];
+}
