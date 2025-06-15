@@ -7,12 +7,12 @@ import { getSupplierDetails } from '@/api/supplier';
 import { SupplierDetails } from '@/types';
 export default function SupplierComponentDashboard() {
     const {user}=useAppContext();
-    const {data:supplier,error,isLoading}=useQuery({queryKey:["supplier"],
+    const {data:supplier,}=useQuery({queryKey:["supplier"],
         queryFn:async()=>await getSupplierDetails(user?.supplier_details?.id as string)
 })
         
     const supplierDetails=supplier?.supplier as SupplierDetails
-    console.log({error,isLoading,supplier,user})
+   
   return (
     <div className=' px-0'>
         

@@ -6,7 +6,7 @@ import { useAppContext } from '@/providers/AppContext';
 import { useRouter } from 'next/navigation';
 import { navigateTo } from '@/lib/helpers';
 // Main Content Component
-const MainContent: React.FC = ({userDetails}) => {
+const MainContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const {darkMode:isDark,user}=useAppContext() 
   const router=useRouter()

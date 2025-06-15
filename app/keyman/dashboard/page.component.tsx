@@ -10,7 +10,7 @@ export default function UserDashboardComponent() {
     console.log(userDetails,'user details')
   return (
     <div>
-      <MainContent userDetails={userDetails}/>
+      <MainContent />
     </div>
   )
 }
