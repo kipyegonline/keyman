@@ -3,10 +3,13 @@ import React, { useState } from 'react';
 import { Container ,Paper,TextInput,Button,Group,Card,Grid,Box,Title,Stack,Text,Badge,ActionIcon} from '@mantine/core';
 import { ShoppingCart, ClipboardList, Coins, Package, Plus, CreditCard, Search, Brain, Bot} from 'lucide-react';
 import { useAppContext } from '@/providers/AppContext';
+import { useRouter } from 'next/navigation';
+import { navigateTo } from '@/lib/helpers';
 // Main Content Component
 const MainContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const {darkMode:isDark}=useAppContext() 
+  const {darkMode:isDark,user}=useAppContext() 
+  const router=useRouter()
 
   const stats = [
     { label: 'Active Orders', value: '24', icon: ShoppingCart, color: '#3b82f6' },
@@ -20,11 +23,18 @@ const MainContent: React.FC = () => {
     { id: 'ORD-002', item: 'Steel Rods (12mm)', quantity: '100', status: 'In Transit', date: '5 hours ago', color: 'blue' },
     { id: 'ORD-003', item: 'Bricks (Red Clay)', quantity: '500', status: 'Processing', date: '1 day ago', color: 'yellow' },
   ];
-
+const handleBecomeSupplier=()=>{
+navigateTo();
+router.push("/keyman/supplier/register")
+}
+const isSupplier=user && "supplier_details" in user;
   return (
-    <Container fluid p="xl" className={isDark ? 'bg-gray-900' : 'bg-gray-50 '}>
+    <Container fluid p={{sm:"xs",md:"xl"}}  className={isDark ? 'bg-gray-900' : 'bg-gray-50  '}>
+      {!isSupplier && <Box className=' hidden md:flex justify-end relative -top-2 left-4'>  <Button onClick={handleBecomeSupplier}>Become Supplier</Button></Box>}
+    
       {/* AI Search Bar */}
       <Paper p="lg" mb="xl" className="!shadow-lg max-w-[768px] mx-auto" >
+        
         <TextInput
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.currentTarget.value)}

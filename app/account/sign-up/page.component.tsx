@@ -10,6 +10,7 @@ import { registerUser } from '@/api/registration';
 import { notify } from '@/lib/notifications';
 
 
+
 interface SignupFormValues {
   firstName: string;
   lastName: string;
@@ -22,6 +23,7 @@ interface SignupFormValues {
 
 const KeymanSignupComponent: React.FC = () => {
  const [loading,setLoading]=React.useState(false)
+
   const form = useForm<SignupFormValues>({
     initialValues: {
       firstName: '',
@@ -72,7 +74,7 @@ const KeymanSignupComponent: React.FC = () => {
       
         form.reset();
         setTimeout(() => {
-         // window.location.href = '/account/login'; // Redirect to login page after successful registration
+          window.location.href = '/account/login'; // Redirect to login page after successful registration
         }, 3000);
     }else{
         // Handle registration failure, e.g., show error message

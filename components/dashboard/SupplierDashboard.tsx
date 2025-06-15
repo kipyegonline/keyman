@@ -1,15 +1,14 @@
 "use client"
 
-import { LayoutDashboard, ClipboardList, ShoppingCart, Coins,  } from "lucide-react";
+import { LayoutDashboard, ClipboardList, ShoppingCart, Settings, DiamondPercent  } from "lucide-react";
 import { Group, Text, Box, ActionIcon, Avatar, UnstyledButton, Tooltip, Stack } from "@mantine/core";
 import { User, X, Menu as MenuIcon } from "lucide-react";
 import { Hammer } from "lucide-react";
 import { useAppContext } from "@/providers/AppContext";
 import { useRouter } from "next/navigation";
 import { navigateTo } from "@/lib/helpers";
-import { useQuery } from "@tanstack/react-query";
-import { getUserDetails } from "@/api/registration";
-import { useCallback, } from "react";
+//import { useQuery } from "@tanstack/react-query";
+//import { getUserDetails } from "@/api/registration";
 
 
 const Sidebar: React.FC<{ 
@@ -20,28 +19,23 @@ const Sidebar: React.FC<{
   
 const {user,darkMode:isDark,activeItem,setActiveItem,toggleDashboard}=useAppContext()
 const router=useRouter();
-const {data}=useQuery({queryKey:["user"],queryFn:getUserDetails})
-const isSupplier=data?.user?.roles.length>0
-const getSupplierName=useCallback(()=>{
-  return user?.supplier_details?.name;
-},[])
+//const {data}=useQuery({queryKey:["user"],queryFn:getUserDetails})
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'requests', label: 'Requests', icon: ClipboardList },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
-    { id: 'tokens', label: 'Tokens', icon: Coins },
-    {id:"supplier",label: isSupplier ?getSupplierName() :"Become a supplier",icon:User}
+    {id:"price",label:"Price List",icon:DiamondPercent},
+    { id: 'update', label: 'Update profile', icon: Settings },
+    {id:"customer",label:  "Customer Profile",icon:User}
     //{ id: 'materials', label: 'Materials', icon: Package },
     //{ id: 'settings', label: 'Settings', icon: Settings },
   ];
-  
- 
   const handleSupplyRoute=()=>{
     navigateTo()
     toggleDashboard()
-    if(isSupplier)
-      router.push('/keyman/supplier')
-    else router.push("/keyman/supplier/register")
+    router.push('/keyman/dashboard')
+  
   }
 const handleItemClick=(id:string)=>{
   if(id===activeItem)return;
@@ -51,15 +45,17 @@ const handleItemClick=(id:string)=>{
   switch(id){
     case 'dashboard':
        navigateTo()
-      router.push('/keyman/dashboard')
+      router.push('/keyman/supplier')
       break;
     case 'requests':
       break;
-    case 'orders':
+    case 'update':
+      navigateTo()
+      router.push('/keyman/supplier/update-profile')
       break;
     case 'tokens':
       break;
-    case 'supplier':
+    case 'customer':
       handleSupplyRoute()
       break;
     default:
@@ -67,13 +63,13 @@ const handleItemClick=(id:string)=>{
   }
 }
 
-console.log(data,"___data__")
+
   
   return (
     <Box
       className={`
         transition-all duration-300 ease-in-out border-r-2 h-screen flex flex-col 
-        ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-keyman-green text-white border-gray-200'}
+        ${isDark ? 'bg-gray-900 border-gray-700' : 'bg-keyman-orange text-white border-gray-200'}
       `}
       style={{ width: isCollapsed ? 70 : 280 }}
       p="md"
@@ -86,7 +82,7 @@ console.log(data,"___data__")
               <Hammer className="w-6 h-6 text-white" />
             </Box>
             <Text size="xl" fw={700} c={isDark ? 'white' : 'white'}>
-              Dashboard
+          {"Dashboard"}
             </Text>
           </Group>
         )}
@@ -120,7 +116,7 @@ console.log(data,"___data__")
                   className={`
                     w-full p-3 rounded-lg transition-all duration-200 flex items-center
                     ${isActive 
-                      ? '!bg-keyman-orange !text-white !border-r-4 !border-[#3D6B2C]'
+                      ? '!bg-keyman-green !text-white !border-r-4 !border-[#3D6B2C]'
                       : `${isDark ? '!text-white hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-50'}`
                     }
                   `}
@@ -151,7 +147,7 @@ console.log(data,"___data__")
               <Text size="sm" fw={600} c={isDark ? 'white' : 'white'}>
                 {user?.name}
               </Text>
-              <Text size="xs" className="capitalize" c="dimmed">
+              <Text size="xs" className="capitalize" >
                 {user?.is_supplier}
                 
               </Text>
