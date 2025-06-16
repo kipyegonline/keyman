@@ -8,7 +8,7 @@ import React from 'react'
 export default function UpdateSupplierComponent() {
 
    const {data:supplierTypes}=useQuery({
-        queryKey:["supplier"],
+        queryKey:["supplierTypes"],
         queryFn:getSupplierTypes
          
     })
@@ -18,8 +18,9 @@ export default function UpdateSupplierComponent() {
          
     })
     
+    
   return (
-    <div>
+    <div >
       <SupplierUpdateForm supplierTypes={supplierTypes?.supplier} initialData={userData?.user?.supplier_details}/>
     </div>
   )

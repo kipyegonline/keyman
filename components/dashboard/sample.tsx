@@ -11,6 +11,7 @@ export function CollapseDesktop() {
       header={{ height: 60 }}
       navbar={{
         width: 300,
+       
         breakpoint: 'sm',
         collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
       }}

@@ -5,7 +5,7 @@ import {
   TextInput,
   Select,
   Button,
-  Container,
+
   Paper,
   Title,
   Text,
@@ -355,10 +355,10 @@ const SupplierUpdateForm: React.FC<{
   
 
   return (
-    <Container size="fluid" className="py-2 md:py-6 " >
+    <section className="py-0 md:py-6  w-full " >
       <Transition mounted={isVisible} transition="fade" duration={500}>
         {(styles) => (
-          <Paper style={styles} className="p-2 md:p-6  shadow-xl rounded-2xl bg-gradient-to-br from-white to-gray-50 border border-gray-100">
+          <Paper style={styles} className="!p-0 md:p-6   shadow-xl rounded-2xl bg-gradient-to-br from-white to-gray-50 border border-gray-100">
            {showSuccess ? <div className="text-center mb-6">
               <Title order={2} className="text-2xl font-bold text-[#3D6B2C] mb-2 flex items-center justify-center gap-2">
                 <CheckCircle className='animate-pulse' size={24} />
@@ -575,7 +575,7 @@ const SupplierUpdateForm: React.FC<{
           </Paper>
         )}
       </Transition>
-    </Container>
+    </section>
   );
 };
 

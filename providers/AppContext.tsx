@@ -80,8 +80,16 @@ const _setDashboard=(value:string)=>{
   const _getDash=()=>{
     if(isBrowser){
       return localStorage.getItem("dashboard")
+    }}
+
+    const _removeDash=()=>{
+      if(isBrowser){
+        localStorage.removeItem("dashboard")
+        return;
+      }
+      return null;
     }
-  }
+  
   return {
     getUser: _getUser,
     setUser: _setUser,
@@ -90,7 +98,8 @@ const _setDashboard=(value:string)=>{
     setToken: _setToken,
     removeToken: _removeToken,
     setDashboard:_setDashboard,
-    getDash:_getDash
+    getDash:_getDash,
+    removeDash:_removeDash
   };
 }
   
@@ -108,7 +117,8 @@ export const {
  setToken, 
   removeToken ,
   setDashboard,
-  getDash
+  getDash,
+  removeDash
 } = storageManager;
 
 const checkCurrentDash=()=>{
@@ -153,6 +163,7 @@ export default function AppContextProvider({children}:Props) {
     const logOutUser=()=>{
     removeUser();
     removeToken();
+    removeDash()
     _setUser(null);}
   return (
    <AppContext value={{toggleDarkMode,darkMode,user,loginUser,logOutUser,activeItem,setActiveItem,toggleDashboard,mainDashboard}}>{children}</AppContext>

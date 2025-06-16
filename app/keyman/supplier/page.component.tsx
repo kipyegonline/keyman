@@ -12,7 +12,7 @@ export default function SupplierComponentDashboard() {
 })
         
     const supplierDetails=supplier?.supplier as SupplierDetails
-   
+  
   return (
     <div className=' px-0'>
         

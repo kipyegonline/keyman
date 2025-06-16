@@ -13,7 +13,7 @@ export default function Keymanlayout({children}:Props) {
   React.useEffect(() => {
     const _user=getUser();
      if(!_user){
-    console.log("user not found, redirecting to login")
+   
    router.push('/account/login')
    }
   

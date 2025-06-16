@@ -22,6 +22,7 @@ import {
   Tooltip,
 
   Title,
+  Select,
 } from '@mantine/core';
 import {
   DollarSign,
@@ -58,9 +59,12 @@ import {
   Building,
   Navigation,
   LucideProps,
+  LoaderCircle,
 } from 'lucide-react';
 
 import { SupplierDetails } from '@/types';
+import { notify } from '@/lib/notifications';
+import { inviteUserToSupplier } from '@/api/supplier';
 
 interface StaffMember {
   id: string;
@@ -69,13 +73,7 @@ interface StaffMember {
   avatar?: string;
 }
 
-interface DashboardStats {
-  totalRevenue: number;
-  requestsReceived: number;
-  quotesDone: number;
-  ordersReceived: number;
-  ordersCompleted: number;
-}
+
 
 
 type Props={supplierDetails:SupplierDetails}
@@ -85,6 +83,10 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [newStaffName, setNewStaffName] = useState('');
   const [newStaffRole, setNewStaffRole] = useState('');
+  const [staffEmail,setNewStaffEmail]= useState('');
+  const [serviceType,setServicetype]=useState('')
+  const [loading,setLoading]= useState(false);
+
   const [animateCards, setAnimateCards] = useState(false);
   
   // Mock data - replace with your actual API data
@@ -112,13 +114,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
     comments: "Specializing in quality construction materials with over 10 years of experience in the industry."
   };
 
-  const stats: DashboardStats = {
-    totalRevenue: 5,
-    requestsReceived: 0,
-    quotesDone: 0,
-    ordersReceived: 0,
-    ordersCompleted: 0,
-  };
+ 
 
   const staffMembers: StaffMember[] = [
     {
@@ -133,12 +129,41 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
     return () => clearTimeout(timer);
   }, []);
 
-  const handleInviteStaff = () => {
-    if (newStaffName.trim() && newStaffRole.trim()) {
-      console.log('Inviting:', { name: newStaffName, role: newStaffRole });
-      setNewStaffName('');
-      setNewStaffRole('');
-      setInviteModalOpen(false);
+const validateStaff=()=>newStaffName.trim() && newStaffRole.trim() && staffEmail.trim().length>7 && serviceType.trim().length>0;
+  const resetFormState=()=>{
+    setNewStaffEmail('')
+    setNewStaffName('')
+    setNewStaffRole('')
+    setServicetype('')}
+
+const handleInviteStaff =async () => {
+    if (validateStaff()) {
+if(_supplierInfo?.email ===staffEmail) return notify.error("You cannot invite yourself as supplier")
+      const payload={
+    email:staffEmail,
+    name:newStaffName,
+    role:"normal",
+    type:newStaffRole,
+    service_types:serviceType,
+    supplier_detail_id:_supplierInfo?.id,
+    ks_number:_supplierInfo?.keyman_number
+  }
+  setLoading(true)
+  const response=await inviteUserToSupplier(payload)
+   setLoading(false)
+  if(response.status){
+notify.success(response.message)
+resetFormState()
+setTimeout(()=>setInviteModalOpen(false),3000)
+
+  }else{
+notify.error("Something went wrong, try again later")
+  }
+     
+     
+      
+     
+      //setInviteModalOpen(false);
     }
   };
 
@@ -149,6 +174,70 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
     }
    
   };
+const removeStaffMember=(staff:StaffMember)=>{
+  if(confirm(`Remove ${staff.name}`)){
+
+  }
+}
+const StaffMemberInvitation = ( 
+      <Modal
+        opened={inviteModalOpen}
+        onClose={() => setInviteModalOpen(false)}
+        title={
+          <Group align="center" gap="sm">
+            <UserPlus size={20} color="#3D6B2C" />
+            <Text fw={600}>Invite New Staff Member</Text>
+          </Group>
+        }
+        centered
+        radius="md"
+      >
+        <Stack gap="md">
+          <TextInput
+            label="Staff Name"
+            placeholder="Enter full name"
+            value={newStaffName}
+            onChange={(e) => setNewStaffName(e.target.value)}
+            required
+          />
+           <TextInput
+            label="Staff Email"
+            placeholder="Enter email address"
+            value={staffEmail}
+            onChange={(e) => setNewStaffEmail(e.target.value)}
+            required
+          />
+          
+          
+          <Select label="Choose role"  onChange={(value) => value ?setNewStaffRole(value):null}
+            required data={[{label:"staff",value:"staff"},{label:"Service provider",value:"service_provider"}  ]}/>
+          
+         {newStaffRole &&  <TextInput
+            label={` Indicate type of ${newStaffRole.toLowerCase()}`}
+            placeholder="Enter type"
+            value={serviceType}
+            onChange={(e) => setServicetype(e.target.value)}
+            required
+          />}
+          <Group justify="flex-end" mt="md">
+            <Button
+              variant="light"
+              onClick={() => setInviteModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleInviteStaff}
+              className="bg-gradient-to-r from-green-600 to-green-700"
+              disabled={!validateStaff()|| loading}
+              loading={loading}
+            >
+              Send Invitation
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>)
+ 
 
   const StatCard = ({ 
     icon: Icon, 
@@ -178,7 +267,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
           shadow="sm"
           padding="lg"
           radius="md"
-          className="hover:shadow-lg transition-all duration-300 hover:scale-105 border border-gray-100"
+          className="hover:shadow-lg transition-all min-h-[180px] duration-300 hover:scale-105 border border-gray-100"
           style={{
             background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
             animationDelay: `${delay}ms`,
@@ -208,7 +297,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
             </Badge>
           </Group>
           
-          <Text size="xl" fw={700} className="text-gray-800">
+          <Text size="xl" fw={700} className="text-gray-800 !pl-8">
             {value}
           </Text>
           <Text size="sm" c="dimmed" mt={4}>
@@ -263,7 +352,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
                       radius="lg"
                       className="bg-gradient-to-r from-green-600 to-green-700 shadow-lg"
                     >
-                      {_supplierInfo?.name?.split(' ').map(n => n[0]).join('') ?? "KS"}
+                      {_supplierInfo?.name?.split(' ')?.map(n => n[0]).join('') ?? "KS"}
                     </Avatar>
                     <div className="flex-1">
                       <Group align="center" gap="sm" mb="xs">
@@ -437,8 +526,8 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
           Activity Summary
         </Text>
         
-        <Grid>
-          <Grid.Col span={{ base: 12, xs: 6, sm: 3 }}>
+        <Grid align='stretch' justify='center'>
+          <Grid.Col span={{ base: 12, xs: 4, sm: 2 }}>
             <StatCard
               icon={FileText}
               title="REQUESTS RECEIVED"
@@ -448,7 +537,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
             />
           </Grid.Col>
           
-          <Grid.Col span={{ base: 12, xs: 6, sm: 3 }}>
+          <Grid.Col span={{ base: 12, xs: 4, sm: 2}} >
             <StatCard
               icon={CheckCircle}
               title="QUOTES DONE"
@@ -458,7 +547,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
             />
           </Grid.Col>
           
-          <Grid.Col span={{ base: 12, xs: 6, sm: 3 }}>
+          <Grid.Col span={{ base: 12, xs: 4, sm: 2 }}>
             <StatCard
               icon={ShoppingCart}
               title="ORDERS RECEIVED"
@@ -466,14 +555,23 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
               color="#388E3C"
               delay={300}
             />
-          </Grid.Col>
-          
-          <Grid.Col span={{ base: 12, xs: 6, sm: 3 }}>
+          </Grid.Col>          
+        
+           <Grid.Col span={{ base: 12, xs: 4, sm: 2 }}>
             <StatCard
               icon={Package}
               title="ORDERS COMPLETED"
-              value={stats.ordersCompleted}
+              value={_supplierInfo?.orders_by_status?.COMPLETED ?? 0}
               color="#3D6B2C"
+              delay={400}
+            />
+          </Grid.Col>
+            <Grid.Col span={{ base: 12, xs: 4, sm: 2 }}>
+            <StatCard
+              icon={LoaderCircle}
+              title="ORDERS PENDING"
+              value={_supplierInfo?.orders_by_status?.PENDING ?? 0}
+              color="#8BC34A"
               delay={400}
             />
           </Grid.Col>
@@ -513,7 +611,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
                           <Text size="sm" fw={500}>Categories:</Text>
                         </Group>
                         <Group gap="xs">
-                          {_supplierInfo?.categories.map((category, index) => (
+                          {_supplierInfo?.categories?.map((category, index) => (
                             <Badge key={index} variant="light" color="green" size="sm">
                               {category?.item_category?.name}
                             </Badge>
@@ -674,7 +772,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
                 </Group>
                 
                 <Stack gap="sm">
-                  {staffMembers.map((staff) => (
+                  {staffMembers?.map((staff) => (
                     <Paper
                       key={staff.id}
                       p="md"
@@ -690,7 +788,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
                             radius="xl"
                             className="bg-gradient-to-r from-green-400 to-green-600"
                           >
-                            {staff.name.split(' ').map(n => n[0]).join('')}
+                            {staff.name.split(' ')?.map(n => n[0]).join('')}
                           </Avatar>
                           <div>
                             <Text size="sm" fw={500}>
@@ -706,6 +804,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
                           color="red"
                           size="sm"
                           className="hover:scale-110 transition-transform"
+                          onClick={()=>removeStaffMember(staff)}
                         >
                           <UserMinus size={16} />
                         </ActionIcon>
@@ -769,53 +868,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
         </Grid.Col>
       </Grid>
 
-      {/* Invite Staff Modal */}
-      <Modal
-        opened={inviteModalOpen}
-        onClose={() => setInviteModalOpen(false)}
-        title={
-          <Group align="center" gap="sm">
-            <UserPlus size={20} color="#3D6B2C" />
-            <Text fw={600}>Invite New Staff Member</Text>
-          </Group>
-        }
-        centered
-        radius="md"
-      >
-        <Stack gap="md">
-          <TextInput
-            label="Staff Name"
-            placeholder="Enter full name"
-            value={newStaffName}
-            onChange={(e) => setNewStaffName(e.target.value)}
-            required
-          />
-          
-          <TextInput
-            label="Role"
-            placeholder="e.g., Store Assistant, Manager"
-            value={newStaffRole}
-            onChange={(e) => setNewStaffRole(e.target.value)}
-            required
-          />
-          
-          <Group justify="flex-end" mt="md">
-            <Button
-              variant="light"
-              onClick={() => setInviteModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleInviteStaff}
-              className="bg-gradient-to-r from-green-600 to-green-700"
-              disabled={!newStaffName.trim() || !newStaffRole.trim()}
-            >
-              Send Invitation
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+     {StaffMemberInvitation}
     </div>
   );
 };

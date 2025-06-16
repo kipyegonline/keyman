@@ -126,7 +126,7 @@ export interface SupplierDetails{
   media: string[];
   name: string;
   offers_transport: number;
-  orders_by_status: string[];
+  orders_by_status: {PENDING:number,COMPLETED:number};
   orders_count: number;
   phone: string;
   photo: string[]|null;

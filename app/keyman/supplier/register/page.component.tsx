@@ -6,7 +6,7 @@ import React from 'react'
 
 export default function SupplierComponent() {
     const {data:supplierTypes}=useQuery({
-        queryKey:["supplier"],
+        queryKey:["supplierTypes"],
         queryFn:getSupplierTypes
          
     })
