@@ -56,6 +56,7 @@ const handleItemClick=(id:string)=>{
     case 'tokens':
       break;
     case 'customer':
+      console.log('customer____')
       handleSupplyRoute()
       break;
     default:

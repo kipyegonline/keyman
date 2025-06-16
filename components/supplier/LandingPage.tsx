@@ -179,6 +179,7 @@ const removeStaffMember=(staff:StaffMember)=>{
 
   }
 }
+console.log(_supplierInfo,'ssup')
 const StaffMemberInvitation = ( 
       <Modal
         opened={inviteModalOpen}
@@ -857,7 +858,7 @@ const StaffMemberInvitation = (
                         variant="gradient"
                         gradient={{ from: '#3D6B2C', to: '#388E3C' }}
                       >
-                        {supplierInfo.totalStaff}
+                        {_supplierInfo?.staff_count ?? 0}
                       </Badge>
                     </Group>
                   </Paper>

@@ -9,7 +9,10 @@ import { useRouter } from "next/navigation";
 import { navigateTo } from "@/lib/helpers";
 import { useQuery } from "@tanstack/react-query";
 import { getUserDetails } from "@/api/registration";
-import { useCallback, } from "react";
+import React from "react";
+
+type HardWare={id:string,
+  detail:{id:string,name:string},supplier_detail_id:string}
 
 
 const Sidebar: React.FC<{ 
@@ -22,30 +25,43 @@ const {user,darkMode:isDark,activeItem,setActiveItem,toggleDashboard}=useAppCont
 const router=useRouter();
 const {data}=useQuery({queryKey:["user"],queryFn:getUserDetails})
 const isSupplier=data?.user?.roles.length>0
-const getSupplierName=useCallback(()=>{
-  return user?.supplier_details?.name;
-},[])
+
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'requests', label: 'Requests', icon: ClipboardList },
     { id: 'orders', label: 'Orders', icon: ShoppingCart },
     { id: 'tokens', label: 'Tokens', icon: Coins },
-    {id:"supplier",label: isSupplier ?getSupplierName() :"Become a supplier",icon:User}
+   
     //{ id: 'materials', label: 'Materials', icon: Package },
     //{ id: 'settings', label: 'Settings', icon: Settings },
   ];
   
- 
+ const becomeSupplier={id:"supplier",label: "Become a supplier",icon:User}
+
   const handleSupplyRoute=()=>{
     navigateTo()
     toggleDashboard()
-    if(isSupplier)
+     router.push('/keyman/supplier/register')
+     /** 
+      *  if(isSupplier)
       router.push('/keyman/supplier')
     else router.push("/keyman/supplier/register")
+     */
+   
   }
+  const handleHardware=(hardware:HardWare)=>{
+    navigateTo()
+   
+    localStorage.setItem("supplier_id",hardware.supplier_detail_id)
+    setActiveItem("dashboard")
+    router.push(`/keyman/supplier`)
+    toggleDashboard()
+    
+  }
+
 const handleItemClick=(id:string)=>{
   if(id===activeItem)return;
-  
+ 
   setActiveItem(id)
   // create switch for menuitems using id
   switch(id){
@@ -60,6 +76,8 @@ const handleItemClick=(id:string)=>{
     case 'tokens':
       break;
     case 'supplier':
+     
+      
       handleSupplyRoute()
       break;
     default:
@@ -67,8 +85,15 @@ const handleItemClick=(id:string)=>{
   }
 }
 
-console.log(data,"___data__")
-  
+
+const hardwares=React.useMemo(()=>{
+  if(data && data.user ){
+return data?.user?.roles
+  }else{
+    return []
+  }
+  },[data])
+console.log(data,'__user data__')
   return (
     <Box
       className={`
@@ -107,32 +132,36 @@ console.log(data,"___data__")
             const Icon = item.icon;
             const isActive = activeItem === item.id;
             
-            return (
-              <Tooltip
-                key={item.id}
-                label={item.label}
-                position="right"
-                disabled={!isCollapsed}
-              >
-                <UnstyledButton
-                p="xs"
-                  onClick={() => handleItemClick(item.id)}
-                  className={`
-                    w-full p-3 rounded-lg transition-all duration-200 flex items-center
-                    ${isActive 
-                      ? '!bg-keyman-orange !text-white !border-r-4 !border-[#3D6B2C]'
-                      : `${isDark ? '!text-white hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-50'}`
-                    }
-                  `}
-                >
-                  <Icon size={20} className={isCollapsed ? 'mx-auto' : 'mr-3'} />
-                  {!isCollapsed && (
-                    <Text size="md" fw={500}>{item.label}</Text>
-                  )}
-                </UnstyledButton>
-              </Tooltip>
-            );
+            return <MenuItem
+              key={item.id}
+              item={item}
+              isCollapsed={isCollapsed}
+              isActive={isActive}
+              handleItemClick={()=>handleItemClick(item.id)}
+              isDark={isDark}
+              Icon={Icon}
+              />
           })}
+<hr/>
+          {!isSupplier ?<MenuItem
+              key={becomeSupplier.id}
+              item={becomeSupplier}
+              isCollapsed={isCollapsed}
+              isActive={false}
+              handleItemClick={()=>handleItemClick(becomeSupplier.id)}
+              isDark={isDark}
+              Icon={becomeSupplier.icon}
+              /> :hardwares.map((hardware:HardWare)=><>
+              
+              <MenuItem
+               key={hardware.id} 
+               item={{label:hardware?.detail?.name,id:hardware?.detail?.id}}
+                isCollapsed={isCollapsed}
+                 isActive={false} 
+                  isDark={isDark} 
+                  Icon={User} 
+                  handleItemClick={()=>handleHardware(hardware)}/>
+                  </>) }
         </Stack>
       </Box>
 
@@ -166,3 +195,43 @@ console.log(data,"___data__")
 
 
 export default Sidebar;
+
+type MenuItemprops={
+  isCollapsed:boolean,
+  isActive:boolean,
+  isDark:boolean,
+  handleItemClick:()=>void,
+  Icon:React.FC<{size:number,className?:string}>,
+  item:{
+    id:string,
+    label:string,
+    
+  }}
+
+const MenuItem:React.FC<MenuItemprops>=({item,isCollapsed,isActive,handleItemClick,isDark,Icon})=>{
+  return (
+              <Tooltip
+                key={item.id}
+                label={item.label}
+                position="right"
+                disabled={!isCollapsed}
+              >
+                <UnstyledButton
+                p="xs"
+                  onClick={handleItemClick}
+                  className={`
+                    w-full p-3 rounded-lg transition-all duration-200 flex items-center
+                    ${isActive 
+                      ? '!bg-keyman-orange !text-white !border-r-4 !border-[#3D6B2C]'
+                      : `${isDark ? '!text-white hover:bg-gray-800' : 'text-gray-600 hover:bg-gray-50'}`
+                    }
+                  `}
+                >
+                  <Icon size={20} className={isCollapsed ? 'mx-auto' : 'mr-3'} />
+                  {!isCollapsed && (
+                    <Text size="md" fw={500}>{item.label}</Text>
+                  )}
+                </UnstyledButton>
+              </Tooltip>
+            );
+}
