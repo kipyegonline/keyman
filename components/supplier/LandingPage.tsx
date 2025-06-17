@@ -116,13 +116,7 @@ const SupplierDashboard: React.FC<Props> = ({supplierDetails:_supplierInfo}) => 
 
  
 
-  const staffMembers: StaffMember[] = [
-    {
-      id: '1',
-      name: 'John Kamau',
-      role: 'Store Manager',
-    },
-  ];
+ 
 
   React.useEffect(() => {
     const timer = setTimeout(() => setAnimateCards(true), 100);
@@ -174,8 +168,8 @@ notify.error("Something went wrong, try again later")
     }
    
   };
-const removeStaffMember=(staff:StaffMember)=>{
-  if(confirm(`Remove ${staff.name}`)){
+const removeStaffMember=(staff:SupplierDetails['staff'][0])=>{
+  if(confirm(`Remove ${staff?.user?.name}`)){
 
   }
 }
@@ -773,7 +767,7 @@ const StaffMemberInvitation = (
                 </Group>
                 
                 <Stack gap="sm">
-                  {staffMembers?.map((staff) => (
+                  {_supplierInfo?.staff && _supplierInfo?.staff?.toReversed()?.map((staff) => (
                     <Paper
                       key={staff.id}
                       p="md"
@@ -783,17 +777,18 @@ const StaffMemberInvitation = (
                       <Group justify="space-between">
                         <Group>
                           <Avatar
-                            src={staff.avatar}
-                            alt={staff.name}
+                            src={staff?.user?.
+profile_photo_url}
+                            alt={staff?.user?.name}
                             size="md"
                             radius="xl"
                             className="bg-gradient-to-r from-green-400 to-green-600"
                           >
-                            {staff.name.split(' ')?.map(n => n[0]).join('')}
+                            {staff?.user?.name.split(' ')?.map(n => n[0]).join('')}
                           </Avatar>
                           <div>
                             <Text size="sm" fw={500}>
-                              {staff.name}
+                              {staff?.user?.name}
                             </Text>
                             <Text size="xs" c="dimmed">
                               {staff.role}

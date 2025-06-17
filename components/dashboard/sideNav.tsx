@@ -37,6 +37,9 @@ const isSupplier=data?.user?.roles.length>0
   ];
   
  const becomeSupplier={id:"supplier",label: "Become a supplier",icon:User}
+ React.useEffect(()=>{
+  setActiveItem("dashboard")
+ },[])
 
   const handleSupplyRoute=()=>{
     navigateTo()

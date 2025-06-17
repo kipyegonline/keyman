@@ -355,7 +355,7 @@ const SupplierUpdateForm: React.FC<{
   
 
   return (
-    <section className="py-0 md:py-6  w-full " >
+    <section className="py-0 md:py-6  w-full  px-4 md:px-20" >
       <Transition mounted={isVisible} transition="fade" duration={500}>
         {(styles) => (
           <Paper style={styles} className="!p-0 md:p-6   shadow-xl rounded-2xl bg-gradient-to-br from-white to-gray-50 border border-gray-100">

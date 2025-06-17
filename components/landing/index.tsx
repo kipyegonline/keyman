@@ -20,6 +20,7 @@ import { getUser, useAppContext } from '@/providers/AppContext';
 import { NavigationComponent } from '../ui/Navigation';
 import { KeymanSkeleton } from '@/lib/helperComponents';
 import { useRouter } from 'next/navigation';
+import { Image } from '@mantine/core';
 
 
 
@@ -47,8 +48,13 @@ const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
           </div>
           
           <div className="relative">
-            <div className="relative z-10 bg-gradient-to-br from-[#F08C23] to-orange-400 rounded-3xl p-8 transform hover:rotate-1 transition-transform duration-500">
-              <div className="grid grid-cols-2 gap-4">
+            <div 
+            //className="relative z-10 bg-gradient-to-br from-[#F08C23] to-orange-400 rounded-3xl p-8 transform hover:rotate-1 transition-transform duration-500"
+            className="rounded-md w-full h-full overflow-hidden">
+             <div>
+              <Image src="/keyman_hero.jpeg" alt="" className='rounded-lg h-full w-full object-cover'/>
+             </div>
+              <div className="grids grid-cols-2 gap-4 hidden">
                 <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 flex items-center justify-center">
                   <Hammer className="w-12 h-12 text-white" />
                 </div>

@@ -105,6 +105,25 @@ export interface categories{
     professional_services:{name:"professional_services",categories:{id:string,name:string}[]}
     services:{name:"services",categories:{id:string,name:string}[]}
 }
+export interface Staff{
+  
+id:string
+supplier_detail_id: string
+user_id:number,
+user:{email:string,id:number,link:string,name:string,
+profile_photo_url:string
+}
+
+}
+export interface Pricelist {
+  description: string;
+  name: string;
+  price: string;
+  swahili_name: string;
+  transportation_type: string;
+  type: string;
+  weight_in_kgs: string;
+}
 export interface SupplierDetails{
   address: string;
   categories: Category[];
@@ -132,6 +151,7 @@ export interface SupplierDetails{
   photo: string[]|null;
   quotes_count: number;
   requests_count: number;
+  staff: Staff[];
   staff_count: number;
   tiktok_link: string | null;
   twitter_link: string | null;

@@ -53,10 +53,13 @@ const handleItemClick=(id:string)=>{
       navigateTo()
       router.push('/keyman/supplier/update-profile')
       break;
-    case 'tokens':
+    case 'price':
+       navigateTo()
+      router.push('/keyman/supplier/price-list')
+      
       break;
     case 'customer':
-      console.log('customer____')
+      
       handleSupplyRoute()
       break;
     default:
