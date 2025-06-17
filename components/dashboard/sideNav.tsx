@@ -5,7 +5,7 @@ import { Group, Text, Box, ActionIcon, Avatar, UnstyledButton, Tooltip, Stack } 
 import { User, X, Menu as MenuIcon } from "lucide-react";
 import { Hammer } from "lucide-react";
 import { useAppContext } from "@/providers/AppContext";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { navigateTo } from "@/lib/helpers";
 import { useQuery } from "@tanstack/react-query";
 import { getUserDetails } from "@/api/registration";
@@ -37,8 +37,14 @@ const isSupplier=data?.user?.roles.length>0
   ];
   
  const becomeSupplier={id:"supplier",label: "Become a supplier",icon:User}
+ const path=usePathname()
  React.useEffect(()=>{
-  setActiveItem("dashboard")
+  console.log(path.split('/').at(-1),path,'path')
+  const currentpath=path.split('/').at(-1)
+  if(currentpath){
+    setActiveItem(currentpath)
+  }else{
+    setActiveItem("dashboard")}
  },[])
 
   const handleSupplyRoute=()=>{
@@ -73,6 +79,9 @@ const handleItemClick=(id:string)=>{
       router.push('/keyman/dashboard')
       break;
     case 'requests':
+        navigateTo()
+      router.push('/keyman/dashboard/requests')
+
       break;
     case 'orders':
       break;
@@ -96,7 +105,7 @@ return data?.user?.roles
     return []
   }
   },[data])
-console.log(data,'__user data__')
+//console.log(data,'__user data__')
   return (
     <Box
       className={`

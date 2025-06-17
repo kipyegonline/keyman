@@ -203,3 +203,67 @@ interface Location {
   type: string;
   coordinates: [number,number];
 }
+
+export interface KeymanRequest {
+  delivery_date: string;
+  status:"SUBMITTED"| "PENDING" | "IN_PROGRESS"  | ' COMPLETED' | 'CANCELLED'|"awarded"
+  latitude: string;
+  longitude: string;
+  created_from: string;
+  ks_number: string;
+  items: Array<{
+    name: string;
+    itemId: string;
+    quanity: string;
+    description: string;
+    visual_confirmation_required: boolean;
+  }>;
+}
+export interface RequestDelivery {
+  code: string;
+  created_at: string;
+  created_from: string;
+  delivery_date: string;
+  id: string;
+  items_count: number;
+  ks_number: null;
+  location: {
+    type: string;
+    coordinates: [number, number];
+  };
+  quotes_count: number;
+  status: "SUBMITTED"| "PENDING" | "IN_PROGRESS"  | ' COMPLETED' | 'CANCELLED'|"awarded"
+  updated_at: string;
+}
+export interface RequestDeliveryItem {
+  code: string;
+  created_at: string;
+  created_from: string;
+  delivery_date: string;
+  id: string;
+  items: Array<{
+    name: string;
+    itemId: string;
+    quanity: string;
+    description: string;
+    visual_confirmation: boolean;
+  }>;
+  ks_number: null;
+  location: {
+    type: string;
+    coordinates: [number, number];
+  };
+  orders: Array<Record<string,string|number>>; // Assuming 'orders' can be an array of any type if specific structure isn't provided
+  status: string;
+  transports: Array<{
+    id: string;
+    transportable_id: string;
+    transportable_type: string;
+    supplier_detail_id: string;
+    transport_type: string;
+    total_weight:string;
+    transportation_vehicle:string
+
+  }>;
+  updated_at: string;
+}
