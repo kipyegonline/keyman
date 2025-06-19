@@ -49,6 +49,10 @@ const handleItemClick=(id:string)=>{
       break;
     case 'requests':
       break;
+    case "orders":
+        navigateTo()
+      router.push('/keyman/supplier/orders')
+        break;
     case 'update':
       navigateTo()
       router.push('/keyman/supplier/update-profile')

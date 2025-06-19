@@ -19,6 +19,13 @@ supplier:{
     GET_DETAILS:(id:string)=>`/api/supplier/${id}`, // has an id,
     GET_PRICE_LIST:(supplier_detail_id:string)=>`/api/supplier/${supplier_detail_id}/price_list`,
    UPDATE_PRICE_LIST:(supplier_detail_id:string)=>`/api/supplier/${supplier_detail_id}/update_price_list`
+},
+orders:{
+    CREATE_ORDERS:"/api/orders",
+    GET:"/api/orders",
+    GET_ORDER_DETAILS:(order_id:string)=>`/api/orders/${order_id}`,
+    ITEM_RECEIPT_CONFIRMATION:(order_id:string)=>`/api/order/${order_id}/receipt-confirmation`,
+
 }
 
 }
