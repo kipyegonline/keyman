@@ -30,6 +30,11 @@ requests:{
      AWARD_ITEM:(request_id:string)=>`/api/request/${request_id}}/award`
 
 
-}
+},
+items:{GET_ITEMS:(item:string,categoryId?:string)=>{
+    if(categoryId)
+        return `/api/items?name=${item}&item_category_id=${categoryId}`
+    else return `/api/items?name=${item}&item_category_id=`
+}}
 
 }

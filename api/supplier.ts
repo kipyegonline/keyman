@@ -113,8 +113,9 @@ export const getSupplierPriceList = async (supplierDetailId: string) => {
     }
 }
 
-export const updateSupplierPriceList = async (supplierDetailId: string, payload: Record<string,string|number|boolean>) => { // Define a more specific type for payload if possible
+export const updateSupplierPriceList = async (supplierDetailId: string, payload: [{item_id:string,price:number}]) => { // Define a more specific type for payload if possible
     try {
+       
         const response = await AxiosClient.post(ENDPOINTS.supplier.UPDATE_PRICE_LIST(supplierDetailId), payload); // Or AxiosClient.put
         return response.data;
     } catch (error) {

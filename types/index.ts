@@ -236,6 +236,7 @@ export interface RequestDelivery {
   updated_at: string;
 }
 export interface RequestDeliveryItem {
+  
   code: string;
   created_at: string;
   created_from: string;
@@ -243,10 +244,10 @@ export interface RequestDeliveryItem {
   id: string;
   items: Array<{
     name: string;
-    itemId: string;
-    quanity: string;
+    id: string;
+    quantity: string;
     description: string;
-    visual_confirmation: boolean;
+    visual_confirmation: 0 |1;
   }>;
   ks_number: null;
   location: {
@@ -254,7 +255,7 @@ export interface RequestDeliveryItem {
     coordinates: [number, number];
   };
   orders: Array<Record<string,string|number>>; // Assuming 'orders' can be an array of any type if specific structure isn't provided
-  status: string;
+ status: "SUBMITTED"| "PENDING" | "IN_PROGRESS"  | 'COMPLETED' | 'CANCELLED'|"awarded"
   transports: Array<{
     id: string;
     transportable_id: string;

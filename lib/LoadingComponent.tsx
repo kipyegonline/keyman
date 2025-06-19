@@ -9,7 +9,7 @@ import {
   Container,
   Center,
   RingProgress,
-  Loader
+
 } from '@mantine/core';
 import { 
   Truck, 
@@ -167,7 +167,7 @@ const LoadingComponent: React.FC<LoadingComponentProps> = ({
                   size={config.ring}
                   thickness={8}
                   sections={[
-                    { value: 100, color: '#3D6B2C', animated: true }
+                    { value: 100, color: '#3D6B2C', }
                   ]}
                   rootColor="rgba(61, 107, 44, 0.1)"
                   className="animate-pulse"

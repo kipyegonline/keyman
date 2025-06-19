@@ -37,8 +37,13 @@ import {
   Plus,
   TrendingUp,
   //Zap,
-  CheckCircle2
+  CheckCircle2,
+  HandCoins
 } from 'lucide-react';
+import { updateSupplierPriceList } from '@/api/supplier';
+import { useAppContext } from '@/providers/AppContext';
+import { notify } from '@/lib/notifications';
+
 
 export interface Pricelist {
   id?: string;
@@ -140,9 +145,9 @@ const getTransportationColor = (type: string) => {
     default: return '#3D6B2C';
   }
 };
-
-export default function PricelistDashboard() {
-  const [items, setItems] = useState<Pricelist[]>(sampleItems);
+ let wordCount=0;
+export default function PricelistDashboard({ handleSearch, isPending,prices:items }: { handleSearch: (val: string) => void, isPending: boolean ,prices:Pricelist[]}) {
+  const [_items, setItems] = useState<Pricelist[]>(sampleItems);
   const [selectedItem, setSelectedItem] = useState<Pricelist | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [editForm, setEditForm] = useState<Pricelist | null>(null);
@@ -151,47 +156,83 @@ export default function PricelistDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+const supplierId=localStorage.getItem('supplier_id')
+
+
+const handleSearchQuery=(value:string)=>{
+   if (searchTerm.length > 2) {
+    if(value.length>wordCount){
+ handleSearch(value)
+    }
+     
+      
+    }
+    
+  
+    if(value.length<wordCount)
+      wordCount--
+      else
+  wordCount++
+}
   const handleEditClick = (item: Pricelist) => {
     setSelectedItem(item);
-    setEditForm({ ...item });
+    setEditForm({...item});
     setModalOpened(true);
   };
 
   const handleSavePrice = async () => {
     if (!editForm || !selectedItem) return;
+    console.log(editForm)
+    const payload:[{item_id:string,price:number}]=[{item_id:editForm?.id as string,price:+editForm?.price as number}]
+if(payload.length===1){
+ setIsLoading(true);
+    const response=await updateSupplierPriceList(supplierId as string,payload)
+    console.log(response)
+    setIsLoading(false)
+    if(response.status){
+       setTimeout(() => {
+        setSuccessMessage('')
+        setModalOpened(false);
+       }, 3000);
+        setSuccessMessage(`Price updated for ${editForm.name}`);
+    }
+     
+    else
+    notify.error(response.message)
+}
     
-    setIsLoading(true);
-    
+   
+
     // Simulate API call
-    setTimeout(() => {
-      setItems(prev => prev.map(item => 
+    /*setTimeout(() => {
+      setItems(prev => prev.map(item =>
         item.id === selectedItem.id ? editForm : item
       ));
-      setModalOpened(false);
-      setSuccessMessage(`Price updated for ${editForm.name}`);
-      setIsLoading(false);
-      
+      //setModalOpened(false);
+      //setSuccessMessage(`Price updated for ${editForm.name}`);
+      //setIsLoading(false);
+
       // Clear success message after 3 seconds
       setTimeout(() => setSuccessMessage(''), 3000);
-    }, 1000);
+    }, 1000);*/
   };
 
-  const filteredItems = items.filter(item => {
+  const filteredItems =items;/* items?.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.swahili_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = !filterType || item.transportation_type === filterType;
     return matchesSearch && matchesFilter;
-  });
+  });*/
 
   return (
-    <Container size="xl" py="xl">
+    <section>
       {/* Header Section */}
-      <Paper p="xl" mb="xl" style={{ 
+      <Paper p={{base:"sm",md:"xl"}} mb="xl" style={{ 
         background: 'linear-gradient(135deg, #3D6B2C 0%, #388E3C 100%)',
-        borderRadius: '20px'
+        borderRadius: '20px',
       }}>
         <Flex justify="space-between" align="center" wrap="wrap" gap="md">
-          <Box>
+          <Box >
             <Title order={1} c="white" mb="xs">
               <Flex align="center" gap="md">
                 <Avatar size="lg" radius="xl" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
@@ -204,14 +245,14 @@ export default function PricelistDashboard() {
               Manage and update construction item prices with ease
             </Text>
           </Box>
-          <Group>
-            <Paper p="md" radius="md" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
-              <Text c="white" size="sm" fw={500}>Total Items</Text>
-              <Text c="white" size="xl" fw={700}>{items.length}</Text>
+          <Group className='!hidden'>
+            <Paper p="md" radius="md" style={{backgroundColor: 'rgba(255,255,255,0.15)'}}>
+              <Text c="white" size="sm" fw={500}> Total Items</Text>
+              <Text c="white" size="xl" fw={700}>{ items?.length}</Text>
             </Paper>
             <Button
-              leftSection={<Plus size={18} />}
-              variant="white"
+              leftSection={<Plus size={18}/>}
+              variant="filled"
               color="#3D6B2C"
               size="lg"
               radius="xl"
@@ -239,12 +280,17 @@ export default function PricelistDashboard() {
 
       {/* Search and Filter Section */}
       <Paper p="md" mb="xl" radius="lg" shadow="sm">
+        {isPending && <p>Loading...</p>}
         <Group justify="space-between">
           <TextInput
             placeholder="Search items..."
             leftSection={<Search size={16} />}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            
+            onChange={(e) => {
+               setSearchTerm(e.target.value)
+              handleSearchQuery(e.target.value)
+            }}
             style={{ flexGrow: 1, maxWidth: 400 }}
             radius="xl"
           />
@@ -268,7 +314,7 @@ export default function PricelistDashboard() {
 
       {/* Items Grid */}
       <Grid>
-        {filteredItems.map((item, index) => (
+        {filteredItems?.map((item, index) => (
           <Grid.Col key={item.id} span={{ base: 12, sm: 6, lg: 4 }}>
             <Transition
               mounted={true}
@@ -307,15 +353,15 @@ export default function PricelistDashboard() {
                       <Box style={{ flexGrow: 1 }}>
                         <Text size="xl" mb="xs">
                           {getItemEmoji(item.type, item.name)}
-                        </Text>
+                        </Text >
                         <Text fw={600} size="md" lineClamp={2} mb="xs">
                           {item.name}
-                        </Text>
+                        </Text >
                         <Text size="sm" c="dimmed" lineClamp={1}>
                           {item.swahili_name}
-                        </Text>
+                        </Text >
                       </Box>
-                      
+
                       <Tooltip label="Edit Price">
                         <ActionIcon
                           variant="light"
@@ -333,8 +379,8 @@ export default function PricelistDashboard() {
 
                     {/* Price Section */}
                     <Paper p="md" radius="lg" style={{ backgroundColor: '#f8f9fa' }}>
-                      <Flex align="center" justify="space-between">
-                        <Box>
+                      <Flex align="center" justify="space-between" display="none">
+                        <Box display="none">
                           <Text size="xs" c="dimmed" mb={2}>Current Price</Text>
                           <Text size="xl" fw={700} c="#3D6B2C">
                             KES {parseFloat(item.price).toLocaleString()}
@@ -356,7 +402,7 @@ export default function PricelistDashboard() {
                       >
                         {getTransportationIcon(item.transportation_type)} {item.transportation_type}
                       </Badge>
-                      
+
                       <Group gap="xs">
                         <Weight size={14} />
                         <Text size="sm" c="dimmed">{item.weight_in_kgs}kg</Text>
@@ -372,7 +418,7 @@ export default function PricelistDashboard() {
                       radius="xl"
                       onClick={() => handleEditClick(item)}
                     >
-                      Update Price
+                      Add Price
                     </Button>
                   </Stack>
                 </Card>
@@ -412,13 +458,14 @@ export default function PricelistDashboard() {
             <NumberInput
               label="Price (KES)"
               placeholder="Enter new price"
-              value={parseFloat(editForm.price)}
-              onChange={(value) => setEditForm({ ...editForm, price: value?.toString() || '0' })}
-              leftSection={<DollarSign size={16} />}
+              value={parseFloat(editForm.price || "0")}
+              onChange={(value) => setEditForm({...editForm, price: value?.toString() || '0'})}
+              leftSection={<HandCoins size={16}/>}
               thousandSeparator=","
               decimalScale={2}
               size="lg"
-              radius="md"
+              required
+              radius="md"              
             />
 
             <Select
@@ -430,17 +477,19 @@ export default function PricelistDashboard() {
                 { value: 'PICKUP', label: '🚛 Pickup' },
                 { value: 'LORRY', label: '🚚 Lorry' }
               ]}
+              display="none"
               size="lg"
               radius="md"
             />
 
             <NumberInput
               label="Weight (kg)"
-              value={parseFloat(editForm.weight_in_kgs)}
+              value={parseFloat(editForm.weight_in_kgs || "0")}
               onChange={(value) => setEditForm({ ...editForm, weight_in_kgs: value?.toString() || '0' })}
               leftSection={<Weight size={16} />}
               decimalScale={2}
               size="lg"
+              display="none"
               radius="md"
             />
 
@@ -467,6 +516,6 @@ export default function PricelistDashboard() {
           </Stack>
         )}
       </Modal>
-    </Container>
+    </section>
   );
 }

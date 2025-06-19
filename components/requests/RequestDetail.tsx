@@ -1,5 +1,4 @@
 "use client"
-import React, { useState } from 'react';
 import { 
 
   Badge, 
@@ -8,15 +7,15 @@ import {
   Group, 
  
   Paper,
-  Title,
+
   Tooltip,
 
-  Modal,
+
   Grid,
   Card,
   Stack,
   Avatar,
-  ScrollArea,
+ 
  
   ThemeIcon,
  
@@ -43,59 +42,14 @@ import {
   Navigation,
   
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { getRequestDetails } from '@/api/requests';
-import LoadingComponent from '@/lib/LoadingComponent';
+import { RequestDeliveryItem } from '@/types';
 
-export interface RequestDeliveryItem {
-  code: string;
-  created_at: string;
-  created_from: string;
-  delivery_date: string;
-  id: string;
-  items: Array<{
-    name: string;
-    itemId: string;
-    quanity: string;
-    description: string;
-    visual_confirmation: boolean;
-  }>;
-  ks_number: null;
-  location: {
-    type: string;
-    coordinates: [number, number];
-  };
-  orders: Array<Record<string,string|number>>;
-  status: string;
-  transports: Array<{
-    id: string;
-    transportable_id: string;
-    transportable_type: string;
-    supplier_detail_id: string;
-    transport_type: string;
-    total_weight: string;
-    transportation_vehicle: string;
-  }>;
-  updated_at: string;
-}
 
-interface RequestDelivery {
-  code: string;
-  created_at: string;
-  created_from: string;
-  delivery_date: string;
-  id: string;
-  items_count: number;
-  ks_number: null;
-  location: {
-    type: string;
-    coordinates: [number, number];
-  };
-  quotes_count: number;
-  status: "SUBMITTED" | "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "awarded";
-  updated_at: string;
-}
-const getStatusConfig = (status: RequestDelivery['status']) => {
+
+  
+
+
+const getStatusConfig = (status: RequestDeliveryItem['status']) => {
     const configs = {
       SUBMITTED: {
         color: '#3D6B2C',
@@ -147,13 +101,12 @@ const getStatusConfig = (status: RequestDelivery['status']) => {
   };
 
 
-const RequestDetail: React.FC<{modalOpened:boolean,setModalOpened:(a:boolean)=>void,id:string}> = ({modalOpened,setModalOpened,id}) => {
+const RequestDetail: React.FC<{request:RequestDeliveryItem}> = ({request:selectedRequest}) => {
 
-const {data:payload,isError,isLoading}=useQuery({queryKey:['request',id],queryFn:async()=>await getRequestDetails(id)
-})
+
   
 
-  const StatusBadge: React.FC<{ status: RequestDelivery['status'] }> = ({ status }) => {
+  const StatusBadge: React.FC<{ status: RequestDeliveryItem['status'] }> = ({ status }) => {
     const config = getStatusConfig(status);
 
     const IconComponent = config?.icon;
@@ -175,49 +128,19 @@ const {data:payload,isError,isLoading}=useQuery({queryKey:['request',id],queryFn
       </Badge>
     );
   };
-  const selectedRequest=payload?.request;
-  console.log({isError,selectedRequest,isLoading},'sr')
-if(isError) return <p>Error...</p>
+ 
 return(
         
-      <Modal
-        opened={modalOpened}
-        onClose={() => setModalOpened(false)}
-        title={
-          <Group gap="md">
-            <Box
-              className="w-1 h-8 rounded-full bg-gradient-to-b"
-              style={{ background: 'linear-gradient(to bottom, #3D6B2C, #F08C23)' }}
-            />
-            <div>
-              <Title order={3} className="text-gray-800">
-                🏗️ Request Details
-              </Title>
-              <Text size="sm" c="dimmed">
-                {selectedRequest?.code}
-              </Text>
-            </div>
-          </Group>
-        }
-        size="xl"
-        centered
-        overlayProps={{
-          backgroundOpacity: 0.55,
-          blur: 3,
-        }}
-        transitionProps={{
-          transition: 'fade',
-          duration: 300,
-          timingFunction: 'ease-out',
-        }}
-      >
-        {isLoading && <LoadingComponent message="loading request details"/>}
+     <Box>
+
+    
+       
         {selectedRequest && (
-          <ScrollArea style={{ height: '70vh' }}>
+         
             <Stack gap="xl">
               {/* Header Information */}
               <Grid>
-                <Grid.Col span={6}>
+                <Grid.Col span={{base:12,md:6}}>
                   <Card shadow="sm" padding="lg" radius="md" className="h-full">
                     <Group gap="xs" mb="md">
                       <ThemeIcon 
@@ -234,14 +157,14 @@ return(
                     <Stack gap="sm">
                       <Group justify="space-between">
                         <Text size="sm" c="dimmed">Request Code</Text>
-                        <Badge variant="light" style={{ backgroundColor: '#3D6B2C15', color: '#3D6B2C' }}>
-                          <Hash size={12} className="mr-1" />
+                        <Badge variant="light"  size="lg" className='py-2' style={{ backgroundColor: '#3D6B2C15', color: '#3D6B2C' }}>
+                          <Hash size={12} className="mr-2 inline-block" />
                           {selectedRequest?.code}
                         </Badge>
                       </Group>
                       <Group justify="space-between">
                         <Text size="sm" c="dimmed">Status</Text>
-                        <StatusBadge status={selectedRequest?.status as any} />
+                        <StatusBadge  status={selectedRequest?.status} />
                       </Group>
                       <Group justify="space-between">
                         <Text size="sm" c="dimmed">Created From</Text>
@@ -253,7 +176,7 @@ return(
                   </Card>
                 </Grid.Col>
                 
-                <Grid.Col span={6}>
+                <Grid.Col span={{base:12,md:6}}>
                   <Card shadow="sm" padding="lg" radius="md" className="h-full">
                     <Group gap="xs" mb="md">
                       <ThemeIcon 
@@ -307,8 +230,8 @@ return(
                 </Group>
                 <Group gap="md">
                   <Badge variant="light" style={{ backgroundColor: '#388E3C15', color: '#388E3C' }}>
-                    <MapPin size={12} className="mr-1" />
-                    {selectedRequest.location.coordinates[1]}, {selectedRequest.location.coordinates[0]}
+                    <MapPin size={12} className="mr-1 inline-block py-2" />
+                    {selectedRequest.location.coordinates[1]},{"  "} {selectedRequest.location.coordinates[0]}
                   </Badge>
                   <Text size="sm" c="dimmed">
                     Delivery coordinates for precise location tracking
@@ -333,8 +256,9 @@ return(
                 <Stack gap="sm">
                   {selectedRequest?.items?.map((item, index) => (
                     <Paper key={index} p="md" className="border border-gray-200 transition-all duration-200 hover:shadow-md">
-                      <Group justify="space-between" mb="xs">
-                        <Group gap="sm">
+                      <Group justify="space-between" mb="xs"  >
+                        
+                        <Group gap="sm" >
                           <Avatar 
                             size="sm" 
                             style={{ backgroundColor: '#3D6B2C15' }}
@@ -346,20 +270,22 @@ return(
                             <Text fw={600} size="sm">
                               {item.name}
                             </Text>
-                            <Text size="xs" c="dimmed">
-                              ID: {item.itemId}
+                           
+                            <Text size="md" c="dimmed">
+                              Quantity: {"      "}{item?.quantity ? parseInt(item?.quantity) : 0}
                             </Text>
                           </div>
                         </Group>
                         <Group gap="xs">
                           <Badge variant="light" style={{ backgroundColor: '#F08C2315', color: '#F08C23' }}>
-                            {item?.quanity}
+                            {item?.quantity ? parseInt(item?.quantity) : 0}
                           </Badge>
-                          {item?.visual_confirmation && (
+                          {item?.visual_confirmation===1 && (
                             <Tooltip label="Visual confirmation required">
                               <ThemeIcon size="sm" style={{ backgroundColor: '#388E3C15' }} variant="light">
                                 <Eye size={12} style={{ color: '#388E3C' }} />
                               </ThemeIcon>
+                              
                             </Tooltip>
                           )}
                         </Group>
@@ -494,9 +420,9 @@ return(
                 </Button>
               </Group>
             </Stack>
-          </ScrollArea>
+         
         )}
-      </Modal>
+      </Box>
 
   );
 };
