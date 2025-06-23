@@ -66,12 +66,7 @@ import { SupplierDetails } from '@/types';
 import { notify } from '@/lib/notifications';
 import { inviteUserToSupplier } from '@/api/supplier';
 
-interface StaffMember {
-  id: string;
-  name: string;
-  role: string;
-  avatar?: string;
-}
+
 
 
 
@@ -791,7 +786,7 @@ profile_photo_url}
                               {staff?.user?.name}
                             </Text>
                             <Text size="xs" c="dimmed">
-                              {staff.role}
+                              role
                             </Text>
                           </div>
                         </Group>
