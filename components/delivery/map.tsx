@@ -1,8 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { APIProvider, Map, AdvancedMarker, Pin, useMapsLibrary ,useMarkerRef} from '@vis.gl/react-google-maps';
+import { APIProvider, Map, AdvancedMarker, Pin, useMapsLibrary, type MapProps } from '@vis.gl/react-google-maps';
 import type { MapMouseEvent } from '@vis.gl/react-google-maps';
 import { Search, MapPin, Navigation, Copy, Check, Loader2, X } from 'lucide-react';
-import { TextInput, Button, Card, Text, Badge, Notification, ActionIcon, Group, Stack } from '@mantine/core';
 
 interface LocationData {
   lat: number;
@@ -17,7 +16,8 @@ interface LocationPickerProps {
   initialLocation?: { lat: number; lng: number };
   height?: string;
 }
-
+ 
+  const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAP_KEY  as string
 const LocationPicker: React.FC<LocationPickerProps> = ({
   onLocationSelect,
   initialLocation = { lat: -1.2921, lng: 36.8219 }, // Nairobi, Kenya
@@ -31,33 +31,27 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([]);
   const [showPredictions, setShowPredictions] = useState(false);
   
-  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
-  const mapRef = useRef<google.maps.Map>(null);
-  
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
-  // Replace with your actual API key
-  const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY || 'YOUR_ACTUAL_API_KEY_HERE';
 
-  // Set map instance when map loads
-  useEffect(() => {
-    if (mapRef.current) {
-      setMapInstance(mapRef.current);
-    }
+
+  const handleMapLoad: NonNullable<MapProps['load']> = useCallback((mapInstance: google.maps.Map) => {
+    setMap(mapInstance);
   }, []);
-
+console.log(API_KEY,'api key')
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 space-y-4">
-      <Card shadow="lg" padding="lg" radius="md" className="bg-white">
+    <div className="w-full max-w-4xl mx-auto p-4 space-y-4 border-green">
+      <div className="bg-white shadow-lg rounded-lg p-6">
         <div className="mb-4">
-          <Text size="xl" fw={700} className="text-gray-800 mb-2">
-            📍 Location Picker
-          </Text>
-          <Text size="sm" color="dimmed">
+          <h2 className="text-xl font-bold text-gray-800 mb-2">
+            📍 Location Pick
+          </h2>
+          <p className="text-sm text-gray-600">
             Search for a location or click on the map to select coordinates
-          </Text>
+          </p>
         </div>
 
-        <APIProvider apiKey={API_KEY} libraries={['places']}>
+        <APIProvider apiKey={API_KEY} libraries={['places']}  onLoad={handleMapLoad}>
           <LocationSearchComponent
             searchValue={searchValue}
             setSearchValue={setSearchValue}
@@ -73,19 +67,22 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
               setShowNotification(true);
               setTimeout(() => setShowNotification(false), 3000);
             }}
-            mapInstance={mapInstance}
+            mapInstance={map}
           />
 
-          <div className="relative mt-4 rounded-lg overflow-hidden shadow-lg">
+          <div className="relative mt-4 rounded-lg  shadow-lg">
             <Map
-              ref={mapRef}
               id="map"
-        
               defaultCenter={initialLocation}
               defaultZoom={12}
-              style={{ height,width:"100%",border:"1px solid red" }}
+              style={{ 
+                height: height,
+                width: 500,
+                border:"1px solid red"
+              }}
               gestureHandling="greedy"
               disableDefaultUI={false}
+             
               onClick={(event: MapMouseEvent) => {
                 if (event.detail.latLng) {
                   handleMapClick(
@@ -97,7 +94,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
                   );
                 }
               }}
-              className="w-full"
+              className="w-full border border-gray-300"
             >
               {selectedLocation && (
                 <AdvancedMarker position={{ lat: selectedLocation.lat, lng: selectedLocation.lng }}>
@@ -115,7 +112,7 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
               <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center">
                 <div className="bg-white rounded-lg p-4 shadow-lg flex items-center space-x-3">
                   <Loader2 className="w-5 h-5 animate-spin text-[#3D6B2C]" />
-                  <Text size="sm" fw={500}>Getting location details...</Text>
+                  <span className="text-sm font-medium">Getting location details...</span>
                 </div>
               </div>
             )}
@@ -129,18 +126,21 @@ const LocationPicker: React.FC<LocationPickerProps> = ({
             />
           )}
         </APIProvider>
-      </Card>
+      </div>
 
       {showNotification && (
-        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right-full">
-          <Notification
-            title="Location Selected!"
-            color="green"
-            icon={<Check size={16} />}
-            onClose={() => setShowNotification(false)}
+        <div className="fixed top-4 right-4 z-50 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-lg">
+          <div className="flex items-center space-x-2">
+            <Check size={16} />
+            <span className="font-medium">Location Selected!</span>
+          </div>
+          <p className="text-sm">Location coordinates captured successfully</p>
+          <button 
+            onClick={() => setShowNotification(false)}
+            className="absolute top-1 right-1 text-green-700 hover:text-green-900"
           >
-            Location coordinates captured successfully
-          </Notification>
+            <X size={16} />
+          </button>
         </div>
       )}
     </div>
@@ -247,42 +247,31 @@ const LocationSearchComponent: React.FC<{
 
   return (
     <div className="relative">
-      <TextInput
-        placeholder="Search for a location..."
-        value={searchValue}
-        onChange={(e) => {
-          setSearchValue(e.target.value);
-          handleSearch(e.target.value);
-        }}
-        leftSection={<Search size={16} className="text-gray-400" />}
-        rightSection={
-          searchValue && (
-            <ActionIcon
-              size="sm"
-              variant="transparent"
-              onClick={() => {
-                setSearchValue('');
-                setPredictions([]);
-                setShowPredictions(false);
-              }}
-            >
-              <X size={14} />
-            </ActionIcon>
-          )
-        }
-        size="md"
-        radius="md"
-        className="w-full"
-        styles={{
-          input: {
-            borderColor: '#3D6B2C',
-            '&:focus': {
-              borderColor: '#388E3C',
-              boxShadow: '0 0 0 1px #388E3C'
-            }
-          }
-        }}
-      />
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Search for a location..."
+          value={searchValue}
+          onChange={(e) => {
+            setSearchValue(e.target.value);
+            handleSearch(e.target.value);
+          }}
+          className="w-full pl-10 pr-10 py-3 border-2 border-[#3D6B2C] rounded-md focus:outline-none focus:ring-2 focus:ring-[#388E3C] focus:border-transparent"
+        />
+        <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        {searchValue && (
+          <button
+            onClick={() => {
+              setSearchValue('');
+              setPredictions([]);
+              setShowPredictions(false);
+            }}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
 
       {showPredictions && predictions.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto">
@@ -295,12 +284,12 @@ const LocationSearchComponent: React.FC<{
               <div className="flex items-start space-x-3">
                 <MapPin size={16} className="text-[#3D6B2C] mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <Text size="sm" weight={500} className="truncate">
+                  <p className="text-sm font-medium truncate">
                     {prediction.structured_formatting.main_text}
-                  </Text>
-                  <Text size="xs" color="dimmed" className="truncate">
+                  </p>
+                  <p className="text-xs text-gray-500 truncate">
                     {prediction.structured_formatting.secondary_text}
-                  </Text>
+                  </p>
                 </div>
               </div>
             </div>
@@ -324,64 +313,61 @@ const LocationDetailsCard: React.FC<{
   };
 
   return (
-    <Card className="mt-4 bg-gradient-to-r from-green-50 to-orange-50 border border-green-200" radius="md">
-      <Stack spacing="md">
-        <Group position="apart" align="flex-start">
+    <div className="mt-4 bg-gradient-to-r from-green-50 to-orange-50 border border-green-200 rounded-md p-4">
+      <div className="space-y-4">
+        <div className="flex justify-between items-start">
           <div className="flex-1">
-            <Text size="lg" weight={600} className="text-gray-800 mb-2">
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">
               📍 Selected Location
-            </Text>
-            <Text size="sm" color="dimmed" className="mb-3">
+            </h3>
+            <p className="text-sm text-gray-600 mb-3">
               {location.address}
-            </Text>
+            </p>
           </div>
-          <Badge color="green" variant="light" size="sm">
+          <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
             Captured
-          </Badge>
-        </Group>
+          </span>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Text size="sm" weight={500} className="text-gray-700">
+            <p className="text-sm font-medium text-gray-700">
               Latitude
-            </Text>
+            </p>
             <div className="flex items-center space-x-2">
               <Navigation size={14} className="text-[#3D6B2C]" />
-              <Text size="sm" className="font-mono">
+              <span className="text-sm font-mono">
                 {location.lat.toFixed(6)}
-              </Text>
+              </span>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Text size="sm" weight={500} className="text-gray-700">
+            <p className="text-sm font-medium text-gray-700">
               Longitude
-            </Text>
+            </p>
             <div className="flex items-center space-x-2">
               <Navigation size={14} className="text-[#3D6B2C]" />
-              <Text size="sm" className="font-mono">
+              <span className="text-sm font-mono">
                 {location.lng.toFixed(6)}
-              </Text>
+              </span>
             </div>
           </div>
         </div>
 
-        <Button
-          leftIcon={copied ? <Check size={16} /> : <Copy size={16} />}
+        <button
           onClick={copyCoordinates}
-          variant={copied ? "filled" : "light"}
-          color={copied ? "green" : undefined}
-          size="sm"
-          className={`transition-all duration-200 ${
+          className={`flex items-center space-x-2 px-4 py-2 rounded text-sm font-medium transition-all duration-200 ${
             copied 
-              ? 'bg-green-500 hover:bg-green-600' 
+              ? 'bg-green-500 hover:bg-green-600 text-white' 
               : 'bg-[#3D6B2C] hover:bg-[#388E3C] text-white'
           }`}
         >
-          {copied ? 'Copied!' : 'Copy Coordinates'}
-        </Button>
-      </Stack>
-    </Card>
+          {copied ? <Check size={16} /> : <Copy size={16} />}
+          <span>{copied ? 'Copied!' : 'Copy Coordinates'}</span>
+        </button>
+      </div>
+    </div>
   );
 };
 
