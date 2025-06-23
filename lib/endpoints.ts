@@ -35,6 +35,11 @@ items:{GET_ITEMS:(item:string,categoryId?:string)=>{
     if(categoryId)
         return `/api/items?name=${item}&item_category_id=${categoryId}`
     else return `/api/items?name=${item}&item_category_id=`
-}}
+},
+},
+projects:{
+    GET_PROJETCS:"/api/projects",
+CREATE_PROJECT:"/api/projects",
+}
 
 }

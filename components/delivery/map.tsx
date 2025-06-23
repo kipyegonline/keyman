@@ -17,7 +17,7 @@ interface LocationPickerProps {
   height?: string;
 }
  
-  const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAP_KEY  as string
+  const API_KEY =process.env.NEXT_PUBLIC_G_KEY as string
 const LocationPicker: React.FC<LocationPickerProps> = ({
   onLocationSelect,
   initialLocation = { lat: -1.2921, lng: 36.8219 }, // Nairobi, Kenya
@@ -51,7 +51,7 @@ console.log(API_KEY,'api key')
           </p>
         </div>
 
-        <APIProvider apiKey={API_KEY} libraries={['places']}  onLoad={handleMapLoad}>
+        <APIProvider apiKey={API_KEY}   onLoad={handleMapLoad}>
           <LocationSearchComponent
             searchValue={searchValue}
             setSearchValue={setSearchValue}
@@ -76,7 +76,7 @@ console.log(API_KEY,'api key')
               defaultCenter={initialLocation}
               defaultZoom={12}
               style={{ 
-                height: height,
+                height: 500,
                 width: 500,
                 border:"1px solid red"
               }}

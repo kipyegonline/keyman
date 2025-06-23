@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from 'react';
 import {
-  Container,
+ 
   Grid,
   Card,
   Text,
@@ -41,7 +41,7 @@ import {
   HandCoins
 } from 'lucide-react';
 import { updateSupplierPriceList } from '@/api/supplier';
-import { useAppContext } from '@/providers/AppContext';
+
 import { notify } from '@/lib/notifications';
 
 
@@ -56,68 +56,7 @@ export interface Pricelist {
   weight_in_kgs: string;
 }
 
-const sampleItems: Pricelist[] = [
-  {
-    id: '1',
-    description: "Bathroom Tiles – Glossy Wall 10x16 inch",
-    name: "Bathroom Tiles – Glossy Wall 10x16 inch",
-    price: "1500.00",
-    swahili_name: "Vigae vya Bafu – ukuta mzuri 10x16 inch",
-    transportation_type: "TUKTUK",
-    type: "goods",
-    weight_in_kgs: "2.50"
-  },
-  {
-    id: '2',
-    description: "Bathroom Tiles – Anti-slip 12x12 inch",
-    name: "Bathroom Tiles – Anti-slip 12x12 inch",
-    price: "1800.00",
-    swahili_name: "Vigae vya Bafu – Anti-slip 12x12 inch",
-    transportation_type: "TUKTUK",
-    type: "goods",
-    weight_in_kgs: "3.00"
-  },
-  {
-    id: '3',
-    description: "Cement 50kg bag Portland",
-    name: "Cement 50kg bag Portland",
-    price: "850.00",
-    swahili_name: "Simiti 50kg mfuko Portland",
-    transportation_type: "PICKUP",
-    type: "goods",
-    weight_in_kgs: "50.00"
-  },
-  {
-    id: '4',
-    description: "Steel reinforcement bars 12mm",
-    name: "Steel reinforcement bars 12mm",
-    price: "2200.00",
-    swahili_name: "Chuma cha kuimarisha 12mm",
-    transportation_type: "LORRY",
-    type: "goods",
-    weight_in_kgs: "7.40"
-  },
-  {
-    id: '5',
-    description: "Roofing iron sheets 30 gauge",
-    name: "Roofing iron sheets 30 gauge",
-    price: "1200.00",
-    swahili_name: "Mabati ya paa 30 gauge",
-    transportation_type: "PICKUP",
-    type: "goods",
-    weight_in_kgs: "5.20"
-  },
-  {
-    id: '6',
-    description: "Paint - Exterior Wall White 20L",
-    name: "Paint - Exterior Wall White 20L",
-    price: "3500.00",
-    swahili_name: "Rangi - Ukuta wa nje Nyeupe 20L",
-    transportation_type: "TUKTUK",
-    type: "goods",
-    weight_in_kgs: "22.00"
-  }
-];
+
 
 const getItemEmoji = (type: string, name: string): string => {
   if (name.toLowerCase().includes('tile')) return '🏺';
@@ -147,7 +86,7 @@ const getTransportationColor = (type: string) => {
 };
  let wordCount=0;
 export default function PricelistDashboard({ handleSearch, isPending,prices:items }: { handleSearch: (val: string) => void, isPending: boolean ,prices:Pricelist[]}) {
-  const [_items, setItems] = useState<Pricelist[]>(sampleItems);
+ 
   const [selectedItem, setSelectedItem] = useState<Pricelist | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [editForm, setEditForm] = useState<Pricelist | null>(null);

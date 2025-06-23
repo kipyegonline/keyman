@@ -5,7 +5,10 @@ import { Grid, Title } from '@mantine/core'
 import { APIProvider,Map } from '@vis.gl/react-google-maps'
 import React from 'react'
 const key=process.env.NEXT_PUBLIC_G_KEY as string
-
+const coords={
+	lat: -1.194438642926344,
+	lng: 36.928756667223446
+}
 export default function DeliveryClientComponent() {
   console.log(key,'key')
   return (
@@ -14,14 +17,14 @@ export default function DeliveryClientComponent() {
         <APIProvider apiKey={key}>
          <Map
       style={{width: '100vw', height: '100vh'}}
-      defaultCenter={{lat: 22.54992, lng: 0}}
+      defaultCenter={coords}
       defaultZoom={17}
-      gestureHandling={'greedy'}
+      //gestureHandling={'greedy'}
       //disableDefaultUI={false}
     />
        </APIProvider></div>
       
-        <Grid display={"none"}>
+        <Grid >
             <Grid.Col span={{base:12, md:8}}>
                  <LocationPicker/>
             </Grid.Col>
