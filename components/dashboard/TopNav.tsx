@@ -63,6 +63,7 @@ const handleClickedItem=(key:string)=>{
             break;
 
                 case "delivery":
+            router.push("/keyman/dashboard/delivery")
             console.log("delivery clicked");
             break;
 
