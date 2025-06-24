@@ -11,8 +11,9 @@ import { useSearchParams } from "next/navigation";
 import React from "react";
 const key = process.env.NEXT_PUBLIC_G_KEY as string;
 const defaultState = { name: "", description: "", address: "" };
+type Coords = { lng: number; lat: number };
 export default function DeliveryClientComponent() {
-  const [coords, setCoords] = React.useState({ lat: 0, lng: 0 });
+  const [coords, setCoords] = React.useState<Coords | null>(null);
   const [info, setInfo] = React.useState(defaultState);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -27,7 +28,7 @@ export default function DeliveryClientComponent() {
   const handleSubmit = async () => {
     setSuccess(false);
     // Validate coordinates
-    if (coords.lat === 0 && coords.lng === 0) {
+    if (coords === null) {
       notify.error("Please select a location on the map.");
       return;
     }
@@ -72,48 +73,50 @@ export default function DeliveryClientComponent() {
         <Grid.Col span={{ base: 12, md: 8 }}>
           <MapComponent apiKey={key} setCoords={_setCoords} />
         </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 4 }}>
-          <Flex direction={"column"} gap="md" p="md">
-            <TextInput
-              label="Name"
-              placeholder="Enter name"
-              onChange={(e) => setInfo({ ...info, name: e.target.value })}
-              value={info.name}
-            />
-            <TextInput
-              label="Address"
-              placeholder="Enter address"
-              onChange={(e) => setInfo({ ...info, address: e.target.value })}
-              value={info.address}
-            />
-            <Textarea
-              label="Description"
-              placeholder="Enter description"
-              onChange={(e) =>
-                setInfo({ ...info, description: e.target.value })
-              }
-              value={info.description}
-            />
-            {error && <p className="text-red-500 text-sm py-2">{error}</p>}
-            <Button loading={loading} onClick={handleSubmit}>
-              Submit location
-            </Button>
-            {success && isReturn && (
-              <Alert
-                variant="filled"
-                color="orange"
-                icon={<ExternalLink />}
-                className="cursor-pointer"
-                onClick={() =>
-                  (window.location.href =
-                    "/keyman/dashboard/requests/create-request")
+        {coords && (
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Flex direction={"column"} gap="md" p="md">
+              <TextInput
+                label="Name"
+                placeholder="Enter name"
+                onChange={(e) => setInfo({ ...info, name: e.target.value })}
+                value={info.name}
+              />
+              <TextInput
+                label="Address"
+                placeholder="Enter address"
+                onChange={(e) => setInfo({ ...info, address: e.target.value })}
+                value={info.address}
+              />
+              <Textarea
+                label="Description"
+                placeholder="Enter description"
+                onChange={(e) =>
+                  setInfo({ ...info, description: e.target.value })
                 }
-              >
-                Return to requests page
-              </Alert>
-            )}
-          </Flex>
-        </Grid.Col>
+                value={info.description}
+              />
+              {error && <p className="text-red-500 text-sm py-2">{error}</p>}
+              <Button loading={loading} onClick={handleSubmit}>
+                Submit location
+              </Button>
+              {success && isReturn && (
+                <Alert
+                  variant="filled"
+                  color="orange"
+                  icon={<ExternalLink />}
+                  className="cursor-pointer"
+                  onClick={() =>
+                    (window.location.href =
+                      "/keyman/dashboard/requests/create-request")
+                  }
+                >
+                  Return to requests page
+                </Alert>
+              )}
+            </Flex>
+          </Grid.Col>
+        )}
       </Grid>
     </div>
   );
