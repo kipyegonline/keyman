@@ -12,7 +12,7 @@
     "@bprogress/next": "^3.2.12",
     "@mantine/carousel": "^8.0.2",
     "@mantine/core": "^8.0.2",
-    "@mantine/dates": "^8.0.2",
+    "@mantine/dates": "^8.1.1",
     "@mantine/form": "^8.0.2",
     "@mantine/hooks": "^8.0.2",
     "@mantine/notifications": "^8.0.2",
