@@ -61,9 +61,11 @@ export const createRequest = async (payload: CreateRequestPayload) => {
  * Get requests near the user's location
  * @returns List of nearby requests
  */
-export const getNearbyRequests = async () => {
+export const getNearbyRequests = async (id: string) => {
   try {
-    const response = await AxiosClient.get(ENDPOINTS.requests.NEAR_ME);
+    const response = await AxiosClient.post(ENDPOINTS.requests.NEAR_ME, {
+      supplier_detail_id: id,
+    });
     return response.data;
   } catch (error) {
     if (error instanceof AxiosError) {

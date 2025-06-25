@@ -111,7 +111,7 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
   const router = useRouter();
   const handleRequestClick = (id: string) => {
     navigateTo();
-    const url = `/keyman/dashboard/requests/${id}`;
+    const url = `/keyman/supplier/requests/${id}`;
     router.push(url);
   };
 
@@ -140,10 +140,10 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
   };
   const createRequest = () => {
     navigateTo();
-    router.push("/keyman/dashboard/requests/create-request");
+    router.push("/keyman/supplier/requests/create-request");
   };
 
-  const rows = requests?.toReversed()?.map((request, index) => (
+  const rows = requests?.map((request, index) => (
     <Table.Tr
       key={request.id}
       className={`transition-all duration-300 ease-in-out cursor-pointer ${
@@ -191,7 +191,7 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
         </Group>
       </Table.Td>
 
-      <Table.Td>
+      <Table.Td display={"none"}>
         <Group gap="xs">
           <MapPin size={14} className="text-green-600" />
           <Text size="sm" className="text-gray-700" truncate>
@@ -200,7 +200,7 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
         </Group>
       </Table.Td>
 
-      <Table.Td>
+      <Table.Td display={"none"}>
         <Group gap="xs">
           <Box
             className="flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300"
@@ -242,7 +242,7 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
         </Group>
       </Table.Td>
 
-      <Table.Td>
+      <Table.Td display={"none"}>
         <StatusBadge status={request.status} />
       </Table.Td>
 
@@ -310,12 +310,13 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
             justify={"space-between"}
           >
             <Title order={2} className="text-gray-800 font-bold">
-              Your Requests
+              Requests near you
             </Title>
 
             <Button
               radius={"md"}
               onClick={createRequest}
+              display={"none"}
               leftSection={<PlusIcon size={16} />}
             >
               Create New Request
@@ -323,7 +324,7 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
           </Flex>
         </Group>
         <Text c="dimmed" size="sm">
-          Manage and track your construction material requests and quotes
+          Manage and track request near you.
         </Text>
       </Box>
 
@@ -353,16 +354,16 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
               <Table.Th className="font-semibold text-gray-700">
                 Delivery Date
               </Table.Th>
-              <Table.Th className="font-semibold text-gray-700">
+              <Table.Th className="font-semibold text-gray-700 hidden">
                 Created From
               </Table.Th>
-              <Table.Th className="font-semibold text-gray-700 text-center">
+              <Table.Th className="font-semibold text-gray-700 text-center hidden">
                 Quotes
               </Table.Th>
               <Table.Th className="font-semibold text-gray-700 text-center">
                 Items
               </Table.Th>
-              <Table.Th className="font-semibold text-gray-700">
+              <Table.Th className="font-semibold text-gray-700 hidden">
                 Status
               </Table.Th>
               <Table.Th className="font-semibold text-gray-700 text-center">
