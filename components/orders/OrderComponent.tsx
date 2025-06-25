@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Container,
   Card,
@@ -21,21 +21,17 @@ import {
   NumberFormatter,
   Table,
   Progress,
-  
-  ScrollArea
-} from '@mantine/core';
+  ScrollArea,
+} from "@mantine/core";
 import {
   ArrowLeft,
   Calendar,
   MapPin,
   Phone,
- 
   Star,
   Package,
- 
   Clock,
   Building2,
-
   FileText,
   Edit,
   Download,
@@ -48,8 +44,8 @@ import {
   MessageSquare,
   Eye,
   Camera,
-  Map
-} from 'lucide-react';
+  Map,
+} from "lucide-react";
 
 // Order interface from your previous message
 interface Order {
@@ -78,7 +74,13 @@ interface Order {
     status: string;
   };
   request_id: string;
-  status: "SUBMITTED" | "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "awarded";
+  status:
+    | "SUBMITTED"
+    | "PENDING"
+    | "IN_PROGRESS"
+    | "COMPLETED"
+    | "CANCELLED"
+    | "awarded";
   supplier_detail_id: string;
   total: number;
   updated_at: string;
@@ -90,71 +92,77 @@ interface OrderDetailsProps {
 }
 
 const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
-    console.log(order,'order___')
   const [commentModalOpen, setCommentModalOpen] = useState(false);
-  const [newComment, setNewComment] = useState('');
+  const [newComment, setNewComment] = useState("");
 
-  const getStatusColor = (status: Order['status']) => {
+  const getStatusColor = (status: Order["status"]) => {
     const colors = {
-      SUBMITTED: '#F08C23',
-      PENDING: '#fbbf24',
-      IN_PROGRESS: '#3D6B2C',
-      COMPLETED: '#388E3C',
-      CANCELLED: '#ef4444',
-      awarded: '#8b5cf6'
+      SUBMITTED: "#F08C23",
+      PENDING: "#fbbf24",
+      IN_PROGRESS: "#3D6B2C",
+      COMPLETED: "#388E3C",
+      CANCELLED: "#ef4444",
+      awarded: "#8b5cf6",
     };
-    return colors[status] || '#6b7280';
+    return colors[status] || "#6b7280";
   };
 
-  const getStatusIcon = (status: Order['status']) => {
+  const getStatusIcon = (status: Order["status"]) => {
     switch (status) {
-      case 'SUBMITTED': return <Clock size={16} />;
-      case 'PENDING': return <AlertCircle size={16} />;
-      case 'IN_PROGRESS': return <Truck size={16} />;
-      case 'COMPLETED': return <CheckCircle size={16} />;
-      case 'CANCELLED': return <XCircle size={16} />;
-      case 'awarded': return <Star size={16} />;
-      default: return <Clock size={16} />;
+      case "SUBMITTED":
+        return <Clock size={16} />;
+      case "PENDING":
+        return <AlertCircle size={16} />;
+      case "IN_PROGRESS":
+        return <Truck size={16} />;
+      case "COMPLETED":
+        return <CheckCircle size={16} />;
+      case "CANCELLED":
+        return <XCircle size={16} />;
+      case "awarded":
+        return <Star size={16} />;
+      default:
+        return <Clock size={16} />;
     }
   };
 
-  const getStatusProgress = (status: Order['status']) => {
+  const getStatusProgress = (status: Order["status"]) => {
     const progress = {
       SUBMITTED: 20,
       PENDING: 40,
       IN_PROGRESS: 70,
       COMPLETED: 100,
       CANCELLED: 0,
-      awarded: 100
+      awarded: 100,
     };
     return progress[status] || 0;
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
-/*
+  /*
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-KE', {
       style: 'currency',
       currency: 'KES'
     }).format(amount);
   };*/
-  const getEstimatecost=(quantity:string,unit_price:string)=>{
-    const q=Number.isNaN(Number(quantity))?0:Number(quantity)
-    const p=Number.isNaN(Number(unit_price))?0:Number(unit_price)
-    if(q>0 && p>0){
-      return (q*p).toFixed(2)
+  const getEstimatecost = (quantity: string, unit_price: string) => {
+    const q = Number.isNaN(Number(quantity)) ? 0 : Number(quantity);
+    const p = Number.isNaN(Number(unit_price)) ? 0 : Number(unit_price);
+    if (q > 0 && p > 0) {
+      return (q * p).toFixed(2);
     }
-    return 
-  }
+    return;
+  };
 
   return (
     <Container size="xl" py="md">
@@ -166,8 +174,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
           radius="md"
           mb="md"
           style={{
-            background: 'linear-gradient(135deg, #3D6B2C 0%, #388E3C 100%)',
-            color: 'white'
+            background: "linear-gradient(135deg, #3D6B2C 0%, #388E3C 100%)",
+            color: "white",
           }}
           className="hover:shadow-lg transition-all duration-300"
         >
@@ -222,23 +230,25 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                 padding="lg"
                 radius="md"
                 className="hover:shadow-md transition-all duration-300 animate-in fade-in-50 slide-in-from-left-4"
-                style={{ animationDelay: '100ms' }}
+                style={{ animationDelay: "100ms" }}
               >
                 <Group justify="space-between" mb="md">
                   <Group gap="sm">
                     {getStatusIcon(order.status)}
-                    <Text fw={600} size="lg">Order Status</Text>
+                    <Text fw={600} size="lg">
+                      Order Status
+                    </Text>
                   </Group>
                   <Badge
                     size="lg"
                     variant="filled"
                     style={{
                       backgroundColor: getStatusColor(order.status),
-                      color: 'white'
+                      color: "white",
                     }}
                     leftSection={getStatusIcon(order.status)}
                   >
-                    {order.status.replace('_', ' ')}
+                    {order.status.replace("_", " ")}
                   </Badge>
                 </Group>
                 <Progress
@@ -248,7 +258,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                   radius="xl"
                   className="transition-all duration-1000"
                   style={{
-                    background: `${getStatusColor(order.status)}20`
+                    background: `${getStatusColor(order.status)}20`,
                   }}
                 />
                 <Text size="sm" c="dimmed" mt="xs">
@@ -262,18 +272,20 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                 padding="lg"
                 radius="md"
                 className="hover:shadow-md transition-all duration-300 animate-in fade-in-50 slide-in-from-left-4"
-                style={{ animationDelay: '200ms' }}
+                style={{ animationDelay: "200ms" }}
               >
                 <Group justify="space-between" mb="md">
                   <Group gap="sm">
                     <Package size={20} color="#3D6B2C" />
-                    <Text fw={600} size="lg">Order Items</Text>
+                    <Text fw={600} size="lg">
+                      Order Items
+                    </Text>
                   </Group>
                   <Badge variant="light" color="green" size="md">
                     {order.items.length} items
                   </Badge>
                 </Group>
-                
+
                 <ScrollArea>
                   <Table verticalSpacing="sm">
                     <Table.Thead>
@@ -291,20 +303,25 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                           className="hover:bg-gray-50 transition-colors duration-200"
                         >
                           <Table.Td>
-                            <Text fw={500}>{item.name || `Item ${index + 1}`}</Text>
+                            <Text fw={500}>
+                              {item.name || `Item ${index + 1}`}
+                            </Text>
                           </Table.Td>
                           <Table.Td>
-                            <Text>{item.quantity || 'N/A'}</Text>
+                            <Text>{item.quantity || "N/A"}</Text>
                           </Table.Td>
                           <Table.Td>
                             <Badge variant="light" size="sm">
-                              {item.unit || 'units'}
+                              {item.unit || "units"}
                             </Badge>
                           </Table.Td>
                           <Table.Td>
                             <Text fw={500} c="#3D6B2C">
                               <NumberFormatter
-                                value={getEstimatecost(item.quantity,item.unit_price)}
+                                value={getEstimatecost(
+                                  item.quantity,
+                                  item.unit_price
+                                )}
                                 prefix="KSh "
                                 thousandSeparator=","
                               />
@@ -323,13 +340,15 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                 padding="lg"
                 radius="md"
                 className="hover:shadow-md transition-all duration-300 animate-in fade-in-50 slide-in-from-left-4"
-                style={{ animationDelay: '300ms' }}
+                style={{ animationDelay: "300ms" }}
               >
                 <Group gap="sm" mb="md">
                   <Clock size={20} color="#F08C23" />
-                  <Text fw={600} size="lg">Order Timeline</Text>
+                  <Text fw={600} size="lg">
+                    Order Timeline
+                  </Text>
                 </Group>
-                
+
                 <Timeline
                   active={getStatusProgress(order.status) / 25}
                   bulletSize={24}
@@ -377,12 +396,14 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                 padding="lg"
                 radius="md"
                 className="hover:shadow-md transition-all duration-300 animate-in fade-in-50 slide-in-from-left-4"
-                style={{ animationDelay: '400ms' }}
+                style={{ animationDelay: "400ms" }}
               >
                 <Group justify="space-between" mb="md">
                   <Group gap="sm">
                     <MessageSquare size={20} color="#F08C23" />
-                    <Text fw={600} size="lg">Comments & Notes</Text>
+                    <Text fw={600} size="lg">
+                      Comments & Notes
+                    </Text>
                   </Group>
                   <Button
                     variant="light"
@@ -395,13 +416,22 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                     Add Comment
                   </Button>
                 </Group>
-                
+
                 {order.comments ? (
                   <Paper p="md" bg="#f8fafc" radius="md">
                     <Text size="sm">{order.comments}</Text>
                   </Paper>
                 ) : (
-                  <Paper p="md" bg="#f8fafc" radius="md" style={{ borderStyle: 'dashed', borderWidth: 2, borderColor: '#e2e8f0' }}>
+                  <Paper
+                    p="md"
+                    bg="#f8fafc"
+                    radius="md"
+                    style={{
+                      borderStyle: "dashed",
+                      borderWidth: 2,
+                      borderColor: "#e2e8f0",
+                    }}
+                  >
                     <Text size="sm" c="dimmed" ta="center">
                       No comments added yet
                     </Text>
@@ -420,31 +450,43 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                 padding="lg"
                 radius="md"
                 className="hover:shadow-md transition-all duration-300 animate-in fade-in-50 slide-in-from-right-4"
-                style={{ animationDelay: '100ms' }}
+                style={{ animationDelay: "100ms" }}
               >
                 <Group gap="sm" mb="md">
                   <Calculator size={20} color="#3D6B2C" />
-                  <Text fw={600} size="lg">Order Summary</Text>
+                  <Text fw={600} size="lg">
+                    Order Summary
+                  </Text>
                 </Group>
-                
+
                 <Stack gap="sm">
                   <Group justify="space-between">
-                    <Text size="sm" c="dimmed">Order Code:</Text>
+                    <Text size="sm" c="dimmed">
+                      Order Code:
+                    </Text>
                     <Text fw={500}>{order.code}</Text>
                   </Group>
                   <Group justify="space-between">
-                    <Text size="sm" c="dimmed">Items Count:</Text>
+                    <Text size="sm" c="dimmed">
+                      Items Count:
+                    </Text>
                     <Badge variant="light" color="green">
                       {order.items.length}
                     </Badge>
                   </Group>
                   <Group justify="space-between">
-                    <Text size="sm" c="dimmed">Request Code:</Text>
-                    <Text fw={500} c="#3D6B2C">{order.request.code}</Text>
+                    <Text size="sm" c="dimmed">
+                      Request Code:
+                    </Text>
+                    <Text fw={500} c="#3D6B2C">
+                      {order.request.code}
+                    </Text>
                   </Group>
                   <Divider />
                   <Group justify="space-between">
-                    <Text fw={600} c="#3D6B2C">Total Amount:</Text>
+                    <Text fw={600} c="#3D6B2C">
+                      Total Amount:
+                    </Text>
                     <Text fw={700} size="lg" c="#3D6B2C">
                       <NumberFormatter
                         value={order.total}
@@ -462,13 +504,15 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                 padding="lg"
                 radius="md"
                 className="hover:shadow-md transition-all duration-300 animate-in fade-in-50 slide-in-from-right-4"
-                style={{ animationDelay: '200ms' }}
+                style={{ animationDelay: "200ms" }}
               >
                 <Group gap="sm" mb="md">
                   <Building2 size={20} color="#F08C23" />
-                  <Text fw={600} size="lg">Supplier Details</Text>
+                  <Text fw={600} size="lg">
+                    Supplier Details
+                  </Text>
                 </Group>
-                
+
                 <Group gap="md" mb="md">
                   <Avatar
                     size="lg"
@@ -478,20 +522,26 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                     <Building2 size={24} />
                   </Avatar>
                   <Box flex={1}>
-                    <Text fw={600} size="md">{order.detail.name}</Text>
+                    <Text fw={600} size="md">
+                      {order.detail.name}
+                    </Text>
                     <Group gap="xs" mt={4}>
                       <Phone size={12} color="#F08C23" />
-                      <Text size="sm" c="dimmed">{order.detail.phone}</Text>
+                      <Text size="sm" c="dimmed">
+                        {order.detail.phone}
+                      </Text>
                     </Group>
                   </Box>
                 </Group>
-                
+
                 <Group gap="sm" mb="md">
                   <Star size={16} color="#F08C23" />
                   <Rating value={order.rating} readOnly size="sm" />
-                  <Text size="sm" c="dimmed">({order.rating}/5)</Text>
+                  <Text size="sm" c="dimmed">
+                    ({order.rating}/5)
+                  </Text>
                 </Group>
-                
+
                 <Group gap="sm">
                   <Button
                     variant="light"
@@ -512,28 +562,35 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                 padding="lg"
                 radius="md"
                 className="hover:shadow-md transition-all duration-300 animate-in fade-in-50 slide-in-from-right-4"
-                style={{ animationDelay: '300ms' }}
+                style={{ animationDelay: "300ms" }}
               >
                 <Group gap="sm" mb="md">
                   <Truck size={20} color="#388E3C" />
-                  <Text fw={600} size="lg">Delivery Info</Text>
+                  <Text fw={600} size="lg">
+                    Delivery Info
+                  </Text>
                 </Group>
-                
+
                 <Stack gap="sm">
                   <Group gap="sm">
                     <Calendar size={16} color="#F08C23" />
                     <Box>
-                      <Text size="sm" c="dimmed">Delivery Date</Text>
+                      <Text size="sm" c="dimmed">
+                        Delivery Date
+                      </Text>
                       <Text fw={500}>{formatDate(order.delivery_date)}</Text>
                     </Box>
                   </Group>
-                  
+
                   <Group gap="sm" align="flex-start">
                     <MapPin size={16} color="#F08C23" />
                     <Box>
-                      <Text size="sm" c="dimmed">Location</Text>
+                      <Text size="sm" c="dimmed">
+                        Location
+                      </Text>
                       <Text fw={500}>
-                        {/*order.request.location.coordinates[0].toFixed(4)*/}, {/*order.request.location.coordinates[1].toFixed(4)*/}
+                        {/*order.request.location.coordinates[0].toFixed(4)*/},{" "}
+                        {/*order.request.location.coordinates[1].toFixed(4)*/}
                       </Text>
                       <Button
                         variant="subtle"
@@ -550,23 +607,27 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
               </Card>
 
               {/* Media Section */}
-              {(order.detail.photo.length > 0 || order.detail.media.length > 0) && (
+              {(order.detail.photo.length > 0 ||
+                order.detail.media.length > 0) && (
                 <Card
                   shadow="sm"
                   padding="lg"
                   radius="md"
                   className="hover:shadow-md transition-all duration-300 animate-in fade-in-50 slide-in-from-right-4"
-                  style={{ animationDelay: '400ms' }}
+                  style={{ animationDelay: "400ms" }}
                 >
                   <Group gap="sm" mb="md">
                     <Camera size={20} color="#F08C23" />
-                    <Text fw={600} size="lg">Media</Text>
+                    <Text fw={600} size="lg">
+                      Media
+                    </Text>
                   </Group>
-                  
+
                   <Text size="sm" c="dimmed">
-                    {order.detail.photo.length + order.detail.media.length} files attached
+                    {order.detail.photo.length + order.detail.media.length}{" "}
+                    files attached
                   </Text>
-                  
+
                   <Button
                     variant="light"
                     color="orange"
@@ -601,10 +662,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
             autosize
           />
           <Group justify="end" gap="sm">
-            <Button
-              variant="light"
-              onClick={() => setCommentModalOpen(false)}
-            >
+            <Button variant="light" onClick={() => setCommentModalOpen(false)}>
               Cancel
             </Button>
             <Button
@@ -612,7 +670,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
               onClick={() => {
                 // Handle comment submission
                 setCommentModalOpen(false);
-                setNewComment('');
+                setNewComment("");
               }}
             >
               Add Comment
@@ -624,6 +682,4 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
   );
 };
 
-
-
-export default OrderDetails
+export default OrderDetails;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Table,
   Box,
@@ -13,12 +13,11 @@ import {
   Stack,
   Card,
   Avatar,
-  Tooltip, 
+  Tooltip,
   ScrollArea,
-
   Container,
-  NumberFormatter
-} from '@mantine/core';
+  NumberFormatter,
+} from "@mantine/core";
 import {
   Search,
   Filter,
@@ -26,17 +25,15 @@ import {
   Calendar,
   Package,
   //DollarSign,
-
   Clock,
   Star,
   ChevronRight,
   Building2,
- 
   Phone,
-  HandCoins
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { navigateTo } from '@/lib/helpers';
+  HandCoins,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { navigateTo } from "@/lib/helpers";
 
 // Your provided interface
 interface Order {
@@ -65,54 +62,62 @@ interface Order {
     status: string;
   };
   request_id: string;
-  status: "SUBMITTED" | "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "awarded";
+  status:
+    | "SUBMITTED"
+    | "PENDING"
+    | "IN_PROGRESS"
+    | "COMPLETED"
+    | "CANCELLED"
+    | "awarded";
   supplier_detail_id: string;
   total: number;
   updated_at: string;
 }
 
- const getStatusColor = (status: Order['status']) => {
-    const colors = {
-      SUBMITTED: '#F08C23',
-      PENDING: '#fbbf24',
-      IN_PROGRESS: '#3D6B2C',
-      COMPLETED: '#388E3C',
-      CANCELLED: '#ef4444',
-      awarded: '#8b5cf6'
-    };
-    return colors[status] || '#6b7280';
+const getStatusColor = (status: Order["status"]) => {
+  const colors = {
+    SUBMITTED: "#F08C23",
+    PENDING: "#fbbf24",
+    IN_PROGRESS: "#3D6B2C",
+    COMPLETED: "#388E3C",
+    CANCELLED: "#ef4444",
+    awarded: "#8b5cf6",
   };
+  return colors[status] || "#6b7280";
+};
 
- const getStatusIcon = (status: Order['status']) => {
-    switch (status) {
-      case 'SUBMITTED': return <Clock size={14} />;
-      case 'PENDING': return <Clock size={14} />;
-      case 'IN_PROGRESS': return <Package size={14} />;
-      case 'COMPLETED': return <Star size={14} />;
-      case 'CANCELLED': return <Package size={14} />;
-      case 'awarded': return <Star size={14} />;
-      default: return <Clock size={14} />;
-    }
-  };
-    const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
+const getStatusIcon = (status: Order["status"]) => {
+  switch (status) {
+    case "SUBMITTED":
+      return <Clock size={14} />;
+    case "PENDING":
+      return <Clock size={14} />;
+    case "IN_PROGRESS":
+      return <Package size={14} />;
+    case "COMPLETED":
+      return <Star size={14} />;
+    case "CANCELLED":
+      return <Package size={14} />;
+    case "awarded":
+      return <Star size={14} />;
+    default:
+      return <Clock size={14} />;
+  }
+};
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
 
-type Props={orders:Order[]}
-const OrdersTable: React.FC<Props> = ({orders:_orders}) => {
-  const [searchTerm, setSearchTerm] = useState('');
+type Props = { orders: Order[] };
+const OrdersTable: React.FC<Props> = ({ orders: _orders }) => {
+  const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
-  const router=useRouter()
+  const router = useRouter();
   //const [orders] = useState<Order[]>(sampleOrders);
-
- 
- 
-
-
 
   let filteredOrders = _orders;
   /*orders.filter(order => {
@@ -123,51 +128,51 @@ const OrdersTable: React.FC<Props> = ({orders:_orders}) => {
     return matchesSearch && matchesStatus;
   });
 */
-const searchItem=React.useCallback(()=>{
-    return _orders.filter(order => {
-    const matchesSearch = order.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.detail.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.request.code.toLowerCase().includes(searchTerm.toLowerCase());
-    
-   // return matchesSearch && matchesStatus;
-   return matchesSearch
-  });
-},[searchTerm])
-const searchByStatus=()=>{
-    const orders= _orders.filter(order => order.status.toLowerCase() === statusFilter?.toLowerCase());
-    
-    return orders
+  const searchItem = React.useCallback(() => {
+    return _orders.filter((order) => {
+      const matchesSearch =
+        order.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.detail.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.request.code.toLowerCase().includes(searchTerm.toLowerCase());
 
-}
+      // return matchesSearch && matchesStatus;
+      return matchesSearch;
+    });
+  }, [searchTerm]);
+  const searchByStatus = () => {
+    const orders = _orders.filter(
+      (order) => order.status.toLowerCase() === statusFilter?.toLowerCase()
+    );
 
+    return orders;
+  };
 
-React.useEffect(()=>{
-    if(searchItem.length>2){
-        filteredOrders=searchItem()
+  React.useEffect(() => {
+    if (searchItem.length > 2) {
+      filteredOrders = searchItem();
     }
-},[searchItem])
+  }, [searchItem]);
 
-React.useEffect(()=>{
-    if(statusFilter){
-     
-       filteredOrders= searchByStatus()
+  React.useEffect(() => {
+    if (statusFilter) {
+      filteredOrders = searchByStatus();
     }
-},[statusFilter])
+  }, [statusFilter]);
 
-const handleOrder=(id:string)=>{
-    navigateTo()
-    router.push(`/keyman/supplier/orders/${id}`)
-}
-  const rows = filteredOrders.map((order,index) => (
+  const handleOrder = (id: string) => {
+    navigateTo();
+    router.push(`/keyman/supplier/orders/${id}`);
+  };
+  const rows = filteredOrders.toReversed().map((order, index) => (
     <Table.Tr
       key={order.id}
       style={{
-        transition: 'all 0.2s ease',
-        cursor: 'pointer'
+        transition: "all 0.2s ease",
+        cursor: "pointer",
       }}
       className="hover:bg-gray-50 hover:scale-[1.001] hover:shadow-sm"
     >
-        <Table.Td>{index+1}</Table.Td>
+      <Table.Td>{index + 1}</Table.Td>
       <Table.Td>
         <Group gap="sm">
           <Box>
@@ -180,7 +185,7 @@ const handleOrder=(id:string)=>{
           </Box>
         </Group>
       </Table.Td>
-      
+
       <Table.Td>
         <Group gap="xs">
           <Calendar size={14} color="#F08C23" />
@@ -195,7 +200,7 @@ const handleOrder=(id:string)=>{
             variant="light"
             color="green"
             size="sm"
-            style={{ backgroundColor: '#388E3C15' }}
+            style={{ backgroundColor: "#388E3C15" }}
           >
             {order.items.length} items
           </Badge>
@@ -204,8 +209,8 @@ const handleOrder=(id:string)=>{
 
       <Table.Td>
         <Group gap="xs">
-            <HandCoins size={14} color="#3D6B2C"/>
-          
+          <HandCoins size={14} color="#3D6B2C" />
+
           <Text fw={600} size="sm" c="#3D6B2C">
             <NumberFormatter
               value={order.total}
@@ -222,13 +227,13 @@ const handleOrder=(id:string)=>{
           size="md"
           style={{
             backgroundColor: getStatusColor(order.status),
-            color: 'white',
-            textTransform: 'capitalize',
-            fontWeight: 500
+            color: "white",
+            textTransform: "capitalize",
+            fontWeight: 500,
           }}
           leftSection={getStatusIcon(order.status)}
         >
-          {order.status.replace('_', ' ').toLowerCase()}
+          {order.status.replace("_", " ").toLowerCase()}
         </Badge>
       </Table.Td>
 
@@ -265,11 +270,11 @@ const handleOrder=(id:string)=>{
               color="green"
               size="sm"
               style={{
-                backgroundColor: '#3D6B2C15',
-                transition: 'all 0.2s ease'
+                backgroundColor: "#3D6B2C15",
+                transition: "all 0.2s ease",
               }}
               className="hover:scale-110 hover:bg-green-100"
-              onClick={()=>handleOrder(order.id)}
+              onClick={() => handleOrder(order.id)}
             >
               <Eye size={16} />
             </ActionIcon>
@@ -287,8 +292,8 @@ const handleOrder=(id:string)=>{
         padding="lg"
         radius="md"
         style={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-          border: '1px solid #e2e8f0'
+          background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+          border: "1px solid #e2e8f0",
         }}
       >
         <Stack gap="lg">
@@ -306,7 +311,7 @@ const handleOrder=(id:string)=>{
               size="lg"
               variant="light"
               color="green"
-              style={{ backgroundColor: '#3D6B2C15' }}
+              style={{ backgroundColor: "#3D6B2C15" }}
             >
               {filteredOrders.length} Orders
             </Badge>
@@ -316,7 +321,7 @@ const handleOrder=(id:string)=>{
           <Card
             padding="md"
             radius="md"
-            style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}
+            style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}
           >
             <Group gap="md" align="end">
               <TextInput
@@ -327,24 +332,24 @@ const handleOrder=(id:string)=>{
                 style={{ flex: 1 }}
                 styles={{
                   input: {
-                    borderColor: '#3D6B2C30',
-                    '&:focus': {
-                      borderColor: '#3D6B2C',
-                      boxShadow: '0 0 0 2px #3D6B2C20'
-                    }
-                  }
+                    borderColor: "#3D6B2C30",
+                    "&:focus": {
+                      borderColor: "#3D6B2C",
+                      boxShadow: "0 0 0 2px #3D6B2C20",
+                    },
+                  },
                 }}
               />
               <Select
                 placeholder="Filter by status"
                 leftSection={<Filter size={16} />}
                 data={[
-                  { value: 'SUBMITTED', label: 'Submitted' },
-                  { value: 'PENDING', label: 'Pending' },
-                  { value: 'IN_PROGRESS', label: 'In Progress' },
-                  { value: 'COMPLETED', label: 'Completed' },
-                  { value: 'CANCELLED', label: 'Cancelled' },
-                  { value: 'awarded', label: 'Awarded' }
+                  { value: "SUBMITTED", label: "Submitted" },
+                  { value: "PENDING", label: "Pending" },
+                  { value: "IN_PROGRESS", label: "In Progress" },
+                  { value: "COMPLETED", label: "Completed" },
+                  { value: "CANCELLED", label: "Cancelled" },
+                  { value: "awarded", label: "Awarded" },
                 ]}
                 value={statusFilter}
                 onChange={setStatusFilter}
@@ -352,12 +357,12 @@ const handleOrder=(id:string)=>{
                 style={{ minWidth: 180 }}
                 styles={{
                   input: {
-                    borderColor: '#3D6B2C30',
-                    '&:focus': {
-                      borderColor: '#3D6B2C',
-                      boxShadow: '0 0 0 2px #3D6B2C20'
-                    }
-                  }
+                    borderColor: "#3D6B2C30",
+                    "&:focus": {
+                      borderColor: "#3D6B2C",
+                      boxShadow: "0 0 0 2px #3D6B2C20",
+                    },
+                  },
                 }}
               />
             </Group>
@@ -368,8 +373,8 @@ const handleOrder=(id:string)=>{
             shadow="xs"
             radius="md"
             style={{
-              overflow: 'hidden',
-              border: '1px solid #e2e8f0'
+              overflow: "hidden",
+              border: "1px solid #e2e8f0",
             }}
           >
             <ScrollArea>
@@ -381,36 +386,36 @@ const handleOrder=(id:string)=>{
               >
                 <Table.Thead
                   style={{
-                    backgroundColor: '#3D6B2C',
-                    color: 'white'
+                    backgroundColor: "#3D6B2C",
+                    color: "white",
                   }}
                 >
                   <Table.Tr>
-                    <Table.Th style={{ color: 'white', fontWeight: 600 }}>
+                    <Table.Th style={{ color: "white", fontWeight: 600 }}>
                       #
                     </Table.Th>
-                    <Table.Th style={{ color: 'white', fontWeight: 600 }}>
+                    <Table.Th style={{ color: "white", fontWeight: 600 }}>
                       Order Code
                     </Table.Th>
-                    <Table.Th style={{ color: 'white', fontWeight: 600 }}>
+                    <Table.Th style={{ color: "white", fontWeight: 600 }}>
                       Delivery Date
                     </Table.Th>
-                    <Table.Th style={{ color: 'white', fontWeight: 600 }}>
+                    <Table.Th style={{ color: "white", fontWeight: 600 }}>
                       Items
                     </Table.Th>
-                    <Table.Th style={{ color: 'white', fontWeight: 600 }}>
+                    <Table.Th style={{ color: "white", fontWeight: 600 }}>
                       Total
                     </Table.Th>
-                    <Table.Th style={{ color: 'white', fontWeight: 600 }}>
+                    <Table.Th style={{ color: "white", fontWeight: 600 }}>
                       Status
                     </Table.Th>
-                    <Table.Th style={{ color: 'white', fontWeight: 600 }}>
+                    <Table.Th style={{ color: "white", fontWeight: 600 }}>
                       Request Code
                     </Table.Th>
-                    <Table.Th style={{ color: 'white', fontWeight: 600 }}>
+                    <Table.Th style={{ color: "white", fontWeight: 600 }}>
                       Supplier
                     </Table.Th>
-                    <Table.Th style={{ color: 'white', fontWeight: 600 }}>
+                    <Table.Th style={{ color: "white", fontWeight: 600 }}>
                       Actions
                     </Table.Th>
                   </Table.Tr>
@@ -426,11 +431,15 @@ const handleOrder=(id:string)=>{
               p="xl"
               ta="center"
               style={{
-                backgroundColor: '#f8fafc',
-                border: '2px dashed #e2e8f0'
+                backgroundColor: "#f8fafc",
+                border: "2px dashed #e2e8f0",
               }}
             >
-              <Package size={48} color="#9ca3af" style={{ margin: '0 auto 16px' }} />
+              <Package
+                size={48}
+                color="#9ca3af"
+                style={{ margin: "0 auto 16px" }}
+              />
               <Title order={4} c="dimmed" mb="xs">
                 No orders found
               </Title>
