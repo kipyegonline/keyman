@@ -66,6 +66,7 @@ interface RequestForm {
   location_id: string;
   created_from: string;
   items: KeymanItem[];
+  ks_number?: string;
 }
 // Mock data for locations and items
 const mockLocations: DeliveryLocation[] = [
@@ -142,6 +143,14 @@ const DeliveryDetailsStep: React.FC<{
             data={locations.map((loc) => ({ value: loc.id, label: loc.name }))}
             className="transition-all duration-200 hover:scale-[1.02]"
             {...form.getInputProps("location_id")}
+          />
+        </div>
+        <div className="space-y-2">
+          <TextInput
+            label="KS number (optional)"
+            placeholder="Enter a KS number"
+            className="transition-all duration-200 hover:scale-[1.02]"
+            {...form.getInputProps("ks_number")}
           />
         </div>
       </div>
@@ -271,7 +280,7 @@ const RequestSourceStep: React.FC<{
                 </Center>
               )}
               {filteredItems.length > 0 && (
-                <Card className="p-4  overflow-y-auto border-red">
+                <Card className="p-4  overflow-y-auto ">
                   <Text size="sm" c="dimmed">
                     Showing 25 items of {filteredItems.length} items
                   </Text>
@@ -511,9 +520,10 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
   const itemVerified = "visual_confirmation_required";
   const form = useForm<RequestForm>({
     initialValues: {
-      delivery_date: "",
+      delivery_date: "", // new Date().toLocaleDateString(),
       location_id: "",
       created_from: "",
+      ks_number: "",
       items: [],
     },
     validate: {
@@ -580,11 +590,12 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
       delivery_date: form?.values?.delivery_date ?? "",
       latitude: ltd,
       longitude: lng,
+      ks_number: form.values.ks_number,
       created_from: form.values.created_from,
       //  ks_number: `KS-${Date.now()}`,
       items: items,
     };
-    console.log(payload, "load");
+
     setLoading(true);
     setError(null);
     try {
@@ -642,7 +653,6 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
       </Container>
     );
   }
-  console.log(items, "selected tems");
 
   return (
     <Container size="lg" className="py-8">
