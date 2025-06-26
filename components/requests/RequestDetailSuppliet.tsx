@@ -34,6 +34,8 @@ import { notify } from "@/lib/notifications";
 import PricingComponent from "./SupplierPricingComponent";
 import { useQuery } from "@tanstack/react-query";
 import { getBalance } from "@/api/coin";
+import TokenModalExample from "./InsufficientTokensModal";
+import InsufficientTokensModal from "./InsufficientTokensModal";
 type PricingProps = { id: string; price: number; quantity: number };
 type PricedRequestItem = RequestDeliveryItem["items"][0] & {
   price?: number;
@@ -55,6 +57,8 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
   const [orderItems, setOrderItems] = React.useState<PricedRequestItem[]>(
     selectedRequest?.items
   );
+  const [showModal, setShowModal] = React.useState(false);
+  const [transportOpen, setTransportOpen] = React.useState(false);
 
   const supplierId = localStorage.getItem("supplier_id") as string;
 
@@ -81,6 +85,7 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
     );
 
     setOrderItems(updatedItems);
+    setShowModal(true);
   };
   const getValuation = (totalAmount: number, balance: number) => {
     return balance > (2 / 100) * (totalAmount / 20);
@@ -97,30 +102,30 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
     }, 0);
   };
 
-  const handleSubmit = async () => {
-    const notQuoted = orderItems.some(
-      (item) =>
-        typeof item.price === "undefined" || typeof item.quan === "undefined"
-    );
+  const handleSubmit = async (item: PricedRequestItem) => {
+    const notQuoted =
+      typeof item.price === "undefined" || typeof item.quan === "undefined";
 
     if (notQuoted) {
       notify.error("Kindly add unit price and quantity to all fields");
       return;
     }
-    const hasInvalidValues = orderItems.some(
-      (item) => (item.quan ?? 0) <= 0 || (item.price ?? 0) <= 0
-    );
+    const hasInvalidValues = (item.quan ?? 0) <= 0 || (item.price ?? 0) <= 0;
 
     if (hasInvalidValues) {
       notify.error("Quantity and Unit price must be greater than zero.");
       return;
     }
+    if (!item?.quan || !item?.price) return;
 
-    const totalCost = getTotalAmount(orderItems);
+    const totalCost = item?.quan * item?.price; //getTotalAmount(orderItems);
     const totalWeight = gettotalWeight(selectedRequest);
     const eligible = getValuation(totalCost, _balance);
     console.log(eligible);
-    console.log({ totalCost, orderItems, totalWeight }, "submitting quote");
+    console.log(
+      { totalCost, orderItems, totalWeight, req: selectedRequest.id },
+      "submitting quote"
+    );
     //send to server
     const items = orderItems.map((item) => ({
       request_item_id: item.id,
@@ -149,8 +154,19 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
     };
   };
 
+  const handleTopUp = () => {
+    setShowModal(false);
+  };
   return (
     <Box>
+      <InsufficientTokensModal
+        opened={showModal}
+        onClose={() => setShowModal(false)}
+        onTopUp={handleTopUp}
+        currentTokens={_balance}
+        requiredTokens={100}
+        userName=""
+      />
       {selectedRequest && (
         <Stack gap="xl">
           {/* Header Information */}
@@ -342,9 +358,6 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
                   </Text>
                 </Paper>
               ))}
-              <Center>
-                <Button onClick={handleSubmit}>Submit Quote</Button>
-              </Center>
             </Stack>
           </Card>
 

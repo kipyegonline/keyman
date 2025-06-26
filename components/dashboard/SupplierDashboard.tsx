@@ -41,7 +41,7 @@ const Sidebar: React.FC<{
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "requests", label: "Requests", icon: ClipboardList },
+    { id: "requests", label: "Requests near me", icon: ClipboardList },
     { id: "orders", label: "Orders", icon: ShoppingCart },
     { id: "price", label: "Price List", icon: DiamondPercent },
     { id: "update", label: "Update profile", icon: Settings },

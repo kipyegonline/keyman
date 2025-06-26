@@ -20,12 +20,11 @@ export default function RequestClientComponent() {
   });
 
   const _requests = React.useMemo(() => {
-    console.log(requests, "bf");
     if (requests?.request) {
-      return requests.request.data;
+      return requests?.request?.data;
     }
   }, [requests?.status]);
-  console.log(requests, "nearby");
+
   if (isError) return <p>Something went wrong, {error?.message}</p>;
 
   if (isLoading) return <LoadingComponent message="Getting your requests" />;
