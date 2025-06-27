@@ -87,6 +87,7 @@ const Sidebar: React.FC<{
       default:
         break;
     }
+    onToggle();
   };
 
   return (

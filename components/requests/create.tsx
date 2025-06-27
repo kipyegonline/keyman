@@ -44,6 +44,7 @@ import {
   ArrowLeft,
   ExternalLink,
   Loader2,
+  Minus,
 } from "lucide-react";
 
 import { useQuery } from "@tanstack/react-query";
@@ -154,7 +155,8 @@ const RequestSourceStep: React.FC<{
   form: UseFormReturnType<RequestForm>;
   onItemsChange: (items: KeymanItem[]) => void;
   _selectedItems: KeymanItem[];
-}> = ({ form, onItemsChange, _selectedItems }) => {
+  nextStep: () => void;
+}> = ({ form, onItemsChange, _selectedItems, nextStep }) => {
   const [selectedItems, setSelectedItems] =
     useState<KeymanItem[]>(_selectedItems);
   const [searchQuery, setSearchQuery] = useState("");
@@ -172,21 +174,68 @@ const RequestSourceStep: React.FC<{
   }, [items]);
 
   const addItem = (item: KeymanItem) => {
-    const isAdded = selectedItems.find((_item) => _item.id === item.id);
+    const existingItemIndex = selectedItems.findIndex(
+      (_item) => _item.id === item.id
+    );
 
-    if (isAdded) return;
-    const updatedItems = [{ item_id: item.id, ...item }, ...selectedItems];
-    setSelectedItems(updatedItems);
-    onItemsChange(updatedItems);
-    // setSearchQuery("");
+    if (existingItemIndex > -1) {
+      // Item already exists, so we increment its quantity
+      const updatedItems = selectedItems.map((_item, index) => {
+        if (index === existingItemIndex) {
+          // The quantity from TextInput is a string, so we parse, increment, and convert back
+          const newQuantity = Number(_item.quantity || "0") + 1;
+          return {
+            ..._item,
+            quantity: newQuantity,
+          };
+        }
+        return _item;
+      });
+      setSelectedItems(updatedItems);
+      onItemsChange(updatedItems);
+    } else {
+      // Item is new, add it to the list with quantity '1'
+      const updatedItems = [
+        { ...item, quantity: 1, item_id: item.id },
+        ...selectedItems,
+      ];
+      setSelectedItems(updatedItems);
+      onItemsChange(updatedItems);
+    }
   };
 
-  const removeItem = (id: string) => {
-    const updatedItems = selectedItems.filter((item) => item.id !== id);
-    setSelectedItems(updatedItems);
-    onItemsChange(updatedItems);
-  };
+  const removeItem = (itemId: string) => {
+    const existingItemIndex = selectedItems.findIndex(
+      (_item) => _item.id === itemId
+    );
 
+    if (existingItemIndex > -1) {
+      const currentQuantity = Number(
+        selectedItems[existingItemIndex].quantity || "0"
+      );
+
+      if (currentQuantity > 1) {
+        // Decrement quantity if greater than 1
+        const updatedItems = selectedItems.map((_item, index) =>
+          index === existingItemIndex
+            ? { ..._item, quantity: currentQuantity - 1 }
+            : _item
+        );
+        setSelectedItems(updatedItems);
+      } else {
+        // Remove item if quantity is 1
+        setSelectedItems(selectedItems.filter((item) => item.id !== itemId));
+      }
+      onItemsChange(selectedItems); // Call onItemsChange after state update
+    }
+  };
+  const deleteItem = (itemId: string) => {
+    if (confirm("Delete item?")) {
+      const updatedItems = selectedItems.filter((item) => item.id !== itemId);
+      setSelectedItems(updatedItems);
+      onItemsChange(updatedItems);
+    }
+  };
   const updateItem = (
     index: number,
     field: keyof KeymanItem,
@@ -197,7 +246,7 @@ const RequestSourceStep: React.FC<{
     setSelectedItems(updatedItems);
     onItemsChange(updatedItems);
   };
-  console.log(items, "tems");
+
   const CreatedFromSelector = () => {
     return (
       <div className="space-y-4">
@@ -271,7 +320,7 @@ const RequestSourceStep: React.FC<{
                 </Center>
               )}
               {filteredItems.length > 0 && (
-                <Card className="p-4  overflow-y-auto border-red">
+                <Card className="p-4   !overflow-y-scroll max-h-[600px]">
                   <Text size="sm" c="dimmed">
                     Showing 25 items of {filteredItems.length} items
                   </Text>
@@ -280,7 +329,6 @@ const RequestSourceStep: React.FC<{
                       <div
                         key={item.id}
                         className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-                        onClick={() => addItem(item)}
                       >
                         <div>
                           <Text size="sm" fw={500}>
@@ -290,28 +338,93 @@ const RequestSourceStep: React.FC<{
                             {item.description}
                           </Text>
                         </div>
-                        <Plus size={16} className="text-[#3D6B2C]" />
+                        <div className="flex items-center gap-2">
+                          <ActionIcon onClick={() => addItem(item)}>
+                            <Plus size={16} className="text-[#3D6B2C]" />
+                          </ActionIcon>
+                          {item?.quantity}
+
+                          <ActionIcon>
+                            {" "}
+                            <Minus
+                              size={16}
+                              onClick={() => removeItem(item.id)}
+                              className="border-[#3D6B2C]"
+                            />
+                          </ActionIcon>
+                        </div>
                       </div>
                     ))}
                   </div>
-                  <Pagination
-                    total={totalPages}
-                    value={activePage}
-                    onChange={setPage}
-                    size="sm"
-                    // withPages={false}
-                  />
                 </Card>
+              )}
+              {totalPages > 1 && (
+                <Pagination
+                  total={totalPages}
+                  value={activePage}
+                  onChange={setPage}
+                  size="sm"
+                  // withPages={false}
+                />
               )}
             </div>
           </Grid.Col>
           <Grid.Col span={{ base: 12, md: 6 }}>
             {selectedItems.length > 0 && (
-              <Card className="p-4">
+              <Card className="p-4 mt-10">
                 <Text size="sm" fw={500} className="mb-4">
                   Selected Items ({selectedItems.length})
                 </Text>
-                <div className="overflow-x-auto">
+                {selectedItems.map((item, i) => (
+                  <div
+                    key={item.id}
+                    className="flex relative mb-2   border-green items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                  >
+                    <div>
+                      <Text size="sm" fw={500}>
+                        {item.name}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        {item.description}
+                      </Text>
+                      <Text size="xs" fw={600} c="dimmed">
+                        Quantity{" "}
+                        <Badge
+                          color="green"
+                          size="md"
+                          variant="light"
+                          className="ml-4"
+                        >
+                          {item.quantity}
+                        </Badge>
+                      </Text>
+                      <Text size="xs" fw={600} c="dimmed" className=" w-full">
+                        Require visual images?
+                        <Checkbox
+                          className="inline-block ml-2 relative top-1"
+                          checked={!!item.visual_confirmation_required}
+                          onChange={(e) =>
+                            updateItem(
+                              i,
+                              "visual_confirmation_required",
+                              e.target.checked
+                            )
+                          }
+                        />
+                      </Text>
+                      <ActionIcon
+                        color="red"
+                        variant="subtle"
+                        className="text-end !absolute bottom-0 right-2"
+                        onClick={() => deleteItem(item.id)}
+                      >
+                        <Trash2 size={16} />
+                      </ActionIcon>
+                    </div>
+                  </div>
+                ))}
+                <Button onClick={nextStep}>Next</Button>
+                <div className="overflow-x-auto hidden">
                   <Table>
                     <Table.Thead>
                       <Table.Tr>
@@ -690,6 +803,7 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
               form={form}
               onItemsChange={setItems}
               _selectedItems={items}
+              nextStep={nextStep}
             />
           )}
           {active === 2 && (

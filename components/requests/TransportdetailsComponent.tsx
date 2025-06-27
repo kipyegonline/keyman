@@ -33,6 +33,7 @@ import {
   Navigation,
   Calculator,
 } from "lucide-react";
+import DistanceCalculator from "./Distancecalculator";
 
 // Types
 interface TransportDetails {
@@ -238,7 +239,8 @@ const TransportDetailsForm: React.FC<TransportFormProps> = ({
               {/* Transport Details Fields */}
               <Transition
                 mounted={showTransportFields}
-                transition={{ type: "slide-down", duration: 300 }}
+                timingFunction="slide-down"
+                duration={300}
               >
                 {(styles) => (
                   <div style={styles}>
@@ -336,6 +338,7 @@ const TransportDetailsForm: React.FC<TransportFormProps> = ({
 
                         {/* Transport Distance */}
                         <Grid.Col span={{ base: 12, md: 6 }}>
+                          <DistanceCalculator />
                           <NumberInput
                             label={
                               <Group gap="xs">
@@ -498,4 +501,4 @@ const QuoteSubmissionExample: React.FC = () => {
   );
 };
 
-export default QuoteSubmissionExample;
+export default TransportDetailsForm;

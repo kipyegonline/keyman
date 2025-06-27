@@ -143,7 +143,7 @@ const RequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
     router.push("/keyman/dashboard/requests/create-request");
   };
 
-  const rows = requests?.toReversed()?.map((request, index) => (
+  const rows = requests?.map((request, index) => (
     <Table.Tr
       key={request.id}
       className={`transition-all duration-300 ease-in-out cursor-pointer ${

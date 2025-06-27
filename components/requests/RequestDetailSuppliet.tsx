@@ -13,6 +13,7 @@ import {
   ThemeIcon,
   Button,
   Center,
+  Checkbox,
 } from "@mantine/core";
 import {
   Calendar,
@@ -34,13 +35,18 @@ import { notify } from "@/lib/notifications";
 import PricingComponent from "./SupplierPricingComponent";
 import { useQuery } from "@tanstack/react-query";
 import { getBalance } from "@/api/coin";
-import TokenModalExample from "./InsufficientTokensModal";
+
 import InsufficientTokensModal from "./InsufficientTokensModal";
-type PricingProps = { id: string; price: number; quantity: number };
-type PricedRequestItem = RequestDeliveryItem["items"][0] & {
+
+import TransportDetailsForm from "./TransportdetailsComponent";
+
+type PricedProps = {
   price?: number;
   quan?: number;
+  checked?: boolean;
+  id?: string;
 };
+type PricedRequestItem = RequestDeliveryItem["items"][0] & PricedProps;
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -54,9 +60,12 @@ const formatDate = (dateString: string) => {
 const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
   request: selectedRequest,
 }) => {
-  const [orderItems, setOrderItems] = React.useState<PricedRequestItem[]>(
-    selectedRequest?.items
-  );
+  const requestedItems = selectedRequest?.items.map((item) => ({
+    ...item,
+    checked: false,
+  }));
+  const [orderItems, setOrderItems] =
+    React.useState<PricedRequestItem[]>(requestedItems);
   const [showModal, setShowModal] = React.useState(false);
   const [transportOpen, setTransportOpen] = React.useState(false);
 
@@ -72,21 +81,50 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
     return 0;
   }, [balance]);
 
+  const runvalidations = (item: PricedProps) => {
+    const notQuoted = checkIfPriced(item);
+
+    if (notQuoted) {
+      notify.error("Kindly add unit price and quantity to all fields");
+      return false;
+    }
+    const hasInvalidValues = (item.quan ?? 0) <= 0 || (item.price ?? 0) <= 0;
+
+    if (hasInvalidValues) {
+      notify.error("Quantity and Unit price must be greater than zero.");
+      return false;
+    }
+    if (!item?.quan || !item?.price) return false;
+    return true;
+  };
+
   const openGoogleMaps = (lat: number, long: number) => {
     if (lat && long) {
       window.open(`https://maps.google.com/?q=${long},${lat}`, "_blank");
     }
   };
-  const handleItemUpdate = (_item: PricingProps) => {
-    const updatedItems = orderItems.map((item) =>
-      item.id === _item.id
-        ? { ...item, price: _item.price, quan: _item.quantity }
-        : item
-    );
 
-    setOrderItems(updatedItems);
-    setShowModal(true);
+  const handleItemUpdate = (_item: PricedProps) => {
+    const isvalid = runvalidations(_item);
+    console.log(isvalid, _item, "validity");
+    if (!isvalid) return;
+    const totalAmount = Number(_item.price) * Number(_item.quan);
+    const valuated = getValuation(totalAmount, _balance);
+
+    if (valuated) {
+      setShowModal(true);
+      return;
+    } else {
+      const updatedItems = orderItems.map((item) =>
+        item.id === _item.id
+          ? { ...item, price: _item.price, quan: _item.quan }
+          : item
+      );
+
+      setOrderItems(updatedItems);
+    }
   };
+
   const getValuation = (totalAmount: number, balance: number) => {
     return balance > (2 / 100) * (totalAmount / 20);
   };
@@ -101,10 +139,20 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
       return total + weight;
     }, 0);
   };
+  const checkIfPriced = (item: PricedProps) =>
+    typeof item.price === "undefined" || typeof item.quan === "undefined";
 
+  const handleCheckQuote = (item: PricedRequestItem) => {
+    const updatedItems = orderItems.map((_item) =>
+      _item.id === item.id ? { ..._item, checked: !_item.checked } : _item
+    );
+    setOrderItems(updatedItems);
+  };
+  const handlePreSubmission = () => {
+    setTransportOpen(true);
+  };
   const handleSubmit = async (item: PricedRequestItem) => {
-    const notQuoted =
-      typeof item.price === "undefined" || typeof item.quan === "undefined";
+    const notQuoted = checkIfPriced(item);
 
     if (notQuoted) {
       notify.error("Kindly add unit price and quantity to all fields");
@@ -157,6 +205,15 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
   const handleTopUp = () => {
     setShowModal(false);
   };
+  const isQuoted = React.useMemo(
+    () =>
+      orderItems.some(
+        (item: PricedRequestItem) =>
+          (item?.price && item.price > 0) || (item.quan && item.quan > 0)
+      ),
+    [orderItems]
+  );
+  console.log(orderItems, isQuoted, "order");
   return (
     <Box>
       <InsufficientTokensModal
@@ -346,11 +403,19 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
                           </ThemeIcon>
                         </Tooltip>
                       )}
-
-                      <PricingComponent
-                        item={item}
-                        updateItemPrices={handleItemUpdate}
-                      />
+                      {item.checked || !checkIfPriced(item) ? (
+                        <PricingComponent
+                          item={item}
+                          updateItemPrices={handleItemUpdate}
+                        />
+                      ) : (
+                        <Checkbox
+                          className="inline-block ml-2 relative top-1"
+                          label="Add a quote"
+                          checked={item.checked}
+                          onChange={() => handleCheckQuote(item)}
+                        />
+                      )}
                     </Group>
                   </Group>
                   <Text size="sm" c="dimmed" className="pl-10">
@@ -359,6 +424,26 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
                 </Paper>
               ))}
             </Stack>
+            {transportOpen && (
+              <TransportDetailsForm
+                onTransportChange={() => null}
+                onSubmit={(items) => console.log(items)}
+                isSubmitting={false}
+                isOpen={transportOpen}
+                onToggle={() => setTransportOpen(!transportOpen)}
+              />
+            )}
+            <Center mt="md">
+              {transportOpen ? null : isQuoted ? (
+                <Button
+                  className="!text-white !bg-keyman-orange"
+                  onClick={handlePreSubmission}
+                >
+                  {" "}
+                  Submit Quote
+                </Button>
+              ) : null}
+            </Center>
           </Card>
 
           {/* Orders Information */}
@@ -496,3 +581,5 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
 };
 
 export default RequestDetailSuplier;
+
+/** */

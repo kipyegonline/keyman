@@ -87,10 +87,14 @@ export const getNearbyRequests = async (id: string) => {
  * @param requestId The ID of the request to fetch
  * @returns Detailed request information
  */
-export const getRequestDetails = async (requestId: string) => {
+export const getRequestDetails = async (
+  requestId: string,
+  supplierId: string
+) => {
   try {
     const response = await AxiosClient.get(
-      ENDPOINTS.requests.GET_DETAILS(requestId)
+      ENDPOINTS.requests.GET_DETAILS(requestId),
+      { params: { supplier_detail_id: supplierId } }
     );
     return response.data;
   } catch (error) {

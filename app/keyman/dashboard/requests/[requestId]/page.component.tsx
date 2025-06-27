@@ -1,32 +1,50 @@
-"use client"
-import { getRequestDetails } from '@/api/requests'
-import RequestDetail from '@/components/requests/RequestDetail'
-import LoadingComponent from '@/lib/LoadingComponent'
-import { RequestDeliveryItem } from '@/types'
-import { Breadcrumbs } from '@mantine/core'
-import { useQuery } from '@tanstack/react-query'
-import Link from 'next/link'
-import React from 'react'
+"use client";
+import { getRequestDetails } from "@/api/requests";
+import RequestDetail from "@/components/requests/RequestDetail";
+import LoadingComponent from "@/lib/LoadingComponent";
+import { RequestDeliveryItem } from "@/types";
+import { Breadcrumbs } from "@mantine/core";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import React from "react";
 
-export default function RequestItemComponent({requestId}:{requestId:string}) {
-    console.log(requestId,'requestId')
-    
-    const {data:payload,isError,isLoading,error}=useQuery({
-        queryKey:['request',requestId],
-        queryFn:async()=>await getRequestDetails(requestId)
-})
- const request=payload?.request as RequestDeliveryItem ;
-  console.log({isError,error,request,},'sr')
-if(isError) return <p>Error...</p>
- if(isLoading) return <LoadingComponent message="loading request details" variant='construction'/>
+export default function RequestItemComponent({
+  requestId,
+}: {
+  requestId: string;
+}) {
+  console.log(requestId, "requestId");
+  const supplierId = localStorage.getItem("supplier_id") as string;
+  const {
+    data: payload,
+    isError,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["request", requestId],
+    queryFn: async () => await getRequestDetails(requestId, supplierId),
+  });
+  const request = payload?.request as RequestDeliveryItem;
+  console.log({ isError, error, request }, "sr");
+  if (isError) return <p>Error...</p>;
+  if (isLoading)
+    return (
+      <LoadingComponent
+        message="loading request details"
+        variant="construction"
+      />
+    );
   return (
     <div>
-        
-         <Breadcrumbs separator="/" p="md">
-      <Link href="/keyman/dashboard/requests" className='!text-keyman-green'>Requests</Link>
-      <Link href="/" inert>{request?.code}</Link>
-    </Breadcrumbs>
-      <RequestDetail request={request}/>
+      <Breadcrumbs separator="/" p="md">
+        <Link href="/keyman/dashboard/requests" className="!text-keyman-green">
+          Requests
+        </Link>
+        <Link href="/" inert>
+          {request?.code}
+        </Link>
+      </Breadcrumbs>
+      <RequestDetail request={request} />
     </div>
-  )
+  );
 }

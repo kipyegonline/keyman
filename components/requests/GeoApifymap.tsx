@@ -6,10 +6,23 @@ import {
   Group,
   Text,
   ActionIcon,
-  Loader,
   Paper,
 } from "@mantine/core";
 import { Search, MapPin, X, Navigation, Copy, Loader } from "lucide-react";
+
+/*eslint-disable */
+
+interface LeafletMap {
+  setView: (center: [number, number], zoom: number) => void;
+  on: (event: string, handler: (e: any) => void) => void;
+  removeLayer: (layer: any) => void;
+  getZoom: () => number;
+}
+
+interface LeafletMarker {
+  bindPopup: (content: string) => LeafletMarker;
+  openPopup: () => LeafletMarker;
+}
 
 // TypeScript interfaces
 interface Coordinates {
@@ -24,9 +37,23 @@ interface SearchResult {
   place_id: string;
 }
 
+interface GeoapifyFeature {
+  geometry: {
+    coordinates: [number, number];
+  };
+  properties: {
+    formatted: string;
+    place_id: string;
+  };
+}
+
+interface GeoapifyResponse {
+  features: GeoapifyFeature[];
+}
+
 interface MapComponentProps {
   apiKey: string;
-  onLocationSelect: (coordinates: Coordinates) => void;
+  onLocationSelect: (coordinates: Coordinates, name: string) => void;
   initialCenter?: Coordinates;
   initialZoom?: number;
   className?: string;
@@ -39,90 +66,127 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
   initialZoom = 12,
   className = "",
 }) => {
-  // State management
-  const [map, setMap] = useState<any>(null);
-  const [marker, setMarker] = useState<any>(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  // State management with proper typing
+  const [map, setMap] = useState<LeafletMap | null>(null);
+  const [marker, setMarker] = useState<LeafletMarker | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [showResults, setShowResults] = useState<boolean>(false);
   const [currentCoordinates, setCurrentCoordinates] =
     useState<Coordinates | null>(null);
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [isMapLoaded, setIsMapLoaded] = useState<boolean>(false);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   const mapRef = useRef<HTMLDivElement>(null);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>(null);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Initialize map
+  // Initialize map with proper error handling
   useEffect(() => {
     if (!mapRef.current || isMapLoaded) return;
 
-    // Load Leaflet CSS and JS dynamically
-    const loadLeaflet = async () => {
+    const initializeMap = async (): Promise<void> => {
+      try {
+        // In a real implementation, you would import these:
+        // import L from 'leaflet';
+        // import 'leaflet/dist/leaflet.css';
+
+        // For demo purposes, we'll load via CDN but with proper typing
+        await loadLeafletLibrary();
+
+        const L = (window as any).L;
+
+        if (!L) {
+          throw new Error("Leaflet library failed to load");
+        }
+
+        const mapInstance = L.map(mapRef.current!).setView(
+          [initialCenter.lat, initialCenter.lng],
+          initialZoom
+        ) as LeafletMap;
+
+        // Add Geoapify tile layer
+        L.tileLayer(
+          `https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=${apiKey}`,
+          {
+            attribution:
+              '© <a href="https://www.geoapify.com/">Geoapify</a> | © OpenStreetMap contributors',
+            maxZoom: 18,
+          }
+        ).addTo(mapInstance);
+
+        // Handle map clicks with proper typing
+        mapInstance.on(
+          "click",
+          (e: { latlng: { lat: number; lng: number } }) => {
+            const { lat, lng } = e.latlng;
+            handleLocationSelect(
+              { lat, lng },
+              `${lat.toFixed(6)}, ${lng.toFixed(6)}`
+            );
+          }
+        );
+
+        setMap(mapInstance);
+        setIsMapLoaded(true);
+        setMapError(null);
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Failed to initialize map";
+        setMapError(errorMessage);
+        console.error("Map initialization error:", error);
+      }
+    };
+
+    initializeMap();
+
+    // Cleanup function
+    return (): void => {
+      if (map && typeof (map as any).remove === "function") {
+        (map as any).remove();
+      }
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, [apiKey, initialCenter.lat, initialCenter.lng, initialZoom, isMapLoaded]);
+
+  // Load Leaflet library dynamically with proper typing
+  const loadLeafletLibrary = (): Promise<void> => {
+    return new Promise((resolve, reject) => {
       // Load CSS
       if (!document.querySelector('link[href*="leaflet.css"]')) {
-        const cssLink = document.createElement("link");
+        const cssLink: HTMLLinkElement = document.createElement("link");
         cssLink.rel = "stylesheet";
         cssLink.href =
           "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css";
+        cssLink.integrity =
+          "sha512-h9FcoyWjHcOcmEVkxOfTLnmZFWIH0iZhZT1H2TbOq55xssQGEJHEaIm+PgoUaZbRvQTNTluNOEfb1ZRy6D3BOw==";
+        cssLink.crossOrigin = "anonymous";
         document.head.appendChild(cssLink);
       }
 
       // Load JS
       if (!(window as any).L) {
-        const script = document.createElement("script");
+        const script: HTMLScriptElement = document.createElement("script");
         script.src =
           "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js";
-        script.onload = initializeMap;
+        script.integrity =
+          "sha512-BwHfrr4c9kmRkLw6iXFdzcdWV/PGkVgiIyIWLLlTSXzWQzxuSg4DiQUCpauz/EWjgk5TYQqX/kvn9pG1NpYfqg==";
+        script.crossOrigin = "anonymous";
+        script.onload = () => resolve();
+        script.onerror = () =>
+          reject(new Error("Failed to load Leaflet library"));
         document.head.appendChild(script);
       } else {
-        initializeMap();
+        resolve();
       }
-    };
+    });
+  };
 
-    const initializeMap = () => {
-      const L = (window as any).L;
-
-      const mapInstance = L.map(mapRef.current).setView(
-        [initialCenter.lat, initialCenter.lng],
-        initialZoom
-      );
-
-      // Add Geoapify tile layer
-      L.tileLayer(
-        `https://maps.geoapify.com/v1/tile/osm-bright/{z}/{x}/{y}.png?apiKey=${apiKey}`,
-        {
-          attribution:
-            '© <a href="https://www.geoapify.com/">Geoapify</a> | © OpenStreetMap contributors',
-          maxZoom: 18,
-        }
-      ).addTo(mapInstance);
-
-      // Handle map clicks
-      mapInstance.on("click", (e: any) => {
-        const { lat, lng } = e.latlng;
-        handleLocationSelect(
-          { lat, lng },
-          `${lat.toFixed(6)}, ${lng.toFixed(6)}`
-        );
-      });
-
-      setMap(mapInstance);
-      setIsMapLoaded(true);
-    };
-
-    loadLeaflet();
-
-    return () => {
-      if (map) {
-        map.remove();
-      }
-    };
-  }, [apiKey, initialCenter, initialZoom]);
-
-  // Handle location selection (from search or click)
+  // Handle location selection with proper typing
   const handleLocationSelect = useCallback(
-    (coordinates: Coordinates, displayName?: string) => {
+    (coordinates: Coordinates, displayName?: string): void => {
       if (!map) return;
 
       const L = (window as any).L;
@@ -137,13 +201,14 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
         html: `<div style="background-color: #3D6B2C; width: 24px; height: 24px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"><div style="width: 8px; height: 8px; background-color: white; border-radius: 50%; position: absolute; top: 6px; left: 6px;"></div></div>`,
         iconSize: [24, 24],
         iconAnchor: [12, 24],
-        className: "custom-div-icon",
+        // className: "custom-div-icon",
       });
 
       // Add new marker
-      const newMarker = L.marker([coordinates.lat, coordinates.lng], {
-        icon: customIcon,
-      }).addTo(map);
+      const newMarker: LeafletMarker = L.marker(
+        [coordinates.lat, coordinates.lng],
+        { icon: customIcon }
+      ).addTo(map);
 
       // Add popup with coordinates
       newMarker
@@ -168,7 +233,7 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
       map.setView([coordinates.lat, coordinates.lng], map.getZoom());
 
       // Call the callback with coordinates
-      onLocationSelect(coordinates);
+      onLocationSelect(coordinates, displayName ?? "");
 
       // Hide search results
       setShowResults(false);
@@ -176,9 +241,9 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
     [map, marker, onLocationSelect]
   );
 
-  // Search function
+  // Search function with proper error handling and typing
   const searchLocation = useCallback(
-    async (query: string) => {
+    async (query: string): Promise<void> => {
       if (!query.trim()) {
         setSearchResults([]);
         setShowResults(false);
@@ -188,26 +253,34 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
       setIsSearching(true);
 
       try {
-        const response = await fetch(
+        const response: Response = await fetch(
           `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(
             query
           )}&apiKey=${apiKey}&limit=5`
         );
 
-        if (!response.ok) throw new Error("Search failed");
+        if (!response.ok) {
+          throw new Error(
+            `Search failed: ${response.status} ${response.statusText}`
+          );
+        }
 
-        const data = await response.json();
-        const results: SearchResult[] = data.features.map((feature: any) => ({
-          lat: feature.geometry.coordinates[1],
-          lon: feature.geometry.coordinates[0],
-          display_name: feature.properties.formatted,
-          place_id: feature.properties.place_id,
-        }));
+        const data: GeoapifyResponse = await response.json();
+        const results: SearchResult[] = data.features.map(
+          (feature: GeoapifyFeature) => ({
+            lat: feature.geometry.coordinates[1],
+            lon: feature.geometry.coordinates[0],
+            display_name: feature.properties.formatted,
+            place_id: feature.properties.place_id,
+          })
+        );
 
         setSearchResults(results);
         setShowResults(results.length > 0);
-      } catch (error) {
-        console.error("Search error:", error);
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Search failed";
+        console.error("Search error:", errorMessage);
         setSearchResults([]);
         setShowResults(false);
       } finally {
@@ -217,8 +290,8 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
     [apiKey]
   );
 
-  // Debounced search
-  useEffect(() => {
+  // Debounced search with proper cleanup
+  useEffect((): (() => void) => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
     }
@@ -227,15 +300,15 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
       searchLocation(searchQuery);
     }, 300);
 
-    return () => {
+    return (): void => {
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
     };
   }, [searchQuery, searchLocation]);
 
-  // Clear marker
-  const clearMarker = () => {
+  // Clear marker function
+  const clearMarker = (): void => {
     if (marker && map) {
       map.removeLayer(marker);
       setMarker(null);
@@ -243,48 +316,112 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
     }
   };
 
-  // Get user's current location
-  const getCurrentLocation = () => {
-    if (!navigator.geolocation) return;
+  // Get user's current location with proper error handling
+  const getCurrentLocation = (): void => {
+    if (!navigator.geolocation) {
+      console.warn("Geolocation is not supported by this browser");
+      return;
+    }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const coordinates = {
+      (position: GeolocationPosition) => {
+        const coordinates: Coordinates = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
         handleLocationSelect(coordinates, "Current Location");
       },
-      (error) => {
-        console.error("Geolocation error:", error);
+      (error: GeolocationPositionError) => {
+        console.error("Geolocation error:", error.message);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
       }
     );
   };
 
+  // Handle search input change
+  const handleSearchInputChange = (
+    event: React.ChangeEvent<HTMLInputElement>
+  ): void => {
+    setSearchQuery(event.target.value);
+  };
+
+  // Handle search clear
+  const handleSearchClear = (): void => {
+    setSearchQuery("");
+    setShowResults(false);
+  };
+
+  // Handle search result selection
+  const handleSearchResultSelect = (result: SearchResult): void => {
+    handleLocationSelect(
+      { lat: result.lat, lng: result.lon },
+      result.display_name
+    );
+  };
+
+  // Render error state
+  if (mapError) {
+    return (
+      <div
+        className={`w-full h-full min-h-[500px] flex items-center  justify-center ${className}`}
+      >
+        <Card className="p-6 text-center max-w-md">
+          <Text
+            size="lg"
+            fw={600}
+            style={{ color: "#F08C23" }}
+            className="mb-2"
+          >
+            Map Error
+          </Text>
+          <Text size="sm" c="dimmed" className="mb-4">
+            {mapError}
+          </Text>
+          <Button
+            onClick={() => {
+              setMapError(null);
+              setIsMapLoaded(false);
+            }}
+            style={{
+              backgroundColor: "#3D6B2C",
+              "&:hover": { backgroundColor: "#388E3C" },
+            }}
+          >
+            Retry
+          </Button>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <div className={`w-full h-full min-h-[500px] relative ${className}`}>
+    <div
+      className={`w-full h-full min-h-[500px] max-w-[360px] md:max-w-[680px]  relative ${className}`}
+    >
       {/* Search Controls */}
+      <h3 className="relative -top-4 ml-4 font-semibold">
+        Search for a location
+      </h3>
       <Paper
         shadow="md"
-        className="absolute top-4 left-4 right-4 z-[1000] p-4"
+        // display={"none"}
+        className="absolute  top-4 left-4 right-4 z-[10] p-4"
         style={{ backgroundColor: "white" }}
       >
         <div className="flex gap-2 mb-2">
           <TextInput
             placeholder="Search for a location..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={handleSearchInputChange}
             className="flex-1"
             leftSection={<Search size={16} />}
             rightSection={
               searchQuery ? (
-                <ActionIcon
-                  variant="subtle"
-                  onClick={() => {
-                    setSearchQuery("");
-                    setShowResults(false);
-                  }}
-                >
+                <ActionIcon variant="subtle" onClick={handleSearchClear}>
                   <X size={14} />
                 </ActionIcon>
               ) : null
@@ -330,7 +467,7 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
         {/* Current Coordinates Display */}
         {currentCoordinates && (
           <Group gap="xs" className="text-sm">
-            <IconMapPin size={14} style={{ color: "#3D6B2C" }} />
+            <MapPin size={14} style={{ color: "#3D6B2C" }} />
             <Text size="sm" style={{ color: "#3D6B2C" }}>
               {currentCoordinates.lat.toFixed(6)},{" "}
               {currentCoordinates.lng.toFixed(6)}
@@ -343,26 +480,21 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
           <Card className="mt-2 max-h-48 overflow-y-auto">
             {isSearching ? (
               <div className="flex items-center justify-center p-4">
-                <Loader size="sm" style={{ color: "#3D6B2C" }} />
+                <Loader size={20} style={{ color: "#3D6B2C" }} />
                 <Text size="sm" className="ml-2">
                   Searching...
                 </Text>
               </div>
             ) : (
               <div>
-                {searchResults.map((result, index) => (
+                {searchResults.map((result: SearchResult, index: number) => (
                   <div
                     key={result.place_id || index}
                     className="p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                    onClick={() =>
-                      handleLocationSelect(
-                        { lat: result.lat, lng: result.lon },
-                        result.display_name
-                      )
-                    }
+                    onClick={() => handleSearchResultSelect(result)}
                   >
                     <Group gap="xs">
-                      <IconMapPin size={14} style={{ color: "#3D6B2C" }} />
+                      <MapPin size={14} style={{ color: "#3D6B2C" }} />
                       <Text size="sm" className="flex-1">
                         {result.display_name}
                       </Text>
@@ -383,10 +515,10 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
       />
 
       {/* Loading Overlay */}
-      {!isMapLoaded && (
+      {!isMapLoaded && !mapError && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
           <div className="text-center">
-            <Loader size="lg" style={{ color: "#3D6B2C" }} />
+            <Loader size={32} style={{ color: "#3D6B2C" }} />
             <Text className="mt-2" style={{ color: "#3D6B2C" }}>
               Loading map...
             </Text>
@@ -397,7 +529,7 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
       {/* Instructions */}
       <Paper
         shadow="md"
-        className="absolute bottom-4 left-4 p-3 max-w-xs"
+        className="absolute bottom-4 left-4 p-3 max-w-xs "
         style={{ backgroundColor: "rgba(255, 255, 255, 0.95)" }}
       >
         <Text size="xs" style={{ color: "#3D6B2C" }}>
@@ -409,14 +541,26 @@ const GeoapifyMapInterface: React.FC<MapComponentProps> = ({
   );
 };
 
-// Example usage component
+// Example usage component with proper typing
 const MapExample: React.FC = () => {
   const [selectedCoordinates, setSelectedCoordinates] =
     useState<Coordinates | null>(null);
 
-  const handleLocationSelect = (coordinates: Coordinates) => {
+  const handleLocationSelect = (coordinates: Coordinates): void => {
     setSelectedCoordinates(coordinates);
     console.log("Selected coordinates:", coordinates);
+  };
+
+  const handleCopyCoordinates = async (): Promise<void> => {
+    if (!selectedCoordinates) return;
+
+    try {
+      await navigator.clipboard.writeText(
+        `${selectedCoordinates.lat}, ${selectedCoordinates.lng}`
+      );
+    } catch (error: unknown) {
+      console.error("Failed to copy coordinates:", error);
+    }
   };
 
   return (
@@ -476,12 +620,9 @@ const MapExample: React.FC = () => {
                       color: "white",
                       "&:hover": { backgroundColor: "#388E3C" },
                     }}
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        `${selectedCoordinates.lat}, ${selectedCoordinates.lng}`
-                      );
-                    }}
+                    onClick={handleCopyCoordinates}
                   >
+                    <Copy size={16} style={{ marginRight: "8px" }} />
                     Copy Coordinates
                   </Button>
                 </div>
@@ -499,4 +640,4 @@ const MapExample: React.FC = () => {
   );
 };
 
-export default MapExample;
+export default GeoapifyMapInterface;
