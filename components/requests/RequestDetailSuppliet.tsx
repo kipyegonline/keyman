@@ -291,7 +291,7 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
         (item?.price && item.price > 0) || (item.quan && item.quan > 0)
     );
   }, [orderItems]);
-  console.log(selectedRequest, "sr");
+
   if (success)
     return (
       <QuoteSuccess quoteId={"Keyman"} requestCode={selectedRequest?.code} />

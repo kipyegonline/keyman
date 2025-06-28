@@ -378,47 +378,4 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
   );
 };
 
-// Example usage component
-const TokenModalExample: React.FC = () => {
-  const [modalOpened, setModalOpened] = useState(false);
-  const [currentTokens] = useState(3);
-  const [requiredTokens] = useState(8);
-
-  const handleTopUp = (packageId: string) => {
-    console.log("Selected package:", packageId);
-    alert(`Processing payment for package: ${packageId}`);
-    setModalOpened(false);
-  };
-
-  return (
-    <div className="p-8">
-      <Card className="max-w-md mx-auto p-6 text-center">
-        <Text size="lg" fw={600} mb="md">
-          Quote Submission
-        </Text>
-        <Text c="dimmed" mb="lg">
-          Current tokens: {currentTokens} | Required: {requiredTokens}
-        </Text>
-
-        <Button
-          onClick={() => setModalOpened(true)}
-          className="bg-[#3D6B2C] hover:bg-[#388E3C]"
-          rightSection={<Coins size={16} />}
-        >
-          Try Submit Quote
-        </Button>
-      </Card>
-
-      <InsufficientTokensModal
-        opened={modalOpened}
-        onClose={() => setModalOpened(false)}
-        onTopUp={handleTopUp}
-        currentTokens={currentTokens}
-        requiredTokens={requiredTokens}
-        userName="John Supplier"
-      />
-    </div>
-  );
-};
-
 export default InsufficientTokensModal;

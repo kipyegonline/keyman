@@ -133,8 +133,8 @@ const QuoteSuccess: React.FC<QuoteSuccessProps> = ({
                   className="text-center max-w-md"
                   style={{ lineHeight: 1.6 }}
                 >
-                  Your quote has been sent to the client. You'll receive a
-                  notification once they respond.
+                  {`Your quote has been sent to the client. You'll receive a
+                  notification once they respond.`}
                 </Text>
               </Stack>
             </Stack>
@@ -257,8 +257,9 @@ const QuoteSuccess: React.FC<QuoteSuccessProps> = ({
                 </Text>
                 <Text size="xs" style={{ color: "#a16207", lineHeight: 1.5 }}>
                   The client will review your quote and respond within{" "}
-                  <strong>{estimatedResponseTime}</strong>. You'll receive an
-                  email and in-app notification when they make a decision.
+                  <strong>{estimatedResponseTime}</strong>.{" "}
+                  {`You'll receive an
+                  email and in-app notification when they make a decision.`}
                 </Text>
               </Stack>
             </Group>

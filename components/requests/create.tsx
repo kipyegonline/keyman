@@ -33,7 +33,7 @@ import {
   MapPin,
   Package,
   Mic,
-  Image,
+  ImageIcon,
   Search,
   Plus,
   Trash2,
@@ -254,40 +254,50 @@ const RequestSourceStep: React.FC<{
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { value: "items", label: "Items", icon: Package, color: "#3D6B2C" },
-            { value: "image", label: "Image", icon: Image, color: "#F08C23" },
+            {
+              value: "image",
+              label: "Image",
+              icon: ImageIcon,
+              color: "#F08C23",
+            },
             {
               value: "voice_note",
               label: "Voice Note",
               icon: Mic,
               color: "#388E3C",
             },
-          ].map((option) => (
-            <Card
-              key={option.value}
-              className={`p-4 cursor-pointer border-2 transition-all duration-300 hover:scale-105 ${
-                form.values.created_from === option.value
-                  ? "border-[#3D6B2C] bg-green-50"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-              onClick={() => form.setFieldValue("created_from", option.value)}
-            >
-              <div className="text-center">
-                <option.icon
-                  size={32}
-                  className="mx-auto mb-2"
-                  style={{
-                    color:
-                      form.values.created_from === option.value
-                        ? option.color
-                        : "#6b7280",
-                  }}
-                />
-                <Text size="sm" fw={500}>
-                  {option.label}
-                </Text>
-              </div>
-            </Card>
-          ))}
+          ].map((option) => {
+            const Icon = option.icon;
+            return (
+              <Card
+                key={option.value}
+                className={`p-4 cursor-pointer border-2 transition-all duration-300 hover:scale-105 ${
+                  form.values.created_from === option.value
+                    ? "border-[#3D6B2C] bg-green-50"
+                    : "border-gray-200 hover:border-gray-300"
+                }`}
+                onClick={() => form.setFieldValue("created_from", option.value)}
+              >
+                <div className="text-center">
+                  {
+                    <Icon
+                      size={32}
+                      className="mx-auto mb-2"
+                      style={{
+                        color:
+                          form.values.created_from === option.value
+                            ? option.color
+                            : "#6b7280",
+                      }}
+                    />
+                  }
+                  <Text size="sm" fw={500}>
+                    {option.label}
+                  </Text>
+                </div>
+              </Card>
+            );
+          })}
         </div>
       </div>
     );
@@ -497,7 +507,7 @@ const RequestSourceStep: React.FC<{
 
       {form.values.created_from === "items" && <ItemsComponent />}
       {form.values.created_from === "image" && (
-        <Alert icon={<Image size={16} />} color="orange">
+        <Alert icon={<ImageIcon size={16} />} color="orange">
           Image upload component will be implemented here.
         </Alert>
       )}
