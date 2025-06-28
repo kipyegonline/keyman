@@ -23,19 +23,19 @@ interface RouteResponse {
   }>;
 }
 
-const DistanceCalculator: React.FC = () => {
+const DistanceCalculator: React.FC<{
+  coords: [number, number];
+  sendDistance: (distance: number) => void;
+}> = ({ coords, sendDistance }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [distance, setDistance] = useState<number | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
-  const [destination, setDestination] = useState<Coordinates | null>(null);
-
-  // Predefined destination coordinates (example: Nairobi CBD)
-  const destinations: Coordinates = {
-    lat: -1.2864,
-    lng: 36.8172,
-  };
+  const [destination] = useState<Coordinates | null>({
+    lat: coords[0],
+    lng: coords[1],
+  });
 
   const GEOAPIFY_API_KEY = process.env.NEXT_PUBLIC_GEOAPIFY as string;
 
@@ -89,7 +89,9 @@ const DistanceCalculator: React.FC = () => {
 
       if (data.features && data.features.length > 0) {
         const route = data.features[0].properties;
+
         setDistance(route.distance);
+        sendDistance(formatDistance(route.distance));
         setDuration(route.time);
       } else {
         throw new Error("No route found");
@@ -103,11 +105,11 @@ const DistanceCalculator: React.FC = () => {
     }
   };
 
-  const formatDistance = (meters: number): string => {
+  const formatDistance = (meters: number): number => {
     if (meters < 1000) {
-      return `${Math.round(meters)} m`;
+      return Math.round(meters / 1000);
     }
-    return `${(meters / 1000).toFixed(2)} km`;
+    return Math.round(meters / 1000);
   };
 
   const formatDuration = (seconds: number): string => {
@@ -119,7 +121,56 @@ const DistanceCalculator: React.FC = () => {
     }
     return `${minutes} min`;
   };
-
+  React.useEffect(() => {
+    calculateDistance();
+  }, []);
+  return null;
+  return (
+    <div>
+      <button
+        onClick={calculateDistance}
+        disabled={isLoading}
+        className={` py-2 mb-2 w-[320px] px-2 rounded-2xl font-semibold text-white shadow-lg transform transition-all duration-300 ${
+          isLoading
+            ? "bg-gray-400 cursor-not-allowed"
+            : "hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
+        }`}
+        style={
+          !isLoading
+            ? {
+                background: "linear-gradient(135deg, #F08C23 0%, #3D6B2C 100%)",
+              }
+            : {}
+        }
+        onMouseEnter={(e) => {
+          if (!isLoading) {
+            e.currentTarget.style.background =
+              "linear-gradient(135deg, #e07a1a 0%, #2d5121 100%)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (!isLoading) {
+            e.currentTarget.style.background =
+              "linear-gradient(135deg, #F08C23 0%, #3D6B2C 100%)";
+          }
+        }}
+      >
+        <div className="flex items-center justify-center gap-3">
+          {isLoading ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>Calculating...</span>
+            </>
+          ) : (
+            <>
+              <Navigation className="w-2 h-2" />
+              <span>Calculate Distance</span>
+            </>
+          )}
+        </div>
+      </button>
+    </div>
+  );
   return (
     <div
       className="min-h-screen bg-gradient-to-br from-green-50 via-orange-50 to-green-100 p-4 flex items-center justify-center"
@@ -132,7 +183,7 @@ const DistanceCalculator: React.FC = () => {
         {/* Main Card */}
         <div className="bg-white/70 backdrop-blur-lg rounded-3xl shadow-2xl border border-white/20 p-8 transform transition-all duration-500 hover:scale-[1.02] hover:shadow-3xl">
           {/* Header */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-8 hidden">
             <div
               className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg"
               style={{
@@ -159,7 +210,7 @@ const DistanceCalculator: React.FC = () => {
 
           {/* Destination Info */}
           <div
-            className="rounded-2xl p-4 mb-6 border"
+            className="rounded-2xl p-4 mb-6 border hidden"
             style={{
               background:
                 "linear-gradient(135deg, rgba(61, 107, 44, 0.1) 0%, rgba(56, 142, 60, 0.1) 100%)",
@@ -251,8 +302,8 @@ const DistanceCalculator: React.FC = () => {
                         Your Location
                       </p>
                       <p className="text-sm" style={{ color: "#388E3C" }}>
-                        {userLocation.lat.toFixed(4)},{" "}
-                        {userLocation.lng.toFixed(4)}
+                        {userLocation?.lat.toFixed(4)},{" "}
+                        {userLocation?.lng.toFixed(4)}
                       </p>
                     </div>
                   </div>
@@ -282,7 +333,7 @@ const DistanceCalculator: React.FC = () => {
                       className="text-2xl font-bold"
                       style={{ color: "#3D6B2C" }}
                     >
-                      {formatDistance(distance)}
+                      {formatDistance(distance ?? 0)}
                     </p>
                   </div>
 
@@ -307,7 +358,7 @@ const DistanceCalculator: React.FC = () => {
                       className="text-2xl font-bold"
                       style={{ color: "#F08C23" }}
                     >
-                      {formatDuration(duration)}
+                      {formatDuration(duration ?? 0)}
                     </p>
                   </div>
                 </div>

@@ -17,11 +17,12 @@ import {
   Paper,
   ThemeIcon,
   Transition,
+  TextInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import {
   Truck,
-  MapPin,
+  //MapPin,
   DollarSign,
   Package,
   ChevronDown,
@@ -42,15 +43,25 @@ interface TransportDetails {
   transport_vehicle: "motorbike" | "tuktuk" | "pickup" | "truck";
   transport_cost: number;
   transport_distance: number;
+  minimum_quantity: number;
 }
 
 interface TransportFormProps {
   onTransportChange: (data: TransportDetails) => void;
-  onSubmit: () => void;
+  onSubmit: (payload: TransportDetails) => void;
   isSubmitting?: boolean;
   isOpen: boolean;
   onToggle: () => void;
+  coords: [number, number];
 }
+const defaultState: TransportDetails = {
+  offers_transport: false,
+  transport_type: "SUPPLIER_DELIVERY",
+  transport_vehicle: "tuktuk",
+  transport_cost: 0,
+  transport_distance: 1,
+  minimum_quantity: 0,
+};
 
 const TransportDetailsForm: React.FC<TransportFormProps> = ({
   onTransportChange,
@@ -58,17 +69,12 @@ const TransportDetailsForm: React.FC<TransportFormProps> = ({
   isSubmitting = false,
   isOpen,
   onToggle,
+  coords,
 }) => {
   const [showTransportFields, setShowTransportFields] = useState(false);
 
   const form = useForm<TransportDetails>({
-    initialValues: {
-      offers_transport: false,
-      transport_type: "",
-      transport_vehicle: "tuktuk",
-      transport_cost: 0,
-      transport_distance: 0,
-    },
+    initialValues: defaultState,
     validate: {
       transport_type: (value, values) => {
         if (values.offers_transport && !value) {
@@ -85,6 +91,12 @@ const TransportDetailsForm: React.FC<TransportFormProps> = ({
       transport_distance: (value, values) => {
         if (values.offers_transport && (!value || value <= 0)) {
           return "Transport distance must be greater than 0";
+        }
+        return null;
+      },
+      minimum_quantity(value, values) {
+        if (values.offers_transport && (!value || value <= 0)) {
+          return "Minimum quantity must be greater than 0";
         }
         return null;
       },
@@ -148,20 +160,14 @@ const TransportDetailsForm: React.FC<TransportFormProps> = ({
 
     if (!checked) {
       // Reset transport fields when unchecked
-      form.setValues({
-        offers_transport: false,
-        transport_type: "",
-        transport_vehicle: "tuktuk",
-        transport_cost: 0,
-        transport_distance: 0,
-      });
+      form.setValues(defaultState);
     }
   };
 
   const handleSubmit = () => {
     const validation = form.validate();
     if (!validation.hasErrors) {
-      onSubmit();
+      onSubmit(form.values);
     }
   };
 
@@ -254,11 +260,12 @@ const TransportDetailsForm: React.FC<TransportFormProps> = ({
                         {/* Transport Type */}
                         <Grid.Col span={{ base: 12, md: 6 }}>
                           <Select
+                            display={"none"}
                             label={
                               <Group gap="xs">
                                 <Package size={16} className="text-[#3D6B2C]" />
                                 <Text size="sm" fw={500}>
-                                  Transport Type
+                                  Minimum
                                 </Text>
                               </Group>
                             }
@@ -275,6 +282,20 @@ const TransportDetailsForm: React.FC<TransportFormProps> = ({
                               {selectedTransportType.description}
                             </Text>
                           )}
+                          {/**minimum quantity */}
+                          <TextInput
+                            label={
+                              <Group gap="xs">
+                                <Package size={16} className="text-[#3D6B2C]" />
+                                <Text size="sm" fw={500}>
+                                  Enter minimum quantity (KES)
+                                </Text>
+                              </Group>
+                            }
+                            {...form.getInputProps("minimum_quantity")}
+                            className="transition-all duration-200 hover:scale-[1.02]"
+                            placeholder="Minimum quantity quote"
+                          />
                         </Grid.Col>
 
                         {/* Transport Vehicle */}
@@ -338,7 +359,24 @@ const TransportDetailsForm: React.FC<TransportFormProps> = ({
 
                         {/* Transport Distance */}
                         <Grid.Col span={{ base: 12, md: 6 }}>
-                          <DistanceCalculator />
+                          {form.values.offers_transport && (
+                            <DistanceCalculator
+                              coords={coords}
+                              sendDistance={(distance) =>
+                                form.setFieldValue(
+                                  "transport_distance",
+                                  distance
+                                )
+                              }
+                            />
+                          )}
+                          {form.values.transport_distance > 0 && (
+                            <Text c="dimmed" size="sm">
+                              Distance:
+                              {form.values.transport_distance.toLocaleString()}
+                              {"  km"}
+                            </Text>
+                          )}
                           <NumberInput
                             label={
                               <Group gap="xs">
@@ -353,10 +391,11 @@ const TransportDetailsForm: React.FC<TransportFormProps> = ({
                             }
                             placeholder="Enter distance"
                             min={0}
+                            disabled
                             step={0.5}
                             decimalScale={1}
                             {...form.getInputProps("transport_distance")}
-                            className="transition-all duration-200 hover:scale-[1.02]"
+                            className="transition-all duration-200 hover:scale-[1.02] hidden"
                             leftSection={<Text size="sm">KM</Text>}
                           />
                         </Grid.Col>
@@ -429,74 +468,6 @@ const TransportDetailsForm: React.FC<TransportFormProps> = ({
           </div>
         </Card>
       </Collapse>
-    </div>
-  );
-};
-
-// Example usage component showing integration
-const QuoteSubmissionExample: React.FC = () => {
-  const [transportData, setTransportData] = useState<TransportDetails>({
-    offers_transport: false,
-    transport_type: "",
-    transport_vehicle: "tuktuk",
-    transport_cost: 0,
-    transport_distance: 0,
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleTransportChange = (data: TransportDetails) => {
-    setTransportData(data);
-    console.log("Transport data updated:", data);
-  };
-
-  const handleSubmit = async () => {
-    setIsSubmitting(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Final quote data:", { transportData });
-      alert("Quote submitted successfully!");
-      setIsSubmitting(false);
-      setTransportOpen(false);
-    }, 2000);
-  };
-
-  const handleQuoteButtonClick = () => {
-    setTransportOpen(true);
-  };
-
-  return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
-      {/* Existing Quote Content */}
-      <Card className="p-6 border border-gray-200">
-        <Text size="xl" fw={600} mb="md">
-          Construction Quote Details
-        </Text>
-        <Text c="dimmed" mb="lg">
-          Your quote items and pricing details would be displayed here...
-        </Text>
-
-        {/* Original Submit Button */}
-        {!transportOpen && (
-          <Button
-            onClick={handleQuoteButtonClick}
-            size="lg"
-            className="bg-[#3D6B2C] hover:bg-[#388E3C] transition-all duration-200 hover:scale-105"
-            rightSection={<ChevronDown size={16} />}
-          >
-            Submit Quote
-          </Button>
-        )}
-      </Card>
-
-      {/* Transport Details Component */}
-      <TransportDetailsForm
-        onTransportChange={handleTransportChange}
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-        isOpen={transportOpen}
-        onToggle={() => setTransportOpen(!transportOpen)}
-      />
     </div>
   );
 };

@@ -262,6 +262,7 @@ export interface RequestDeliveryItem {
     visual_confirmation_required: 0 | 1;
     price?: number;
     quan?: number;
+    photo?: File | null;
     item: { weight_in_kgs: string };
   }>;
   ks_number: null;

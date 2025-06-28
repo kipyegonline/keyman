@@ -1,14 +1,22 @@
 import React from "react";
-import { Flex, FileInput, NumberInput, Box, Button } from "@mantine/core";
+import {
+  Flex,
+  FileInput,
+  NumberInput,
+  Box,
+  Button,
+  ActionIcon,
+} from "@mantine/core";
 import { RequestDeliveryItem } from "@/types";
 import { notify } from "@/lib/notifications";
+import { FilePenLine } from "lucide-react";
 
 type PricedProps = {
   price?: number;
   quan?: number;
   checked?: boolean;
   id?: string;
-  file: File | null;
+  file?: File | null;
 };
 
 const PricingComponent: React.FC<{
@@ -17,6 +25,8 @@ const PricingComponent: React.FC<{
 }> = ({ item, updateItemPrices }) => {
   const [_item, setItem] = React.useState<null | PricedProps>(null);
   const [file, setFile] = React.useState<File | null>(null);
+  const [isSubmitted, setSubmitted] = React.useState(false);
+
   const imageRequired = item.visual_confirmation_required === 1;
   const handleQuote = () => {
     if (item.visual_confirmation_required === 1) {
@@ -27,28 +37,19 @@ const PricingComponent: React.FC<{
 
     if (_item) {
       updateItemPrices({ ..._item, id: item?.id, file: file });
+      setSubmitted(true);
+    } else {
     }
   };
 
   return (
     <Box className=" flex flex-col gap-y-4 justify-between p-2">
       <Flex gap="md" direction={{ base: "column", md: "row" }}>
-        {imageRequired && (
-          <FileInput
-            accept="image/png,image/jpeg, image/jpg"
-            clearable
-            required
-            value={file}
-            w={{ base: "100%", md: 100 }}
-            onChange={setFile}
-            placeholder="upload  image item here"
-            label="upload image"
-          />
-        )}{" "}
         <NumberInput
           size="sm"
           label="Quantity"
           w={{ base: "100%", md: 100 }}
+          disabled={isSubmitted}
           allowNegative={false}
           onChange={(val) => {
             if (_item !== null) {
@@ -64,6 +65,7 @@ const PricingComponent: React.FC<{
         <NumberInput
           size="sm"
           label="Unit price"
+          disabled={isSubmitted}
           allowNegative={false}
           onChange={(val) => {
             if (_item !== null) {
@@ -75,9 +77,32 @@ const PricingComponent: React.FC<{
           required
           w={{ base: "100%", md: 100 }}
         />
+        {imageRequired && (
+          <FileInput
+            accept="image/png,image/jpeg, image/jpg"
+            // disabled={isSubmitted}
+            clearable
+            required
+            value={file}
+            w={{ base: "100%", md: 140 }}
+            onChange={setFile}
+            placeholder="upload  image"
+            label="Item image"
+          />
+        )}{" "}
       </Flex>
 
-      <Button onClick={handleQuote}>Add Quote</Button>
+      {isSubmitted ? (
+        <h3 className="text-sm text-gray-600 transition-all duration-300 text-center">
+          <ActionIcon onClick={() => setSubmitted(false)}>
+            <FilePenLine size={10} />
+          </ActionIcon>
+          <small onClick={() => setSubmitted(false)} className="ml-2"></small>
+          Edit quote
+        </h3>
+      ) : (
+        <Button onClick={handleQuote}>Add Quote</Button>
+      )}
     </Box>
   );
 };

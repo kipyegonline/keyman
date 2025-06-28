@@ -39,12 +39,24 @@ import { getBalance } from "@/api/coin";
 import InsufficientTokensModal from "./InsufficientTokensModal";
 
 import TransportDetailsForm from "./TransportdetailsComponent";
+import { submitQuoteForRequest } from "@/api/requests";
+import QuoteSuccess from "./successComponent";
+
+interface TransportDetails {
+  offers_transport: boolean;
+  transport_type: "SUPPLIER_DELIVERY" | "KEYMAN_DELIVERY" | "";
+  transport_vehicle: "motorbike" | "tuktuk" | "pickup" | "truck";
+  transport_cost: number;
+  transport_distance: number;
+  minimum_quantity: number;
+}
 
 type PricedProps = {
   price?: number;
   quan?: number;
   checked?: boolean;
   id?: string;
+  file?: File | null;
 };
 type PricedRequestItem = RequestDeliveryItem["items"][0] & PricedProps;
 
@@ -70,6 +82,8 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
   const [transportOpen, setTransportOpen] = React.useState(false);
 
   const supplierId = localStorage.getItem("supplier_id") as string;
+  const [submitting, setSubmitting] = React.useState(false);
+  const [success, setSuccess] = React.useState(false);
 
   const { data: balance } = useQuery({
     queryFn: async () => await getBalance(supplierId),
@@ -106,7 +120,7 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
 
   const handleItemUpdate = (_item: PricedProps) => {
     const isvalid = runvalidations(_item);
-    console.log(isvalid, _item, "validity");
+
     if (!isvalid) return;
     const totalAmount = Number(_item.price) * Number(_item.quan);
     const valuated = getValuation(totalAmount, _balance);
@@ -115,11 +129,13 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
       setShowModal(true);
       return;
     } else {
-      const updatedItems = orderItems.map((item) =>
-        item.id === _item.id
-          ? { ...item, price: _item.price, quan: _item.quan }
-          : item
-      );
+      const updatedItems = orderItems.map((item) => {
+        const photo = _item?.file ?? null;
+
+        return item.id === _item.id
+          ? { ...item, price: _item.price, quan: _item.quan, photo }
+          : item;
+      });
 
       setOrderItems(updatedItems);
     }
@@ -136,7 +152,8 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
   const gettotalWeight = (selectedRequest: RequestDeliveryItem) => {
     return selectedRequest?.items.reduce((total, _item) => {
       const weight = Number(_item?.item?.weight_in_kgs);
-      return total + weight;
+
+      return total + Number(_item?.quantity || 0) * weight;
     }, 0);
   };
   const checkIfPriced = (item: PricedProps) =>
@@ -151,69 +168,134 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
   const handlePreSubmission = () => {
     setTransportOpen(true);
   };
-  const handleSubmit = async (item: PricedRequestItem) => {
-    const notQuoted = checkIfPriced(item);
 
-    if (notQuoted) {
-      notify.error("Kindly add unit price and quantity to all fields");
-      return;
-    }
-    const hasInvalidValues = (item.quan ?? 0) <= 0 || (item.price ?? 0) <= 0;
+  function toDataUrlFromFile(file: File) {
+    return new Promise((resolve, reject) => {
+      if (!(file instanceof File)) {
+        reject(new Error("The provided argument is not a File object."));
+        return;
+      }
 
-    if (hasInvalidValues) {
-      notify.error("Quantity and Unit price must be greater than zero.");
-      return;
-    }
-    if (!item?.quan || !item?.price) return;
+      const reader = new FileReader();
 
-    const totalCost = item?.quan * item?.price; //getTotalAmount(orderItems);
+      reader.onloadend = () => {
+        // reader.result contains the Data URL (e.g., "data:image/png;base64,...")
+        resolve(reader.result);
+      };
+
+      reader.onerror = () => {
+        // Reject the promise if there's an error reading the file
+        reject(reader.error);
+      };
+
+      reader.readAsDataURL(file);
+    });
+  }
+  function DataURIToBlob(dataURI: string) {
+    const splitDataURI = dataURI.split(",");
+    const byteString =
+      splitDataURI[0].indexOf("base64") >= 0
+        ? atob(splitDataURI[1])
+        : decodeURI(splitDataURI[1]);
+    const mimeString = splitDataURI[0].split(":")[1].split(";")[0];
+
+    const ia = new Uint8Array(byteString.length);
+    for (let i = 0; i < byteString.length; i++)
+      ia[i] = byteString.charCodeAt(i);
+
+    return new Blob([ia], {
+      type: mimeString,
+    });
+  }
+  const handleSubmit = async (transportInfo: TransportDetails) => {
+    const {
+      // offers_transport,
+      transport_type: type,
+      transport_vehicle: vehicle,
+      transport_cost: cost,
+      transport_distance: distance,
+      minimum_quantity: minimumQuantity,
+    } = transportInfo;
+    //return;
+    const totalCost = getTotalAmount(orderItems);
     const totalWeight = gettotalWeight(selectedRequest);
-    const eligible = getValuation(totalCost, _balance);
-    console.log(eligible);
-    console.log(
-      { totalCost, orderItems, totalWeight, req: selectedRequest.id },
-      "submitting quote"
-    );
+
     //send to server
     const items = orderItems.map((item) => ({
       request_item_id: item.id,
       quantity: item.quan,
-      price: item.price,
+      unit_price: item.price,
       total_price: totalCost,
       total_weight: totalWeight,
+      images: item?.photo ? [item?.photo] : [],
     }));
     const transport = {
-      type: "SUPPLIER_DELIVERY",
-      vehicle: "tultuk",
+      type,
+      vehicle,
       weight: 150,
-      distance: 2.5,
-      cost: 1000,
+      distance,
+      cost,
     };
+    const requestId = selectedRequest.id;
+    const formData = new FormData();
 
-    const payload = {
-      supplier_detail_id: supplierId,
-      request_id: selectedRequest.id,
-      items,
-      transport,
-      minimum_order_quantity: 0,
-      partial_delivery: 1,
-      payment_type: "Guaranteed Pay",
-      update_pricelist: 0,
-    };
+    formData.append("supplier_detail_id", supplierId);
+    formData.append("request_id", requestId);
+
+    formData.append("minimum_order_quantity", minimumQuantity + "");
+    formData.append("partial_delivery", 1 + "");
+    formData.append("payment_type", "Guaranteed Pay");
+    formData.append("update_pricelist", 0 + "");
+
+    items.forEach(async (item, index) => {
+      Object.entries(item).forEach(async ([key, value]) => {
+        if (key === "images" && Array.isArray(value)) {
+          value.forEach(async (file: File) => {
+            const file64 = await toDataUrlFromFile(file);
+
+            const file_ = DataURIToBlob(file64 as string);
+
+            formData.append(`items[${index}][images][]`, file_, file.name);
+          });
+        } else if (value !== null && value !== undefined) {
+          formData.append(`items[${index}][${key}]`, String(value));
+        }
+      });
+    });
+
+    Object.entries(transport).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        formData.append(`transport[${key}]`, String(value));
+      }
+    });
+
+    // return)
+    setSubmitting(true);
+    const response = await submitQuoteForRequest(requestId, formData);
+    setSubmitting(false);
+    if (response.status) {
+      notify.success("Quote submitted successfully");
+      setSuccess(true);
+    } else {
+      //notify.error(response.message);
+    }
   };
 
   const handleTopUp = () => {
     setShowModal(false);
   };
-  const isQuoted = React.useMemo(
-    () =>
-      orderItems.some(
-        (item: PricedRequestItem) =>
-          (item?.price && item.price > 0) || (item.quan && item.quan > 0)
-      ),
-    [orderItems]
-  );
-  console.log(orderItems, isQuoted, "order");
+  const isQuoted = React.useMemo(() => {
+    if (!orderItems) return false;
+    return orderItems.some(
+      (item: PricedRequestItem) =>
+        (item?.price && item.price > 0) || (item.quan && item.quan > 0)
+    );
+  }, [orderItems]);
+  console.log(selectedRequest, "sr");
+  if (success)
+    return (
+      <QuoteSuccess quoteId={"Keyman"} requestCode={selectedRequest?.code} />
+    );
   return (
     <Box>
       <InsufficientTokensModal
@@ -427,8 +509,10 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
             {transportOpen && (
               <TransportDetailsForm
                 onTransportChange={() => null}
-                onSubmit={(items) => console.log(items)}
-                isSubmitting={false}
+                onSubmit={handleSubmit}
+                isSubmitting={submitting}
+                coords={selectedRequest.location.coordinates}
+                //coords={}
                 isOpen={transportOpen}
                 onToggle={() => setTransportOpen(!transportOpen)}
               />
@@ -439,8 +523,7 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
                   className="!text-white !bg-keyman-orange"
                   onClick={handlePreSubmission}
                 >
-                  {" "}
-                  Submit Quote
+                  proceed
                 </Button>
               ) : null}
             </Center>
