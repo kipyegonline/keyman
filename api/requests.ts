@@ -1,10 +1,6 @@
 import AxiosClient from "@/config/axios";
 import { ENDPOINTS } from "@/lib/endpoints";
-import {
-  AwardPayload,
-  CreateRequestPayload,
-  QuotePayload,
-} from "@/types/requests";
+import { AwardPayload, CreateRequestPayload } from "@/types/requests";
 import { AxiosError } from "axios";
 
 /**
@@ -61,9 +57,11 @@ export const createRequest = async (payload: CreateRequestPayload) => {
  * Get requests near the user's location
  * @returns List of nearby requests
  */
-export const getNearbyRequests = async () => {
+export const getNearbyRequests = async (id: string) => {
   try {
-    const response = await AxiosClient.get(ENDPOINTS.requests.NEAR_ME);
+    const response = await AxiosClient.post(ENDPOINTS.requests.NEAR_ME, {
+      supplier_detail_id: id,
+    });
     return response.data;
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -85,10 +83,14 @@ export const getNearbyRequests = async () => {
  * @param requestId The ID of the request to fetch
  * @returns Detailed request information
  */
-export const getRequestDetails = async (requestId: string) => {
+export const getRequestDetails = async (
+  requestId: string,
+  supplierId: string
+) => {
   try {
     const response = await AxiosClient.get(
-      ENDPOINTS.requests.GET_DETAILS(requestId)
+      ENDPOINTS.requests.GET_DETAILS(requestId),
+      { params: { supplier_detail_id: supplierId } }
     );
     return response.data;
   } catch (error) {
@@ -114,7 +116,7 @@ export const getRequestDetails = async (requestId: string) => {
  */
 export const submitQuoteForRequest = async (
   requestId: string,
-  payload: QuotePayload
+  payload: FormData
 ) => {
   try {
     const response = await AxiosClient.post(

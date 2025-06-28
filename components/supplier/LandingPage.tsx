@@ -161,7 +161,7 @@ const SupplierDashboard: React.FC<Props> = ({
     if (confirm(`Remove ${staff?.user?.name}`)) {
     }
   };
-  console.log(_supplierInfo, "ssup");
+
   const StaffMemberInvitation = (
     <Modal
       opened={inviteModalOpen}

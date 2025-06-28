@@ -1,7 +1,8 @@
 "use client";
 
 import { createProject } from "@/api/projects";
-import MapComponent from "@/components/delivery/mapBox";
+
+import GeoapifyMapInterface from "@/components/requests/GeoApifymap";
 import { notify } from "@/lib/notifications";
 //import DeliveryMap from '@/components/delivery/map'
 import { Alert, Button, Flex, Grid, Textarea, TextInput } from "@mantine/core";
@@ -9,21 +10,29 @@ import { ExternalLink } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 import React from "react";
-const key = process.env.NEXT_PUBLIC_G_KEY as string;
+
+const geoAPIKey = process.env.NEXT_PUBLIC_GEOAPIFY as string;
 const defaultState = { name: "", description: "", address: "" };
-type Coords = { lng: number; lat: number };
+
+interface Coordinates {
+  lat: number;
+  lng: number;
+}
 export default function DeliveryClientComponent() {
-  const [coords, setCoords] = React.useState<Coords | null>(null);
   const [info, setInfo] = React.useState(defaultState);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const [success, setSuccess] = React.useState(false);
+  const [coords, setSelectedCoordinates] = React.useState<Coordinates | null>(
+    null
+  );
+
+  const handleLocationSelect = (coordinates: Coordinates, name: string) => {
+    setSelectedCoordinates(coordinates);
+    setInfo({ ...info, name });
+  };
   const params = useSearchParams();
   const isReturn = params.get("return");
-
-  const _setCoords = (coords: { lat: number; lng: number }) => {
-    setCoords(coords);
-  };
 
   const handleSubmit = async () => {
     setSuccess(false);
@@ -47,7 +56,7 @@ export default function DeliveryClientComponent() {
       return;
     }
     // If all validations pass, you can proceed with your submission logic here
-    console.log("Form submitted successfully! (Just kidding, this is a demo)");
+
     console.log("Submitting:", { coords, info });
     const payload = { ...info, latitude: coords.lat, longitude: coords.lng };
     setLoading(true);
@@ -56,10 +65,9 @@ export default function DeliveryClientComponent() {
     const response = await createProject(payload);
     setLoading(false);
 
-    console.log(response);
     if (response.status) {
       setInfo(defaultState);
-      setCoords({ lat: 0, lng: 0 });
+      setSelectedCoordinates(null);
       notify.success("Location created successfully");
       setSuccess(true);
     } else {
@@ -70,8 +78,14 @@ export default function DeliveryClientComponent() {
   return (
     <div className="px-2 md:px-10 min-h-screen">
       <Grid>
-        <Grid.Col span={{ base: 12, md: 8 }}>
-          <MapComponent apiKey={key} setCoords={_setCoords} />
+        <Grid.Col span={{ base: 12, md: 8 }} className="mb-4 p-2 md:p-4 ">
+          <GeoapifyMapInterface
+            apiKey={geoAPIKey} // Replace with your actual API key
+            onLocationSelect={handleLocationSelect}
+            initialCenter={{ lat: -1.2921, lng: 36.8219 }} // Nairobi
+            initialZoom={12}
+            className="h-full ml-2 md:ml-[40px]"
+          />
         </Grid.Col>
         {coords && (
           <Grid.Col span={{ base: 12, md: 4 }}>

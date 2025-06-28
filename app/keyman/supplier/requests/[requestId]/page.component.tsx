@@ -1,6 +1,6 @@
 "use client";
 import { getRequestDetails } from "@/api/requests";
-import RequestDetail from "@/components/requests/RequestDetail";
+import RequestDetailSuplier from "@/components/requests/RequestDetailSuppliet";
 import LoadingComponent from "@/lib/LoadingComponent";
 import { RequestDeliveryItem } from "@/types";
 import { Breadcrumbs } from "@mantine/core";
@@ -25,7 +25,7 @@ export default function RequestItemComponent({
     queryFn: async () => await getRequestDetails(requestId, supplierId),
   });
   const request = payload?.request as RequestDeliveryItem;
-  console.log({ isError, error, request }, "sr");
+  console.log({ isError, error, request }, "supplier request item");
   if (isError) return <p>Error...</p>;
   if (isLoading)
     return (
@@ -37,14 +37,14 @@ export default function RequestItemComponent({
   return (
     <div>
       <Breadcrumbs separator="/" p="md">
-        <Link href="/keyman/dashboard/requests" className="!text-keyman-green">
+        <Link href="/keyman/supplier/requests" className="!text-keyman-green">
           Requests
         </Link>
         <Link href="/" inert>
           {request?.code}
         </Link>
       </Breadcrumbs>
-      <RequestDetail request={request} />
+      <RequestDetailSuplier request={request} />
     </div>
   );
 }

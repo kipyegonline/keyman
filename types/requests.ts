@@ -7,6 +7,37 @@ export interface RequestPayload {
   };
   items: RequestItem[];
 }
+type Quoteitem = {
+  unit_price: number | undefined;
+
+  quantity: number | undefined;
+
+  request_item_id: string;
+
+  total_price: number;
+  total_weight: number;
+
+  file?: File;
+};
+export interface QuoteInfo {
+  items: Quoteitem[];
+  minimum_order_quantity: number;
+  partial_delivery: number;
+
+  payment_type: string;
+
+  request_id: string;
+
+  supplier_detail_id: string;
+  transport: {
+    type: string;
+    vehicle: string;
+    weight: number;
+    distance: number;
+    cost: number;
+  };
+  update_pricelist: number;
+}
 
 export interface QuotePayload {
   items: {

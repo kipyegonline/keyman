@@ -31,7 +31,7 @@ export const ENDPOINTS = {
   requests: {
     GET_REQUESTS: "/api/requests",
     CREATE_REQUESTS: "/api/requests",
-    NEAR_ME: "/api/requests/near_me",
+    NEAR_ME: "/api/requests/near-me",
     GET_DETAILS: (request_id: string) => `/api/requests/${request_id}`,
     QUOTE_REQUEST_ITEMS: (request_id: string) =>
       `/api/request/${request_id}}/quote`,
@@ -48,5 +48,11 @@ export const ENDPOINTS = {
   projects: {
     GET_PROJETCS: "/api/projects",
     CREATE_PROJECT: "/api/projects",
+  },
+  coin: {
+    GET_COIN_USAGE: (supplierId: string) =>
+      `/api/keyman-coin/usage?supplier_detail_id=${supplierId}`,
+    GET_BALANCE: (supplierId: string) =>
+      `/api/keyman-coin/balance?supplier_detail_id=${supplierId}`,
   },
 };
