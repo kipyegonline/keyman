@@ -1,7 +1,6 @@
-"use client"
-import React, { useState } from 'react';
+"use client";
+import React, { useState } from "react";
 import {
- 
   Grid,
   Card,
   Text,
@@ -22,8 +21,8 @@ import {
   Flex,
   Avatar,
   Divider,
-  Alert
-} from '@mantine/core';
+  Alert,
+} from "@mantine/core";
 import {
   Edit3,
   //Package,
@@ -38,12 +37,11 @@ import {
   TrendingUp,
   //Zap,
   CheckCircle2,
-  HandCoins
-} from 'lucide-react';
-import { updateSupplierPriceList } from '@/api/supplier';
+  HandCoins,
+} from "lucide-react";
+import { updateSupplierPriceList } from "@/api/supplier";
 
-import { notify } from '@/lib/notifications';
-
+import { notify } from "@/lib/notifications";
 
 export interface Pricelist {
   id?: string;
@@ -56,91 +54,102 @@ export interface Pricelist {
   weight_in_kgs: string;
 }
 
-
-
 const getItemEmoji = (type: string, name: string): string => {
-  if (name.toLowerCase().includes('tile')) return '🏺';
-  if (name.toLowerCase().includes('cement')) return '🏗️';
-  if (name.toLowerCase().includes('steel') || name.toLowerCase().includes('iron')) return '🔩';
-  if (name.toLowerCase().includes('paint')) return '🎨';
-  if (name.toLowerCase().includes('roof')) return '🏠';
-  return '📦';
+  if (name.toLowerCase().includes("tile")) return "🏺";
+  if (name.toLowerCase().includes("cement")) return "🏗️";
+  if (
+    name.toLowerCase().includes("steel") ||
+    name.toLowerCase().includes("iron")
+  )
+    return "🔩";
+  if (name.toLowerCase().includes("paint")) return "🎨";
+  if (name.toLowerCase().includes("roof")) return "🏠";
+  return "📦";
 };
 
 const getTransportationIcon = (type: string) => {
   switch (type.toLowerCase()) {
-    case 'tuktuk': return '🛺';
-    case 'pickup': return '🚛';
-    case 'lorry': return '🚚';
-    default: return '🚚';
+    case "tuktuk":
+      return "🛺";
+    case "pickup":
+      return "🚛";
+    case "lorry":
+      return "🚚";
+    default:
+      return "🚚";
   }
 };
 
 const getTransportationColor = (type: string) => {
   switch (type.toLowerCase()) {
-    case 'tuktuk': return '#F08C23';
-    case 'pickup': return '#388E3C';
-    case 'lorry': return '#3D6B2C';
-    default: return '#3D6B2C';
+    case "tuktuk":
+      return "#F08C23";
+    case "pickup":
+      return "#388E3C";
+    case "lorry":
+      return "#3D6B2C";
+    default:
+      return "#3D6B2C";
   }
 };
- let wordCount=0;
-export default function PricelistDashboard({ handleSearch, isPending,prices:items }: { handleSearch: (val: string) => void, isPending: boolean ,prices:Pricelist[]}) {
- 
+let wordCount = 0;
+export default function PricelistDashboard({
+  handleSearch,
+  isPending,
+  prices: items,
+}: {
+  handleSearch: (val: string) => void;
+  isPending: boolean;
+  prices: Pricelist[];
+}) {
   const [selectedItem, setSelectedItem] = useState<Pricelist | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [editForm, setEditForm] = useState<Pricelist | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
 
-const supplierId=localStorage.getItem('supplier_id')
+  const supplierId = localStorage.getItem("supplier_id");
 
-
-const handleSearchQuery=(value:string)=>{
-   if (searchTerm.length > 2) {
-    if(value.length>wordCount){
- handleSearch(value)
+  const handleSearchQuery = (value: string) => {
+    if (searchTerm.length > 2) {
+      if (value.length > wordCount) {
+        handleSearch(value);
+      }
     }
-     
-      
-    }
-    
-  
-    if(value.length<wordCount)
-      wordCount--
-      else
-  wordCount++
-}
+
+    if (value.length < wordCount) wordCount--;
+    else wordCount++;
+  };
   const handleEditClick = (item: Pricelist) => {
     setSelectedItem(item);
-    setEditForm({...item});
+    setEditForm({ ...item });
     setModalOpened(true);
   };
 
   const handleSavePrice = async () => {
     if (!editForm || !selectedItem) return;
-    console.log(editForm)
-    const payload:[{item_id:string,price:number}]=[{item_id:editForm?.id as string,price:+editForm?.price as number}]
-if(payload.length===1){
- setIsLoading(true);
-    const response=await updateSupplierPriceList(supplierId as string,payload)
-    console.log(response)
-    setIsLoading(false)
-    if(response.status){
-       setTimeout(() => {
-        setSuccessMessage('')
-        setModalOpened(false);
-       }, 3000);
+
+    const payload: [{ item_id: string; price: number }] = [
+      { item_id: editForm?.id as string, price: +editForm?.price as number },
+    ];
+    if (payload.length === 1) {
+      setIsLoading(true);
+      const response = await updateSupplierPriceList(
+        supplierId as string,
+        payload
+      );
+
+      setIsLoading(false);
+      if (response.status) {
+        setTimeout(() => {
+          setSuccessMessage("");
+          setModalOpened(false);
+        }, 3000);
         setSuccessMessage(`Price updated for ${editForm.name}`);
+      } else notify.error(response.message);
     }
-     
-    else
-    notify.error(response.message)
-}
-    
-   
 
     // Simulate API call
     /*setTimeout(() => {
@@ -156,7 +165,7 @@ if(payload.length===1){
     }, 1000);*/
   };
 
-  const filteredItems =items;/* items?.filter(item => {
+  const filteredItems = items; /* items?.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.swahili_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = !filterType || item.transportation_type === filterType;
@@ -166,15 +175,23 @@ if(payload.length===1){
   return (
     <section>
       {/* Header Section */}
-      <Paper p={{base:"sm",md:"xl"}} mb="xl" style={{ 
-        background: 'linear-gradient(135deg, #3D6B2C 0%, #388E3C 100%)',
-        borderRadius: '20px',
-      }}>
+      <Paper
+        p={{ base: "sm", md: "xl" }}
+        mb="xl"
+        style={{
+          background: "linear-gradient(135deg, #3D6B2C 0%, #388E3C 100%)",
+          borderRadius: "20px",
+        }}
+      >
         <Flex justify="space-between" align="center" wrap="wrap" gap="md">
-          <Box >
+          <Box>
             <Title order={1} c="white" mb="xs">
               <Flex align="center" gap="md">
-                <Avatar size="lg" radius="xl" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                <Avatar
+                  size="lg"
+                  radius="xl"
+                  style={{ backgroundColor: "rgba(255,255,255,0.2)" }}
+                >
                   💰
                 </Avatar>
                 Price Management Dashboard
@@ -184,13 +201,22 @@ if(payload.length===1){
               Manage and update construction item prices with ease
             </Text>
           </Box>
-          <Group className='!hidden'>
-            <Paper p="md" radius="md" style={{backgroundColor: 'rgba(255,255,255,0.15)'}}>
-              <Text c="white" size="sm" fw={500}> Total Items</Text>
-              <Text c="white" size="xl" fw={700}>{ items?.length}</Text>
+          <Group className="!hidden">
+            <Paper
+              p="md"
+              radius="md"
+              style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
+            >
+              <Text c="white" size="sm" fw={500}>
+                {" "}
+                Total Items
+              </Text>
+              <Text c="white" size="xl" fw={700}>
+                {items?.length}
+              </Text>
             </Paper>
             <Button
-              leftSection={<Plus size={18}/>}
+              leftSection={<Plus size={18} />}
               variant="filled"
               color="#3D6B2C"
               size="lg"
@@ -225,10 +251,9 @@ if(payload.length===1){
             placeholder="Search items..."
             leftSection={<Search size={16} />}
             value={searchTerm}
-            
             onChange={(e) => {
-               setSearchTerm(e.target.value)
-              handleSearchQuery(e.target.value)
+              setSearchTerm(e.target.value);
+              handleSearchQuery(e.target.value);
             }}
             style={{ flexGrow: 1, maxWidth: 400 }}
             radius="xl"
@@ -238,9 +263,9 @@ if(payload.length===1){
               placeholder="Filter by transport"
               leftSection={<Filter size={16} />}
               data={[
-                { value: 'TUKTUK', label: '🛺 TukTuk' },
-                { value: 'PICKUP', label: '🚛 Pickup' },
-                { value: 'LORRY', label: '🚚 Lorry' }
+                { value: "TUKTUK", label: "🛺 TukTuk" },
+                { value: "PICKUP", label: "🚛 Pickup" },
+                { value: "LORRY", label: "🚚 Lorry" },
               ]}
               value={filterType}
               onChange={setFilterType}
@@ -269,21 +294,23 @@ if(payload.length===1){
                   radius="xl"
                   style={{
                     ...styles,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    border: '1px solid #f0f0f0',
-                    '&:hover': {
-                      transform: 'translateY(-8px)',
-                      boxShadow: '0 20px 40px rgba(61, 107, 44, 0.15)'
-                    }
+                    cursor: "pointer",
+                    transition: "all 0.3s ease",
+                    border: "1px solid #f0f0f0",
+                    "&:hover": {
+                      transform: "translateY(-8px)",
+                      boxShadow: "0 20px 40px rgba(61, 107, 44, 0.15)",
+                    },
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-8px)';
-                    e.currentTarget.style.boxShadow = '0 20px 40px rgba(61, 107, 44, 0.15)';
+                    e.currentTarget.style.transform = "translateY(-8px)";
+                    e.currentTarget.style.boxShadow =
+                      "0 20px 40px rgba(61, 107, 44, 0.15)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow =
+                      "0 2px 8px rgba(0, 0, 0, 0.1)";
                   }}
                 >
                   <Stack gap="md">
@@ -292,13 +319,13 @@ if(payload.length===1){
                       <Box style={{ flexGrow: 1 }}>
                         <Text size="xl" mb="xs">
                           {getItemEmoji(item.type, item.name)}
-                        </Text >
+                        </Text>
                         <Text fw={600} size="md" lineClamp={2} mb="xs">
                           {item.name}
-                        </Text >
+                        </Text>
                         <Text size="sm" c="dimmed" lineClamp={1}>
                           {item.swahili_name}
-                        </Text >
+                        </Text>
                       </Box>
 
                       <Tooltip label="Edit Price">
@@ -317,15 +344,29 @@ if(payload.length===1){
                     <Divider />
 
                     {/* Price Section */}
-                    <Paper p="md" radius="lg" style={{ backgroundColor: '#f8f9fa' }}>
-                      <Flex align="center" justify="space-between" display="none">
+                    <Paper
+                      p="md"
+                      radius="lg"
+                      style={{ backgroundColor: "#f8f9fa" }}
+                    >
+                      <Flex
+                        align="center"
+                        justify="space-between"
+                        display="none"
+                      >
                         <Box display="none">
-                          <Text size="xs" c="dimmed" mb={2}>Current Price</Text>
+                          <Text size="xs" c="dimmed" mb={2}>
+                            Current Price
+                          </Text>
                           <Text size="xl" fw={700} c="#3D6B2C">
                             KES {parseFloat(item.price).toLocaleString()}
                           </Text>
                         </Box>
-                        <Avatar size="md" radius="xl" style={{ backgroundColor: '#3D6B2C' }}>
+                        <Avatar
+                          size="md"
+                          radius="xl"
+                          style={{ backgroundColor: "#3D6B2C" }}
+                        >
                           <DollarSign size={20} color="white" />
                         </Avatar>
                       </Flex>
@@ -339,12 +380,15 @@ if(payload.length===1){
                         size="md"
                         radius="xl"
                       >
-                        {getTransportationIcon(item.transportation_type)} {item.transportation_type}
+                        {getTransportationIcon(item.transportation_type)}{" "}
+                        {item.transportation_type}
                       </Badge>
 
                       <Group gap="xs">
                         <Weight size={14} />
-                        <Text size="sm" c="dimmed">{item.weight_in_kgs}kg</Text>
+                        <Text size="sm" c="dimmed">
+                          {item.weight_in_kgs}kg
+                        </Text>
                       </Group>
                     </Group>
 
@@ -373,7 +417,11 @@ if(payload.length===1){
         onClose={() => setModalOpened(false)}
         title={
           <Group>
-            <Avatar size="sm" radius="xl" style={{ backgroundColor: '#3D6B2C' }}>
+            <Avatar
+              size="sm"
+              radius="xl"
+              style={{ backgroundColor: "#3D6B2C" }}
+            >
               <Edit3 size={16} color="white" />
             </Avatar>
             <Text fw={600}>Update Item Price</Text>
@@ -385,7 +433,7 @@ if(payload.length===1){
       >
         {editForm && (
           <Stack gap="md">
-            <Paper p="md" radius="lg" style={{ backgroundColor: '#f8f9fa' }}>
+            <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
               <Text size="lg" fw={600} mb="xs">
                 {getItemEmoji(editForm.type, editForm.name)} {editForm.name}
               </Text>
@@ -398,23 +446,30 @@ if(payload.length===1){
               label="Price (KES)"
               placeholder="Enter new price"
               value={parseFloat(editForm.price || "0")}
-              onChange={(value) => setEditForm({...editForm, price: value?.toString() || '0'})}
-              leftSection={<HandCoins size={16}/>}
+              onChange={(value) =>
+                setEditForm({ ...editForm, price: value?.toString() || "0" })
+              }
+              leftSection={<HandCoins size={16} />}
               thousandSeparator=","
               decimalScale={2}
               size="lg"
               required
-              radius="md"              
+              radius="md"
             />
 
             <Select
               label="Transportation Type"
               value={editForm.transportation_type}
-              onChange={(value) => setEditForm({ ...editForm, transportation_type: value || 'TUKTUK' })}
+              onChange={(value) =>
+                setEditForm({
+                  ...editForm,
+                  transportation_type: value || "TUKTUK",
+                })
+              }
               data={[
-                { value: 'TUKTUK', label: '🛺 TukTuk' },
-                { value: 'PICKUP', label: '🚛 Pickup' },
-                { value: 'LORRY', label: '🚚 Lorry' }
+                { value: "TUKTUK", label: "🛺 TukTuk" },
+                { value: "PICKUP", label: "🚛 Pickup" },
+                { value: "LORRY", label: "🚚 Lorry" },
               ]}
               display="none"
               size="lg"
@@ -424,7 +479,12 @@ if(payload.length===1){
             <NumberInput
               label="Weight (kg)"
               value={parseFloat(editForm.weight_in_kgs || "0")}
-              onChange={(value) => setEditForm({ ...editForm, weight_in_kgs: value?.toString() || '0' })}
+              onChange={(value) =>
+                setEditForm({
+                  ...editForm,
+                  weight_in_kgs: value?.toString() || "0",
+                })
+              }
               leftSection={<Weight size={16} />}
               decimalScale={2}
               size="lg"

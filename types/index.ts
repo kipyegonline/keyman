@@ -205,6 +205,31 @@ interface Location {
   coordinates: [number, number];
 }
 
+interface IDetail {
+  id: string;
+  name: string;
+  location: Location;
+  photo: string[];
+  media: string[];
+}
+
+export interface Quote {
+  created_at: string;
+  detail: IDetail;
+  id: string;
+  is_awarded: number;
+  payment_type: string;
+  quantity: string;
+  request_id: string;
+  request_item_id: string;
+  supplier_detail_id: string;
+  total_price: string;
+  total_weight: string;
+  unit_price: string;
+  updated_at: string;
+  images: string[];
+}
+
 export interface KeymanRequest {
   delivery_date: string;
   status:
@@ -263,6 +288,7 @@ export interface RequestDeliveryItem {
     price?: number;
     quan?: number;
     photo?: File | null;
+    quote?: Quote[];
     item: { weight_in_kgs: string };
   }>;
   ks_number: null;

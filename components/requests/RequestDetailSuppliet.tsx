@@ -125,7 +125,7 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
     const totalAmount = Number(_item.price) * Number(_item.quan);
     const valuated = getValuation(totalAmount, _balance);
 
-    if (valuated) {
+    if (!valuated) {
       setShowModal(true);
       return;
     } else {

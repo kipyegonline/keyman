@@ -32,6 +32,8 @@ import {
   Navigation,
 } from "lucide-react";
 import { RequestDeliveryItem } from "@/types";
+import QuotesAccordion from "./QuotesList";
+import React from "react";
 
 const getStatusConfig = (status: RequestDeliveryItem["status"]) => {
   const configs = {
@@ -92,6 +94,7 @@ const openGoogleMaps = (lat: number, long: number) => {
 const RequestDetail: React.FC<{ request: RequestDeliveryItem }> = ({
   request: selectedRequest,
 }) => {
+  const [show, setShow] = React.useState({ id: 0 + "", show: false });
   const StatusBadge: React.FC<{ status: RequestDeliveryItem["status"] }> = ({
     status,
   }) => {
@@ -99,6 +102,8 @@ const RequestDetail: React.FC<{ request: RequestDeliveryItem }> = ({
 
     const IconComponent = config?.icon;
     if (!config) return null;
+
+    // console.log(selectedRequest, "request");
 
     return (
       <Badge
@@ -284,6 +289,7 @@ const RequestDetail: React.FC<{ request: RequestDeliveryItem }> = ({
                         style={{
                           backgroundColor: "#F08C2315",
                           color: "#F08C23",
+                          display: "none",
                         }}
                       >
                         {item?.quantity ? parseInt(item?.quantity) : 0}
@@ -299,11 +305,47 @@ const RequestDetail: React.FC<{ request: RequestDeliveryItem }> = ({
                           </ThemeIcon>
                         </Tooltip>
                       )}
+                      {item?.quote && item?.quote?.length > 0 && (
+                        <Stack>
+                          <Badge
+                            variant="light"
+                            style={{
+                              backgroundColor: "#F08C2315",
+                              color: "#F08C23",
+                              // display: "none",
+                            }}
+                          >
+                            {" "}
+                            {item?.quote?.length} quotes
+                          </Badge>
+
+                          <Button
+                            onClick={() =>
+                              setShow((prev) => ({
+                                ...prev,
+                                id: item.id,
+                                show: !prev.show,
+                              }))
+                            }
+                          >
+                            {show.show ? "Hide" : "View quotes"}
+                          </Button>
+                        </Stack>
+                      )}
                     </Group>
                   </Group>
+
                   <Text size="sm" c="dimmed" className="pl-10">
                     {item?.description}
                   </Text>
+                  {show.id === item.id && show.show && (
+                    <QuotesAccordion
+                      quotes={item?.quote ? item?.quote : []}
+                      visual={item.visual_confirmation_required === 1}
+                      requestId={selectedRequest.id}
+                      status={selectedRequest.status}
+                    />
+                  )}
                 </Paper>
               ))}
             </Stack>

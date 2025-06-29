@@ -18,7 +18,7 @@ export default function RequestClientComponent() {
     queryKey: ["supplier requests", supplierId],
     queryFn: async () => await getNearbyRequests(supplierId),
   });
-  console.log(requests, "__ supplier requests__");
+
   const _requests = React.useMemo(() => {
     if (requests?.request) {
       return requests?.request?.data;

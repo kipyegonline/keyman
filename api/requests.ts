@@ -1,6 +1,6 @@
 import AxiosClient from "@/config/axios";
 import { ENDPOINTS } from "@/lib/endpoints";
-import { AwardPayload, CreateRequestPayload } from "@/types/requests";
+import { CreateRequestPayload } from "@/types/requests";
 import { AxiosError } from "axios";
 
 /**
@@ -173,7 +173,9 @@ export const getRequestQuotes = async (requestId: string) => {
  */
 export const awardRequestItems = async (
   requestId: string,
-  payload: AwardPayload
+  payload: {
+    quote_id: string[];
+  }
 ) => {
   try {
     const response = await AxiosClient.post(

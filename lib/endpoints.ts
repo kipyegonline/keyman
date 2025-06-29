@@ -35,8 +35,8 @@ export const ENDPOINTS = {
     GET_DETAILS: (request_id: string) => `/api/requests/${request_id}`,
     QUOTE_REQUEST_ITEMS: (request_id: string) =>
       `/api/request/${request_id}}/quote`,
-    GET_QUOTES: (request_id: string) => `/api/request/${request_id}}`,
-    AWARD_ITEM: (request_id: string) => `/api/request/${request_id}}/award`,
+    GET_QUOTES: (request_id: string) => `/api/request/${request_id}`,
+    AWARD_ITEM: (request_id: string) => `/api/request/${request_id}/award`,
   },
   items: {
     GET_ITEMS: (item: string, categoryId?: string) => {

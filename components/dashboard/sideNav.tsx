@@ -49,7 +49,7 @@ const Sidebar: React.FC<{
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "requests", label: "Requests", icon: ClipboardList },
-    { id: "orders", label: "Orders", icon: ShoppingCart },
+    { id: "suppliers-near-me", label: "Suppliers near me", icon: ShoppingCart },
     { id: "tokens", label: "Tokens", icon: Coins },
 
     //{ id: 'materials', label: 'Materials', icon: Package },
@@ -106,7 +106,9 @@ const Sidebar: React.FC<{
         router.push("/keyman/dashboard/requests");
 
         break;
-      case "orders":
+      case "suppliers-near-me":
+        navigateTo();
+        router.push("/keyman/dashboard/suppliers-near-me");
         break;
       case "tokens":
         break;

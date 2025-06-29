@@ -548,7 +548,6 @@ const MapExample: React.FC = () => {
 
   const handleLocationSelect = (coordinates: Coordinates): void => {
     setSelectedCoordinates(coordinates);
-    console.log("Selected coordinates:", coordinates);
   };
 
   const handleCopyCoordinates = async (): Promise<void> => {
