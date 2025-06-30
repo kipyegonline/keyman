@@ -150,27 +150,9 @@ export default function PricelistDashboard({
         setSuccessMessage(`Price updated for ${editForm.name}`);
       } else notify.error(response.message);
     }
-
-    // Simulate API call
-    /*setTimeout(() => {
-      setItems(prev => prev.map(item =>
-        item.id === selectedItem.id ? editForm : item
-      ));
-      //setModalOpened(false);
-      //setSuccessMessage(`Price updated for ${editForm.name}`);
-      //setIsLoading(false);
-
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccessMessage(''), 3000);
-    }, 1000);*/
   };
 
-  const filteredItems = items; /* items?.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.swahili_name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = !filterType || item.transportation_type === filterType;
-    return matchesSearch && matchesFilter;
-  });*/
+  const filteredItems = items;
 
   return (
     <section>

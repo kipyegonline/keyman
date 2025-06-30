@@ -3,8 +3,8 @@
 import {
   LayoutDashboard,
   ClipboardList,
-  ShoppingCart,
   Coins,
+  LocateIcon,
 } from "lucide-react";
 import {
   Group,
@@ -49,7 +49,7 @@ const Sidebar: React.FC<{
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "requests", label: "Requests", icon: ClipboardList },
-    { id: "suppliers-near-me", label: "Suppliers near me", icon: ShoppingCart },
+    { id: "suppliers-near-me", label: "Suppliers near me", icon: LocateIcon },
     { id: "tokens", label: "Tokens", icon: Coins },
 
     //{ id: 'materials', label: 'Materials', icon: Package },
@@ -74,13 +74,8 @@ const Sidebar: React.FC<{
   const handleSupplyRoute = () => {
     navigateTo();
     toggleDashboard();
-
-    router.push("/keyman/supplier/register");
-    /** 
-      *  if(isSupplier)
-      router.push('/keyman/supplier')
-    else router.push("/keyman/supplier/register")
-     */
+    window.location.href = "/keyman/supplier/register";
+    //router.push("/keyman/supplier/register");
   };
   const handleHardware = (hardware: HardWare) => {
     navigateTo();

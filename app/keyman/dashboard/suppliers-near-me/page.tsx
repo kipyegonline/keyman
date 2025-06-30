@@ -1,16 +1,11 @@
-import { Center, Container, Text } from "@mantine/core";
+import { Container } from "@mantine/core";
 import React from "react";
+import SuppliersNearMeComponent from "./page.component";
 
 export default function Page() {
   return (
     <Container>
-      <Center>
-        {" "}
-        <Text size="xl">
-          Seting up page... check back soon to fid out suppliers near your
-          location.......
-        </Text>
-      </Center>
+      <SuppliersNearMeComponent />
     </Container>
   );
 }

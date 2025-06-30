@@ -53,6 +53,7 @@ const Sidebar: React.FC<{
     navigateTo();
     toggleDashboard();
     router.push("/keyman/dashboard");
+    location.href = "/keyman/dashboard";
   };
   const handleItemClick = (id: string) => {
     if (id === activeItem) return;

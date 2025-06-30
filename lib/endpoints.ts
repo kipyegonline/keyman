@@ -37,6 +37,8 @@ export const ENDPOINTS = {
       `/api/request/${request_id}}/quote`,
     GET_QUOTES: (request_id: string) => `/api/request/${request_id}`,
     AWARD_ITEM: (request_id: string) => `/api/request/${request_id}/award`,
+    SUPPLIERS_NEAR_ME: (lat: number, lng: number) =>
+      `/api/supplier/near-me?latitude=${lat}&longitude=${lng}`,
   },
   items: {
     GET_ITEMS: (item: string, categoryId?: string) => {

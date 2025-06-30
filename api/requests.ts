@@ -197,3 +197,33 @@ export const awardRequestItems = async (
     }
   }
 };
+
+/**
+ * Get suppliers near a specific location
+ * @param latitude The latitude of the location
+ * @param longitude The longitude of the location
+ * @returns List of nearby suppliers
+ */
+export const getSuppliersNearMe = async (
+  latitude: number,
+  longitude: number
+) => {
+  try {
+    const response = await AxiosClient.get(
+      ENDPOINTS.requests.SUPPLIERS_NEAR_ME(latitude, longitude)
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while fetching nearby suppliers",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};
