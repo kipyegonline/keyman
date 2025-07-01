@@ -294,7 +294,7 @@ const SuppliersNearMe: React.FC = () => {
                       <Divider />
 
                       {/* Contact Info */}
-                      <Stack gap="xs">
+                      <Stack gap="xs" display={"none"}>
                         <Group gap="xs">
                           <Phone size={16} style={{ color: "#6B7280" }} />
                           <Text

@@ -11,12 +11,13 @@ export default function PriceListClientcomponent() {
   const [isPending, startTransition] = useTransition();
 
   const { data: prices } = useQuery({
-    queryKey: ["prices", searchQuery],
+    queryKey: [searchQuery],
     queryFn: async () => await getItems(searchQuery),
-    //enabled: !!searchQuery,
+    enabled: !!searchQuery,
   });
 
   const handleSearch = (val: string) => {
+    //if (val.length > 2) setSearchQuery(val);
     startTransition(() => {
       setSearchQuery(val);
     });
