@@ -56,5 +56,7 @@ export const ENDPOINTS = {
       `/api/keyman-coin/usage?supplier_detail_id=${supplierId}`,
     GET_BALANCE: (supplierId: string) =>
       `/api/keyman-coin/balance?supplier_detail_id=${supplierId}`,
+    MAKE_PAYYMENT: "/api/payments/pay",
+    CONFIRM_PAYMENT: "",
   },
 };

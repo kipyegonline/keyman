@@ -22,7 +22,8 @@ type PricedProps = {
 const PricingComponent: React.FC<{
   item: RequestDeliveryItem["items"][0];
   updateItemPrices: (item: PricedProps) => void;
-}> = ({ item, updateItemPrices }) => {
+  closeNext: () => void;
+}> = ({ item, updateItemPrices, closeNext }) => {
   const [_item, setItem] = React.useState<null | PricedProps>(null);
   const [file, setFile] = React.useState<File | null>(null);
   const [isSubmitted, setSubmitted] = React.useState(false);
@@ -41,7 +42,10 @@ const PricingComponent: React.FC<{
     } else {
     }
   };
-
+  const editQuote = () => {
+    setSubmitted(false);
+    closeNext();
+  };
   return (
     <Box className=" flex flex-col gap-y-4 justify-between p-2">
       <Flex gap="md" direction={{ base: "column", md: "row" }}>
@@ -94,10 +98,10 @@ const PricingComponent: React.FC<{
 
       {isSubmitted ? (
         <h3 className="text-sm text-gray-600 transition-all duration-300 text-center">
-          <ActionIcon onClick={() => setSubmitted(false)}>
+          <ActionIcon onClick={editQuote}>
             <FilePenLine size={10} />
           </ActionIcon>
-          <small onClick={() => setSubmitted(false)} className="ml-2"></small>
+          <small onClick={editQuote} className="ml-2"></small>
           Edit quote
         </h3>
       ) : (

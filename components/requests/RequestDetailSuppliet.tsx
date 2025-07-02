@@ -122,23 +122,16 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
     const isvalid = runvalidations(_item);
 
     if (!isvalid) return;
-    const totalAmount = Number(_item.price) * Number(_item.quan);
-    const valuated = getValuation(totalAmount, _balance);
 
-    if (!valuated) {
-      setShowModal(true);
-      return;
-    } else {
-      const updatedItems = orderItems.map((item) => {
-        const photo = _item?.file ?? null;
+    const updatedItems = orderItems.map((item) => {
+      const photo = _item?.file ?? null;
 
-        return item.id === _item.id
-          ? { ...item, price: _item.price, quan: _item.quan, photo }
-          : item;
-      });
+      return item.id === _item.id
+        ? { ...item, price: _item.price, quan: _item.quan, photo }
+        : item;
+    });
 
-      setOrderItems(updatedItems);
-    }
+    setOrderItems(updatedItems);
   };
 
   const getValuation = (totalAmount: number, balance: number) => {
@@ -166,7 +159,14 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
     setOrderItems(updatedItems);
   };
   const handlePreSubmission = () => {
-    setTransportOpen(true);
+    // check value
+    const totalAmount = getTotalAmount(orderItems);
+    const valuated = getValuation(totalAmount, _balance);
+    if (valuated) {
+      setTransportOpen(true);
+    } else {
+      setShowModal(true);
+    }
   };
 
   function toDataUrlFromFile(file: File) {
@@ -292,10 +292,17 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
     );
   }, [orderItems]);
 
+  const totalAmount = React.useMemo(() => {
+    if (orderItems.length > 0) {
+      const totalAmount = getTotalAmount(orderItems);
+      return totalAmount;
+    } else return 0;
+  }, [orderItems]);
   if (success)
     return (
       <QuoteSuccess quoteId={"Keyman"} requestCode={selectedRequest?.code} />
     );
+
   return (
     <Box>
       <InsufficientTokensModal
@@ -303,7 +310,7 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
         onClose={() => setShowModal(false)}
         onTopUp={handleTopUp}
         currentTokens={_balance}
-        requiredTokens={100}
+        requiredTokens={totalAmount ? (totalAmount / 20) * 0.02 : 0}
         userName=""
       />
       {selectedRequest && (
@@ -489,13 +496,18 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
                         <PricingComponent
                           item={item}
                           updateItemPrices={handleItemUpdate}
+                          closeNext={() => {
+                            setTransportOpen(false);
+                          }}
                         />
                       ) : (
                         <Checkbox
                           className="inline-block ml-2 relative top-1"
                           label="Add a quote"
                           checked={item.checked}
-                          onChange={() => handleCheckQuote(item)}
+                          onChange={() => {
+                            handleCheckQuote(item);
+                          }}
                         />
                       )}
                     </Group>

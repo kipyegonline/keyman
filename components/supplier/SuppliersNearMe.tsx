@@ -78,7 +78,7 @@ const SuppliersNearMe: React.FC = () => {
         (error) => {
           console.log(error);
           setLocationError(
-            "Unable to retrieve your location. Showing all suppliers."
+            "Unable to retrieve your location. Try agaon later."
           );
           setLoading(false);
         },

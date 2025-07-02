@@ -225,7 +225,7 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
           <X size={18} />
         </ActionIcon>
 
-        <Stack gap="lg" p="md">
+        <Stack gap="md" p="md">
           {/* Header Section */}
           <div className="text-center">
             <div className="relative mb-4">
@@ -234,7 +234,7 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
                 radius="xl"
                 className="bg-gradient-to-br from-orange-100 to-red-100 border-4 border-white shadow-lg mx-auto"
               >
-                <AlertTriangle size={40} className="text-[#F08C23]" />
+                <AlertTriangle size={28} className="text-[#F08C23]" />
               </ThemeIcon>
             </div>
 
@@ -286,6 +286,18 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
               <Text size="sm">
                 You need <strong>{tokensNeeded} more tokens</strong> to submit
                 this quote
+              </Text>
+            </Alert>
+            <Alert
+              mt="sm"
+              icon={<Zap size={16} />}
+              color="green"
+              variant="light"
+            >
+              {" "}
+              <Text size="sm">
+                1 token costs ksh20., Amount needed is{" "}
+                <strong>{tokensNeeded * 20}</strong>
               </Text>
             </Alert>
           </Paper>
