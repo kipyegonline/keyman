@@ -2,12 +2,20 @@ import AxiosClient from "@/config/axios";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { AxiosError } from "axios";
 
-export const getBalance = async (supplierId: string) => {
+export const getBalance = async (
+  supplierId: string,
+  isSupplier: boolean = false
+) => {
   try {
-    const response = await AxiosClient.get(
-      ENDPOINTS.coin.GET_BALANCE(supplierId)
-    );
-    return response.data;
+    if (isSupplier) {
+      const response = await AxiosClient.get(
+        ENDPOINTS.coin.GET_BALANCE(supplierId)
+      );
+      return response.data;
+    } else {
+      const response = await AxiosClient.get(ENDPOINTS.coin.USER_BALANCE);
+      return response.data;
+    }
   } catch (error) {
     if (error instanceof AxiosError) {
       return (

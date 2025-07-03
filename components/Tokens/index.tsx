@@ -121,7 +121,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   amount,
   description,
   availablePaymentMethods = ["mpesa", "airtel_money", "t_kash"],
-  //onPaymentSuccess,
+  onPaymentSuccess,
   onPaymentError,
 }) => {
   const [loading, setLoading] = useState(false);
@@ -227,10 +227,8 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   };
 
   const handleConfirmPayment = async () => {
-    notify.success(
-      "Your payment will reflect on your account soon.",
-      "Validating payment"
-    );
+    onPaymentSuccess();
+
     setTimeout(() => {
       handleClose();
     }, 3000);

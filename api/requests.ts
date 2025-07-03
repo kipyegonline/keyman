@@ -85,14 +85,22 @@ export const getNearbyRequests = async (id: string) => {
  */
 export const getRequestDetails = async (
   requestId: string,
-  supplierId: string
+  supplierId: string,
+  isSupplier: boolean = false
 ) => {
   try {
-    const response = await AxiosClient.get(
-      ENDPOINTS.requests.GET_DETAILS(requestId),
-      { params: { supplier_detail_id: supplierId } }
-    );
-    return response.data;
+    if (isSupplier) {
+      const response = await AxiosClient.get(
+        ENDPOINTS.requests.GET_DETAILS(requestId),
+        { params: { supplier_detail_id: supplierId } }
+      );
+      return response.data;
+    } else {
+      const response = await AxiosClient.get(
+        ENDPOINTS.requests.GET_DETAILS(requestId)
+      );
+      return response.data;
+    }
   } catch (error) {
     if (error instanceof AxiosError) {
       return (

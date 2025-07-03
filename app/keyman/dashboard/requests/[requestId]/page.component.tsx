@@ -13,7 +13,6 @@ export default function RequestItemComponent({
 }: {
   requestId: string;
 }) {
-  console.log(requestId, "requestId");
   const supplierId = localStorage.getItem("supplier_id") as string;
   const {
     data: payload,

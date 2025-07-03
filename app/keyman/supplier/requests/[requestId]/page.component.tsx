@@ -20,7 +20,7 @@ export default function RequestItemComponent({
     isLoading,
   } = useQuery({
     queryKey: ["request", requestId],
-    queryFn: async () => await getRequestDetails(requestId, supplierId),
+    queryFn: async () => await getRequestDetails(requestId, supplierId, true),
   });
   const request = payload?.request as RequestDeliveryItem;
 

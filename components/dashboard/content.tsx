@@ -30,13 +30,21 @@ import { useAppContext } from "@/providers/AppContext";
 import { useRouter } from "next/navigation";
 import { navigateTo } from "@/lib/helpers";
 import PaymentModal from "../Tokens";
+import { useQuery } from "@tanstack/react-query";
+import { getBalance } from "@/api/coin";
+import { notify } from "@/lib/notifications";
 // Main Content Component
 const MainContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { darkMode: isDark, user } = useAppContext();
   const router = useRouter();
   const [isOpen, setOpen] = useState(false);
-
+  const { data: balance, refetch } = useQuery({
+    queryKey: ["balance"],
+    queryFn: async () => getBalance(""),
+    refetchOnWindowFocus: false,
+  });
+  console.log(balance, "blc");
   const stats = [
     {
       label: "Active Orders",
@@ -51,8 +59,8 @@ const MainContent: React.FC = () => {
       color: "#F08C23",
     },
     {
-      label: "Token Balance",
-      value: "Ksh.15,240",
+      label: "Keys Balance",
+      value: balance?.balance?.total || "0",
       icon: Coins,
       color: "#3D6B2C",
     },
@@ -85,7 +93,13 @@ const MainContent: React.FC = () => {
       color: "yellow",
     },
   ];
-  const handlePaymentSuccess = () => {};
+  const handlePaymentSuccess = () => {
+    notify.success(
+      "Your payment will reflect on your account soon.",
+      "Validating payment"
+    );
+    refetch();
+  };
   const handlePaymentError = () => {};
   const handleBecomeSupplier = () => {
     navigateTo();
@@ -160,7 +174,7 @@ const MainContent: React.FC = () => {
           color="gray"
           className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"
         >
-          Top Up Tokens
+          Top Up Keys
         </Button>
       </Group>
 
