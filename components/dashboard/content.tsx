@@ -413,7 +413,8 @@ const MainContent: React.FC = () => {
       <ActionIcon
         size={60}
         radius="xl"
-        className="fixed hidden bottom-2 right-0 bg-gradient-to-br from-[#3D6B2C] to-[#388E3C] shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110 z-50"
+        display="none"
+        className="fixed  bottom-2 right-0 bg-gradient-to-br from-[#3D6B2C] to-[#388E3C] shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110 z-50"
         variant="filled"
       >
         <Bot size={28} className="text-white" />

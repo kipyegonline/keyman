@@ -48,7 +48,7 @@ export interface SupplierInfo {
   /**
    * @property {string[]} categories - An array of categories the supplier belongs to (e.g., ["electronics", "food"]).
    */
-  categories: string[];
+  categories: Category[];
   /**
    * @property {string} [tiktok_link] - Optional: The link to the supplier's TikTok profile.
    */
@@ -97,8 +97,10 @@ export interface SupplierInfo {
    * @property {string} [comments] - Optional: Additional comments about the supplier.
    */
   comments?: string;
+  location?: { coordinates: [number, number]; type: string };
   "categories[0]"?: string;
   "categories[1]"?: string;
+  name?: string;
 }
 export interface categories {
   goods: { name: "goods"; categories: { id: string; name: string }[] };

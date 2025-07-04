@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getSuppliersNearMe } from "@/api/requests";
+import Link from "next/link";
 
 interface ISupplierContact {
   id: string;
@@ -242,111 +243,115 @@ const SuppliersNearMe: React.FC = () => {
                 exitDuration={200}
               >
                 {(styles) => (
-                  <Card
-                    shadow="md"
-                    padding="lg"
-                    radius="lg"
-                    style={{
-                      ...styles,
-                      border: "1px solid #E5E7EB",
-                      transition: "all 0.3s ease",
-                      cursor: "pointer",
-                      animationDelay: `${index * 100}ms`,
-                    }}
-                    className="hover:shadow-xl hover:scale-105 hover:border-[#3D6B2C]"
+                  <Link
+                    href={`/keyman/dashboard/suppliers-near-me/${supplier.id}`}
                   >
-                    <Stack gap="md">
-                      {/* Header */}
-                      <Group justify="space-between" align="flex-start">
-                        <Avatar
-                          size="lg"
-                          radius="md"
-                          style={{
-                            backgroundColor: "#F0F9FF",
-                            color: "#3D6B2C",
-                          }}
-                        >
-                          <User size={24} />
-                        </Avatar>
-                        <Badge
-                          color="orange"
-                          variant="light"
-                          size="sm"
-                          style={{
-                            backgroundColor: "#FFF7ED",
-                            color: "#F08C23",
-                          }}
-                        >
-                          {supplier.keyman_number}
-                        </Badge>
-                      </Group>
-
-                      {/* Supplier Name */}
-                      <Text
-                        size="lg"
-                        fw={600}
-                        style={{ color: "#1F2937", lineHeight: 1.3 }}
-                        lineClamp={2}
-                      >
-                        {supplier.name}
-                      </Text>
-
-                      <Divider />
-
-                      {/* Contact Info */}
-                      <Stack gap="xs" display={"none"}>
-                        <Group gap="xs">
-                          <Phone size={16} style={{ color: "#6B7280" }} />
-                          <Text
-                            size="sm"
-                            c="dimmed"
-                            style={{ fontSize: "0.875rem" }}
+                    <Card
+                      shadow="md"
+                      padding="lg"
+                      radius="lg"
+                      style={{
+                        ...styles,
+                        border: "1px solid #E5E7EB",
+                        transition: "all 0.3s ease",
+                        cursor: "pointer",
+                        animationDelay: `${index * 100}ms`,
+                      }}
+                      className="hover:shadow-xl hover:scale-105 hover:border-[#3D6B2C]"
+                    >
+                      <Stack gap="md">
+                        {/* Header */}
+                        <Group justify="space-between" align="flex-start">
+                          <Avatar
+                            size="lg"
+                            radius="md"
+                            style={{
+                              backgroundColor: "#F0F9FF",
+                              color: "#3D6B2C",
+                            }}
                           >
-                            {supplier.phone}
-                          </Text>
+                            <User size={24} />
+                          </Avatar>
+                          <Badge
+                            color="orange"
+                            variant="light"
+                            size="sm"
+                            style={{
+                              backgroundColor: "#FFF7ED",
+                              color: "#F08C23",
+                            }}
+                          >
+                            {supplier.keyman_number}
+                          </Badge>
                         </Group>
-                        <Group gap="xs">
-                          <Mail size={16} style={{ color: "#6B7280" }} />
-                          <Text
+
+                        {/* Supplier Name */}
+                        <Text
+                          size="lg"
+                          fw={600}
+                          style={{ color: "#1F2937", lineHeight: 1.3 }}
+                          lineClamp={2}
+                        >
+                          {supplier.name}
+                        </Text>
+
+                        <Divider />
+
+                        {/* Contact Info */}
+                        <Stack gap="xs" display={"none"}>
+                          <Group gap="xs">
+                            <Phone size={16} style={{ color: "#6B7280" }} />
+                            <Text
+                              size="sm"
+                              c="dimmed"
+                              style={{ fontSize: "0.875rem" }}
+                            >
+                              {supplier.phone}
+                            </Text>
+                          </Group>
+                          <Group gap="xs">
+                            <Mail size={16} style={{ color: "#6B7280" }} />
+                            <Text
+                              size="sm"
+                              c="dimmed"
+                              style={{ fontSize: "0.875rem" }}
+                              lineClamp={1}
+                            >
+                              {supplier.email}
+                            </Text>
+                          </Group>
+                        </Stack>
+
+                        {/* Action Buttons */}
+                        <Group justify="apart" gap="xs" mt="md">
+                          <Button
+                            variant="outline"
                             size="sm"
-                            c="dimmed"
-                            style={{ fontSize: "0.875rem" }}
-                            lineClamp={1}
+                            leftSection={<Phone size={16} />}
+                            onClick={() => handleCall(supplier.phone)}
+                            style={{
+                              borderColor: "#3D6B2C",
+                              color: "#3D6B2C",
+                              flex: 1,
+                            }}
                           >
-                            {supplier.email}
-                          </Text>
+                            Call
+                          </Button>
+                          <Button
+                            size="sm"
+                            leftSection={<MessageCircle size={16} />}
+                            onClick={() => handleRequestQuote(supplier)}
+                            style={{
+                              backgroundColor: "#F08C23",
+                              flex: 1,
+                            }}
+                          >
+                            Quote
+                          </Button>
                         </Group>
                       </Stack>
-
-                      {/* Action Buttons */}
-                      <Group justify="apart" gap="xs" mt="md">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          leftSection={<Phone size={16} />}
-                          onClick={() => handleCall(supplier.phone)}
-                          style={{
-                            borderColor: "#3D6B2C",
-                            color: "#3D6B2C",
-                            flex: 1,
-                          }}
-                        >
-                          Call
-                        </Button>
-                        <Button
-                          size="sm"
-                          leftSection={<MessageCircle size={16} />}
-                          onClick={() => handleRequestQuote(supplier)}
-                          style={{
-                            backgroundColor: "#F08C23",
-                            flex: 1,
-                          }}
-                        >
-                          Quote
-                        </Button>
-                      </Group>
-                    </Stack>
-                  </Card>
+                    </Card>
+                  </Link>
                 )}
               </Transition>
             </Grid.Col>
