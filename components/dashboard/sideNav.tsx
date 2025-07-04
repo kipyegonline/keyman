@@ -50,7 +50,7 @@ const Sidebar: React.FC<{
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "requests", label: "Requests", icon: ClipboardList },
     { id: "suppliers-near-me", label: "Suppliers near me", icon: LocateIcon },
-    { id: "tokens", label: "Tokens", icon: Coins },
+    { id: "keyman-coin", label: "My Keys", icon: Coins },
 
     //{ id: 'materials', label: 'Materials', icon: Package },
     //{ id: 'settings', label: 'Settings', icon: Settings },
@@ -105,7 +105,9 @@ const Sidebar: React.FC<{
         navigateTo();
         router.push("/keyman/dashboard/suppliers-near-me");
         break;
-      case "tokens":
+      case "keyman-coin":
+        navigateTo();
+        router.push("/keyman/dashboard/keyman-coin");
         break;
       case "supplier":
         handleSupplyRoute();
@@ -123,7 +125,7 @@ const Sidebar: React.FC<{
       return [];
     }
   }, [data]);
-  //console.log(data,'__user data__')
+  //console.log(data, "__user data__");
   return (
     <Box
       className={`

@@ -42,7 +42,7 @@ export default function RequestItemComponent({
           {request?.code}
         </Link>
       </Breadcrumbs>
-      <RequestDetailSuplier request={request} />
+      <RequestDetailSuplier request={request} requestId={requestId} />
     </div>
   );
 }

@@ -18,13 +18,12 @@ export default function RequestItemComponent({
     data: payload,
     isError,
     isLoading,
-    error,
   } = useQuery({
     queryKey: ["request", requestId],
     queryFn: async () => await getRequestDetails(requestId, supplierId),
   });
   const request = payload?.request as RequestDeliveryItem;
-  console.log({ isError, error, request }, "sr");
+  //console.log({ isError, error, request }, "sr");
   if (isError) return <p>Error...</p>;
   if (isLoading)
     return (

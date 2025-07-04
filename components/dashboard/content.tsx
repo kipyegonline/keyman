@@ -44,7 +44,7 @@ const MainContent: React.FC = () => {
     queryFn: async () => getBalance(""),
     refetchOnWindowFocus: false,
   });
-  console.log(balance, "blc");
+
   const stats = [
     {
       label: "Active Orders",
@@ -66,7 +66,7 @@ const MainContent: React.FC = () => {
     },
     { label: "Materials", value: "156", icon: Package, color: "#8b5cf6" },
   ];
-  //0712431876
+
   const recentOrders = [
     {
       id: "ORD-001",
@@ -105,6 +105,10 @@ const MainContent: React.FC = () => {
     navigateTo();
     router.push("/keyman/supplier/register");
   };
+  const handleRequestItem = () => {
+    navigateTo();
+    router.push("/keyman/dashboard/requests/create-request");
+  };
   const isSupplier = user && "supplier_details" in user;
   return (
     <Container
@@ -122,7 +126,7 @@ const MainContent: React.FC = () => {
         isOpen={isOpen}
         onClose={() => setOpen(false)}
         type="user"
-        typeId="REQ123"
+        typeId=""
         amount={0}
         description=""
         availablePaymentMethods={["mpesa", "airtel_money", "t_kash"]}
@@ -161,10 +165,11 @@ const MainContent: React.FC = () => {
       <Group mb="xl">
         <Button
           size="lg"
+          onClick={handleRequestItem}
           leftSection={<Plus size={20} />}
           className="bg-gradient-to-r from-[#F08C23] to-[#3D6B2C] hover:shadow-lg transition-all duration-200 transform hover:scale-105"
         >
-          Order Now
+          Request Item
         </Button>
         <Button
           size="lg"

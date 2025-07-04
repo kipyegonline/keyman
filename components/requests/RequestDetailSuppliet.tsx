@@ -41,6 +41,7 @@ import InsufficientTokensModal from "./InsufficientTokensModal";
 import TransportDetailsForm from "./TransportdetailsComponent";
 import { submitQuoteForRequest } from "@/api/requests";
 import QuoteSuccess from "./successComponent";
+import PaymentModal from "../Tokens";
 
 interface TransportDetails {
   offers_transport: boolean;
@@ -69,9 +70,10 @@ const formatDate = (dateString: string) => {
   });
 };
 
-const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
-  request: selectedRequest,
-}) => {
+const RequestDetailSuplier: React.FC<{
+  request: RequestDeliveryItem;
+  requestId: string;
+}> = ({ request: selectedRequest, requestId }) => {
   const requestedItems = selectedRequest?.items.map((item) => ({
     ...item,
     checked: false,
@@ -84,8 +86,9 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
   const supplierId = localStorage.getItem("supplier_id") as string;
   const [submitting, setSubmitting] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
+  const [open, setOpen] = React.useState(false);
 
-  const { data: balance } = useQuery({
+  const { data: balance, refetch: refetchBalance } = useQuery({
     queryFn: async () => await getBalance(supplierId),
     queryKey: ["balance", supplierId],
     enabled: !!supplierId,
@@ -283,6 +286,7 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
 
   const handleTopUp = () => {
     setShowModal(false);
+    setOpen(true);
   };
   const isQuoted = React.useMemo(() => {
     if (!orderItems) return false;
@@ -313,6 +317,21 @@ const RequestDetailSuplier: React.FC<{ request: RequestDeliveryItem }> = ({
         requiredTokens={totalAmount ? (totalAmount / 20) * 0.02 : 0}
         userName=""
       />
+      <PaymentModal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        type="request"
+        typeId={requestId}
+        amount={totalAmount ? 20 * ((totalAmount / 20) * 0.02 - _balance) : 0}
+        description=""
+        availablePaymentMethods={["mpesa", "airtel_money", "t_kash"]}
+        onPaymentSuccess={() => {
+          setOpen(false);
+          refetchBalance();
+          // Handle payment success logic here
+        }}
+      />
+
       {selectedRequest && (
         <Stack gap="xl">
           {/* Header Information */}

@@ -154,7 +154,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       amount: (value) => (value < 10 ? "Minimum amount is KES 10" : null),
     },
   });
-
+  React.useEffect(() => {
+    if (amount > 0) form.setFieldValue("amount", amount);
+  }, [amount]);
   const handleMethodSelect = (method: string) => {
     setSelectedMethod(method);
     form.setFieldValue("paymentMethod", method);

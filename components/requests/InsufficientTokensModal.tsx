@@ -44,7 +44,7 @@ interface TokenPackage {
 interface InsufficientTokensModalProps {
   opened: boolean;
   onClose: () => void;
-  onTopUp: (packageId: string) => void;
+  onTopUp: () => void;
   currentTokens: number;
   requiredTokens: number;
   userName?: string;
@@ -59,7 +59,6 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
   userName = "User",
 }) => {
   const [selectedPackage, setSelectedPackage] = useState<string>("");
-  const [isProcessing, setIsProcessing] = useState(false);
 
   // Token packages with different options
   const tokenPackages: TokenPackage[] = [
@@ -98,18 +97,6 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
 
   const tokensNeeded = requiredTokens - currentTokens;
   const progressPercentage = (currentTokens / requiredTokens) * 100;
-
-  const handleTopUp = async () => {
-    if (!selectedPackage) return;
-
-    setIsProcessing(true);
-
-    // Simulate processing
-    setTimeout(() => {
-      onTopUp(selectedPackage);
-      setIsProcessing(false);
-    }, 2000);
-  };
 
   const PackageCard: React.FC<{ pkg: TokenPackage }> = ({ pkg }) => {
     const isSelected = selectedPackage === pkg.id;
@@ -366,17 +353,17 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
             </Button>
 
             <Button
-              onClick={handleTopUp}
-              loading={isProcessing}
+              onClick={onTopUp}
+              //loading={isProcessing}
               size="md"
               className={`transition-all duration-300 ${
                 selectedPackage
                   ? "bg-[#3D6B2C] hover:bg-[#388E3C] hover:scale-105"
                   : "bg-gray-300"
               }`}
-              rightSection={!isProcessing && <ArrowRight size={16} />}
+              rightSection={<ArrowRight size={16} />}
             >
-              {!isProcessing ? "Top Up Now" : "Select Package"}
+              Top Up Now
             </Button>
           </Group>
 

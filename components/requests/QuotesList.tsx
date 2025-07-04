@@ -38,9 +38,10 @@ import {
   Sparkles,
   ShoppingCart,
 } from "lucide-react";
-import { awardRequestItems } from "@/api/requests";
+import { awardRequestItems, getRequestDetails } from "@/api/requests";
 import { createOrders } from "@/api/orders";
 import { Quote } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
 interface RequestItem {
   id: string;
@@ -48,6 +49,7 @@ interface RequestItem {
   description: string;
   visual_confirmation_required: 0 | 1;
   quotes: Quote[];
+  status: string;
 }
 
 interface QuotesAccordionProps {
@@ -134,7 +136,12 @@ const AwardSuccessComponent: React.FC<{
   onMakeOrder: () => void;
   supplierName: string;
   itemName: string;
-}> = ({ onBackToRequests, onMakeOrder, supplierName }) => {
+  isCompleted: boolean;
+}> = ({ onBackToRequests, onMakeOrder, supplierName, isCompleted }) => {
+  const viewOrder = () => {
+    // Logic to view order details
+    console.log("View Order Clicked");
+  };
   return (
     <Transition mounted={true} transition="pop" duration={600}>
       {(styles) => (
@@ -187,10 +194,16 @@ const AwardSuccessComponent: React.FC<{
                 p="md"
                 className="bg-[#3D6B2C05] border border-[#3D6B2C15] w-full"
               >
-                <Text size="sm" fw={500} className="text-[#3D6B2C]">
-                  ✅ The supplier has been notified and will begin processing
-                  your order
-                </Text>
+                {isCompleted ? (
+                  <Text size="sm" fw={500} className="text-[#3D6B2C]">
+                    ✅ The supplier has been notified and will begin processing
+                    your order
+                  </Text>
+                ) : (
+                  <Text size="sm" fw={500} className="text-[#3D6B2C]">
+                    Kindly make your payments to order item.
+                  </Text>
+                )}
               </Paper>
 
               <Group gap="sm" className="w-full">
@@ -200,9 +213,9 @@ const AwardSuccessComponent: React.FC<{
                   className="flex-1 transition-all duration-300 hover:scale-105"
                   style={{ backgroundColor: "#3D6B2C" }}
                   rightSection={<ShoppingCart size={16} />}
-                  onClick={onMakeOrder}
+                  onClick={isCompleted ? viewOrder : onMakeOrder}
                 >
-                  Track Order
+                  {isCompleted ? "View Order" : "Make Order"}
                 </Button>
                 <Button
                   variant="light"
@@ -403,6 +416,17 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   //const [awardResult, setAwardResult] = useState("");
+
+  const supplierId = localStorage.getItem("supplier_id") as string;
+  const {
+    data: payload,
+    refetch: requestRefetch,
+    // error: requestError,
+  } = useQuery({
+    queryKey: ["request", requestId],
+    queryFn: async () => await getRequestDetails(requestId, supplierId),
+  });
+  const request = payload?.request as RequestItem;
   const awardee = quotes?.find((quote: Quote) => quote.is_awarded === 1);
 
   const handleAwardQuote = async (id: string) => {
@@ -429,13 +453,15 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
     // setAwardResult(null);
   };
   const createOrder = async () => {
-    const result = createOrders({
+    const result = await createOrders({
       request_id: requestId,
       delivery_type: "TUKTUK",
     });
     console.log(result);
+    requestRefetch();
   };
-
+  //console.log("Request Details:", request);
+  const isCompleted = request?.status === "completed";
   // Show success screen
   if (success || !!awardee) {
     return (
@@ -444,6 +470,7 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
         onMakeOrder={createOrder}
         supplierName={awardee ? awardee.detail.name : ""}
         itemName={"item"}
+        isCompleted={isCompleted}
       />
     );
   }

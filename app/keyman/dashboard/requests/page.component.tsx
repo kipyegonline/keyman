@@ -16,7 +16,8 @@ export default function RequestClientComponent() {
     queryKey: ["customer requests"],
     queryFn: async () => await getRequests(),
   });
-  console.log(requests, "__customer requests__");
+
+  //console.log(requests, "__customer requests__");
   const _requests = React.useMemo(() => {
     if (requests?.requests?.data?.length > 0) {
       return requests?.requests?.data;
