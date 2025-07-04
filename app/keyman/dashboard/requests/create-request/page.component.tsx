@@ -34,7 +34,7 @@ export default function CreateRequestClientComponent() {
   return (
     <Container>
       {loadingLocations ? (
-        <LoadingComponent message="Fetching your delivery locations..." />
+        <LoadingComponent message="Preparing your request..." />
       ) : (
         <RequestCreator locations={_locations} />
       )}

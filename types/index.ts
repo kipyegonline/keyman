@@ -314,6 +314,8 @@ export interface RequestDeliveryItem {
     transportation_vehicle: string;
   }>;
   updated_at: string;
+  items_count?: number;
+  quotes_count?: number;
 }
 
 export type Project = {

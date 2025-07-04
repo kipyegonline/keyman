@@ -18,7 +18,7 @@ export default function KeyManCoinDashboard() {
     queryFn: async () => getBalance(""),
     refetchOnWindowFocus: false,
   });
-  console.log(balance, "blc");
+
   const _balance = React.useMemo(() => {
     if (balance?.balance) {
       return balance.balance;

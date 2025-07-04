@@ -24,12 +24,17 @@ export const createOrders = async (payload: Record<string, string>) => {
   }
 };
 
-export const getOrders = async (supplierId: string) => {
+export const getOrders = async (supplierId: string, isSupplier = false) => {
   try {
-    const response = await AxiosClient.get(ENDPOINTS.orders.GET, {
-      params: { supplier_detail_id: supplierId },
-    });
-    return response.data;
+    if (isSupplier) {
+      const response = await AxiosClient.get(ENDPOINTS.orders.GET, {
+        params: { supplier_detail_id: supplierId },
+      });
+      return response.data;
+    } else {
+      const response = await AxiosClient.get(ENDPOINTS.orders.GET);
+      return response.data;
+    }
   } catch (error) {
     if (error instanceof AxiosError) {
       return (

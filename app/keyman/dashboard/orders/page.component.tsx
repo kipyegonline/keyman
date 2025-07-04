@@ -7,10 +7,9 @@ import React from "react";
 import { Box, Text } from "@mantine/core";
 
 export default function OrdersClientcomponent() {
-  const supplierId = localStorage.getItem("supplier_id") as string;
   const { data: orders, isLoading } = useQuery({
     queryKey: ["orders"],
-    queryFn: async () => await getOrders(supplierId, true),
+    queryFn: async () => await getOrders(""),
   });
 
   const ordersList = React.useMemo(() => {

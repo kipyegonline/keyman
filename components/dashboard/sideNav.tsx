@@ -16,7 +16,7 @@ import {
   Tooltip,
   Stack,
 } from "@mantine/core";
-import { User, X, Menu as MenuIcon } from "lucide-react";
+import { User, X, Menu as MenuIcon, ShoppingCart } from "lucide-react";
 import { Hammer } from "lucide-react";
 import { useAppContext } from "@/providers/AppContext";
 import { usePathname, useRouter } from "next/navigation";
@@ -48,6 +48,7 @@ const Sidebar: React.FC<{
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "orders", label: "Orders", icon: ShoppingCart },
     { id: "requests", label: "Requests", icon: ClipboardList },
     { id: "suppliers-near-me", label: "Suppliers near me", icon: LocateIcon },
     { id: "keyman-coin", label: "My Keys", icon: Coins },
@@ -95,6 +96,11 @@ const Sidebar: React.FC<{
       case "dashboard":
         navigateTo();
         router.push("/keyman/dashboard");
+        break;
+      case "orders":
+        navigateTo();
+        router.push("/keyman/dashboard/orders");
+
         break;
       case "requests":
         navigateTo();

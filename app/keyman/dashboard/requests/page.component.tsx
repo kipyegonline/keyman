@@ -1,10 +1,11 @@
 "use client";
-import { Container } from "@mantine/core";
+import { Container, Box, Text } from "@mantine/core";
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getRequests } from "@/api/requests";
 import RequestsTable from "@/components/requests/CustomerRequests";
 import LoadingComponent from "@/lib/LoadingComponent";
+import Link from "next/link";
 
 export default function RequestClientComponent() {
   const {
@@ -29,7 +30,21 @@ export default function RequestClientComponent() {
   if (isLoading) return <LoadingComponent message="Getting your requests" />;
   return (
     <Container size="lg">
-      {_requests?.length > 0 && <RequestsTable requests={_requests} />}
+      {_requests?.length > 0 ? (
+        <RequestsTable requests={_requests} />
+      ) : (
+        <Box p="lg">
+          <Text size="md" pb="md">
+            You have not created any request
+          </Text>
+          <Link
+            className="p-2 rounded-md bg-keyman-green hover:bg-keyman-accent-hover text-white"
+            href={"/keyman/dashboard/requests/create-request"}
+          >
+            Create your first request
+          </Link>
+        </Box>
+      )}
     </Container>
   );
 }

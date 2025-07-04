@@ -19,7 +19,7 @@ import {
   ShoppingCart,
   ClipboardList,
   Coins,
-  Package,
+  //Package,
   Plus,
   CreditCard,
   Search,
@@ -33,6 +33,12 @@ import PaymentModal from "../Tokens";
 import { useQuery } from "@tanstack/react-query";
 import { getBalance } from "@/api/coin";
 import { notify } from "@/lib/notifications";
+import { getOrders } from "@/api/orders";
+import { getRequests } from "@/api/requests";
+
+import { RequestDeliveryItem } from "@/types";
+import Link from "next/link";
+import { Order } from "@/types/orders";
 // Main Content Component
 const MainContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,16 +51,37 @@ const MainContent: React.FC = () => {
     refetchOnWindowFocus: false,
   });
 
+  const { data: orders } = useQuery({
+    queryKey: ["orders"],
+    queryFn: async () => getOrders(""),
+  });
+
+  const { data: requests } = useQuery({
+    queryKey: ["customer requests"],
+    queryFn: async () => await getRequests(),
+  });
+
+  //console.log(requests, "__customer requests__");
+  const _requests = React.useMemo(() => {
+    if (requests?.requests?.data?.length > 0) {
+      return requests?.requests?.data;
+    } else return [];
+  }, [requests]);
+  const _orders = React.useMemo(() => {
+    if (orders?.orders?.length > 0) {
+      return orders?.orders;
+    } else return [];
+  }, [orders]);
   const stats = [
     {
       label: "Active Orders",
-      value: "24",
+      value: _orders?.length || 0,
       icon: ShoppingCart,
       color: "#3b82f6",
     },
     {
       label: "Pending Requests",
-      value: "12",
+      value: _requests?.length || 0,
       icon: ClipboardList,
       color: "#F08C23",
     },
@@ -64,35 +91,9 @@ const MainContent: React.FC = () => {
       icon: Coins,
       color: "#3D6B2C",
     },
-    { label: "Materials", value: "156", icon: Package, color: "#8b5cf6" },
+    // { label: "Materials", value: "156", icon: Package, color: "#8b5cf6" },
   ];
 
-  const recentOrders = [
-    {
-      id: "ORD-001",
-      item: "Cement Bags (50kg)",
-      quantity: "20",
-      status: "Delivered",
-      date: "2 hours ago",
-      color: "green",
-    },
-    {
-      id: "ORD-002",
-      item: "Steel Rods (12mm)",
-      quantity: "100",
-      status: "In Transit",
-      date: "5 hours ago",
-      color: "blue",
-    },
-    {
-      id: "ORD-003",
-      item: "Bricks (Red Clay)",
-      quantity: "500",
-      status: "Processing",
-      date: "1 day ago",
-      color: "yellow",
-    },
-  ];
   const handlePaymentSuccess = () => {
     notify.success(
       "Your payment will reflect on your account soon.",
@@ -217,88 +218,202 @@ const MainContent: React.FC = () => {
       </Grid>
 
       {/* Main Content Grid */}
-      <Grid>
-        {/* Recent Orders */}
-        <Grid.Col span={{ base: 12, lg: 8 }}>
-          <Card shadow="sm" p="lg">
-            <Title order={3} mb="md">
-              Recent Orders
-            </Title>
-            <Stack gap="md">
-              {recentOrders.map((order, index) => (
+      {_orders.length > 0 && (
+        <Grid>
+          {/* Recent Orders */}
+          <Grid.Col span={{ base: 12, lg: 8 }}>
+            <Card shadow="sm" p="lg">
+              <Title order={3} mb="md">
+                Recent Orders
+              </Title>
+              <Stack gap="md">
+                {_orders?.slice(0, 10)?.map((order: Order, index: number) => (
+                  <Link
+                    key={order?.id ?? index}
+                    href={`/keyboard/dashboard/orders/${order?.id}`}
+                  >
+                    <Paper
+                      p="md"
+                      withBorder
+                      className="hover:shadow-md transition-all duration-200"
+                    >
+                      <Group justify="space-between" align="center">
+                        <Box>
+                          <Text fw={600}>{order?.code}</Text>
+                          <Text size="sm" color="dimmed">
+                            • Qty {order?.items?.length ?? 0} •items{" "}
+                            {order?.items.map((item) => item?.name).join(", ")}
+                          </Text>
+                        </Box>
+                        <Box style={{ textAlign: "right" }}>
+                          <Badge color={"orange"} variant="light" mb={4}>
+                            {order?.status}
+                          </Badge>
+                          <Text size="sm" color="dimmed">
+                            Created on:{" "}
+                            {order?.created_at
+                              ? new Date(order?.created_at).toDateString()
+                              : ""}
+                          </Text>
+                        </Box>
+                      </Group>
+                    </Paper>
+                  </Link>
+                ))}
+                {_orders?.length > 10 && (
+                  <Link
+                    href="/keyman/dashboard/orders"
+                    className="text-keyman-orange text-sm ml-2 hover:underline"
+                  >
+                    View {orders?.length - 10} more orders
+                  </Link>
+                )}
+              </Stack>
+            </Card>
+          </Grid.Col>
+
+          {/* Ads Section */}
+          <Grid.Col span={{ base: 12, lg: 4 }}>
+            <Card shadow="sm" p="lg">
+              <Title order={3} mb="md">
+                Recommended for You
+              </Title>
+              <Stack gap="md">
                 <Paper
-                  key={index}
                   p="md"
-                  withBorder
-                  className="hover:shadow-md transition-all duration-200"
+                  className="bg-gradient-to-br from-[#3D6B2C] to-[#388E3C] text-white rounded-lg"
                 >
-                  <Group justify="space-between" align="center">
-                    <Box>
-                      <Text fw={600}>{order.item}</Text>
-                      <Text size="sm" color="dimmed">
-                        {order.id} • Qty: {order.quantity}
-                      </Text>
-                    </Box>
-                    <Box style={{ textAlign: "right" }}>
-                      <Badge color={order.color} variant="light" mb={4}>
-                        {order.status}
-                      </Badge>
-                      <Text size="sm" color="dimmed">
-                        {order.date}
-                      </Text>
-                    </Box>
-                  </Group>
+                  <Text fw={600} size="lg" mb={4}>
+                    Premium Cement
+                  </Text>
+                  <Text size="sm" mb="md" opacity={0.9}>
+                    50% off on bulk orders
+                  </Text>
+                  <Button size="xs" variant="white" color="dark">
+                    View Deal
+                  </Button>
                 </Paper>
-              ))}
-            </Stack>
-          </Card>
-        </Grid.Col>
 
-        {/* Ads Section */}
-        <Grid.Col span={{ base: 12, lg: 4 }}>
-          <Card shadow="sm" p="lg">
-            <Title order={3} mb="md">
-              Recommended for You
-            </Title>
-            <Stack gap="md">
-              <Paper
-                p="md"
-                className="bg-gradient-to-br from-[#3D6B2C] to-[#388E3C] text-white rounded-lg"
-              >
-                <Text fw={600} size="lg" mb={4}>
-                  Premium Cement
-                </Text>
-                <Text size="sm" mb="md" opacity={0.9}>
-                  50% off on bulk orders
-                </Text>
-                <Button size="xs" variant="white" color="dark">
-                  View Deal
-                </Button>
-              </Paper>
+                <Paper
+                  p="md"
+                  className="bg-gradient-to-br from-[#F08C23] to-[#3D6B2C] text-white rounded-lg"
+                >
+                  <Text fw={600} size="lg" mb={4}>
+                    Steel Rods
+                  </Text>
+                  <Text size="sm" mb="md" opacity={0.9}>
+                    Quality assured materials
+                  </Text>
+                  <Button size="xs" variant="white" color="dark">
+                    Order Now
+                  </Button>
+                </Paper>
+              </Stack>
+            </Card>
+          </Grid.Col>
+        </Grid>
+      )}
+      {_requests.length > 0 && (
+        <Grid>
+          {/* Recent requests */}
+          <Grid.Col span={{ base: 12, lg: 8 }}>
+            <Card shadow="sm" p="lg">
+              <Title order={3} mb="md">
+                Recent requests
+              </Title>
+              <Stack gap="md">
+                {_requests
+                  ?.slice(0, 10)
+                  ?.map((request: RequestDeliveryItem, index: number) => (
+                    <Link
+                      key={request?.id ?? index}
+                      href={`/keyman/dashboard/requests/${request?.id}`}
+                    >
+                      <Paper
+                        p="md"
+                        withBorder
+                        className="hover:shadow-md transition-all duration-200"
+                      >
+                        <Group justify="space-between" align="center">
+                          <Box>
+                            <Text fw={600}>{request?.code}</Text>
+                            <Text size="sm" color="dimmed">
+                              Qty: {request?.items_count ?? 0} Quotes:{" "}
+                              {request?.quotes_count ?? 0} •
+                            </Text>
+                          </Box>
+                          <Box style={{ textAlign: "right" }}>
+                            <Badge color={"green"} variant="light" mb={4}>
+                              {request?.status}
+                            </Badge>
+                            <Text size="sm" color="dimmed">
+                              {request?.created_at
+                                ? new Date(request?.created_at).toDateString()
+                                : ""}
+                            </Text>
+                          </Box>
+                        </Group>
+                      </Paper>
+                    </Link>
+                  ))}
+                {_requests?.length > 10 && (
+                  <Link
+                    href="/keyman/dashboard/requests"
+                    className="text-keyman-orange text-sm ml-2 hover:underline"
+                  >
+                    View {_requests?.length - 10} more requests
+                  </Link>
+                )}
+              </Stack>
+            </Card>
+          </Grid.Col>
 
-              <Paper
-                p="md"
-                className="bg-gradient-to-br from-[#F08C23] to-[#3D6B2C] text-white rounded-lg"
-              >
-                <Text fw={600} size="lg" mb={4}>
-                  Steel Rods
-                </Text>
-                <Text size="sm" mb="md" opacity={0.9}>
-                  Quality assured materials
-                </Text>
-                <Button size="xs" variant="white" color="dark">
-                  Order Now
-                </Button>
-              </Paper>
-            </Stack>
-          </Card>
-        </Grid.Col>
-      </Grid>
+          {/* Ads Section */}
+          <Grid.Col span={{ base: 12, lg: 4 }}>
+            <Card shadow="sm" p="lg">
+              <Title order={3} mb="md">
+                Recommended for You
+              </Title>
+              <Stack gap="md">
+                <Paper
+                  p="md"
+                  className="bg-gradient-to-br from-[#3D6B2C] to-[#388E3C] text-white rounded-lg"
+                >
+                  <Text fw={600} size="lg" mb={4}>
+                    Premium Cement
+                  </Text>
+                  <Text size="sm" mb="md" opacity={0.9}>
+                    50% off on bulk orders
+                  </Text>
+                  <Button size="xs" variant="white" color="dark">
+                    View Deal
+                  </Button>
+                </Paper>
+
+                <Paper
+                  p="md"
+                  className="bg-gradient-to-br from-[#F08C23] to-[#3D6B2C] text-white rounded-lg"
+                >
+                  <Text fw={600} size="lg" mb={4}>
+                    Steel Rods
+                  </Text>
+                  <Text size="sm" mb="md" opacity={0.9}>
+                    Quality assured materials
+                  </Text>
+                  <Button size="xs" variant="white" color="dark">
+                    Order Now
+                  </Button>
+                </Paper>
+              </Stack>
+            </Card>
+          </Grid.Col>
+        </Grid>
+      )}
       {/* Floating AI Chat Button */}
       <ActionIcon
         size={60}
         radius="xl"
-        className="fixed bottom-2 right-0 bg-gradient-to-br from-[#3D6B2C] to-[#388E3C] shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110 z-50"
+        className="fixed hidden bottom-2 right-0 bg-gradient-to-br from-[#3D6B2C] to-[#388E3C] shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-110 z-50"
         variant="filled"
       >
         <Bot size={28} className="text-white" />
