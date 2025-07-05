@@ -30,16 +30,18 @@ const PricingComponent: React.FC<{
 
   const imageRequired = item.visual_confirmation_required === 1;
   const handleQuote = () => {
-    if (item.visual_confirmation_required === 1) {
-      if (file === null) {
-        notify.error("Kindly attach image for the item");
-      }
+    if (imageRequired && file === null) {
+      notify.error("Kindly attach image for the item");
+      return;
     }
 
     if (_item) {
+      if (typeof _item.price === "number" && _item.price <= 10) {
+        notify.error("Price must be greater than 10");
+        return;
+      }
       updateItemPrices({ ..._item, id: item?.id, file: file });
       setSubmitted(true);
-    } else {
     }
   };
   const editQuote = () => {

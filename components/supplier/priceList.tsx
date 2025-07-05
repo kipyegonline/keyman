@@ -29,7 +29,6 @@ import {
   //Package,
   //Truck,
   Weight,
-  DollarSign,
   Save,
   X,
   Search,
@@ -39,6 +38,7 @@ import {
   //Zap,
   CheckCircle2,
   HandCoins,
+  Coins,
 } from "lucide-react";
 import { updateSupplierPriceList } from "@/api/supplier";
 
@@ -468,7 +468,7 @@ export const PricelistItem: React.FC<{
               {/* Price Section */}
               <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
                 <Flex align="center" justify="space-between" display="none">
-                  <Box display="none">
+                  <Box display={hideControls ? "block" : "none"}>
                     <Text size="xs" c="dimmed" mb={2}>
                       Current Price
                     </Text>
@@ -481,7 +481,7 @@ export const PricelistItem: React.FC<{
                     radius="xl"
                     style={{ backgroundColor: "#3D6B2C" }}
                   >
-                    <DollarSign size={20} color="white" />
+                    <Coins size={20} color="white" />
                   </Avatar>
                 </Flex>
               </Paper>

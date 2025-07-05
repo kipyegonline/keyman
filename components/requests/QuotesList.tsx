@@ -42,6 +42,10 @@ import { awardRequestItems, getRequestDetails } from "@/api/requests";
 import { createOrders } from "@/api/orders";
 import { Quote } from "@/types";
 import { useQuery } from "@tanstack/react-query";
+import PaymentModal from "../Tokens";
+import { notify } from "@/lib/notifications";
+import { useRouter } from "next/navigation";
+import LoadingComponent from "@/lib/LoadingComponent";
 
 interface RequestItem {
   id: string;
@@ -133,15 +137,18 @@ const ImageGallery: React.FC<{ images: string[]; itemName: string }> = ({
 // Success Component
 const AwardSuccessComponent: React.FC<{
   onBackToRequests: () => void;
-  onMakeOrder: () => void;
+  onMakePayment: () => void;
   supplierName: string;
   itemName: string;
   isCompleted: boolean;
-}> = ({ onBackToRequests, onMakeOrder, supplierName, isCompleted }) => {
-  const viewOrder = () => {
-    // Logic to view order details
-    console.log("View Order Clicked");
-  };
+  createOrder: () => void;
+}> = ({
+  onBackToRequests,
+  onMakePayment,
+  supplierName,
+  isCompleted,
+  createOrder,
+}) => {
   return (
     <Transition mounted={true} transition="pop" duration={600}>
       {(styles) => (
@@ -181,23 +188,34 @@ const AwardSuccessComponent: React.FC<{
               </Box>
 
               <Stack gap="sm" align="center">
-                <Text size="xl" fw={700} className="text-gray-800">
-                  🎉 Quote Awarded Successfully!
-                </Text>
-                <Text size="md" c="dimmed" className="max-w-md">
-                  {`You've successfully awarded the quote to`}{" "}
-                  <strong className="text-[#3D6B2C]">{supplierName}</strong>
-                </Text>
+                {isCompleted ? (
+                  <>
+                    {" "}
+                    <Text size="xl" fw={700} className="text-gray-800">
+                      🎉 Payment Successfull
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text size="xl" fw={700} className="text-gray-800">
+                      🎉 Quote Awarded Successfully!
+                    </Text>
+                    <Text size="md" c="dimmed" className="max-w-md">
+                      {`You've successfully awarded the quote to`}{" "}
+                      <strong className="text-[#3D6B2C]">{supplierName}</strong>
+                    </Text>
+                  </>
+                )}
               </Stack>
-
+              {/**The supplier has been notified and will begin processing
+                    your order */}
               <Paper
                 p="md"
                 className="bg-[#3D6B2C05] border border-[#3D6B2C15] w-full"
               >
                 {isCompleted ? (
                   <Text size="sm" fw={500} className="text-[#3D6B2C]">
-                    ✅ The supplier has been notified and will begin processing
-                    your order
+                    ✅ Kindly create order to complete your order.
                   </Text>
                 ) : (
                   <Text size="sm" fw={500} className="text-[#3D6B2C]">
@@ -213,9 +231,9 @@ const AwardSuccessComponent: React.FC<{
                   className="flex-1 transition-all duration-300 hover:scale-105"
                   style={{ backgroundColor: "#3D6B2C" }}
                   rightSection={<ShoppingCart size={16} />}
-                  onClick={isCompleted ? viewOrder : onMakeOrder}
+                  onClick={isCompleted ? createOrder : onMakePayment}
                 >
-                  {isCompleted ? "View Order" : "Make Order"}
+                  {isCompleted ? "Create Order" : "Make payment"}
                 </Button>
                 <Button
                   variant="light"
@@ -415,7 +433,11 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [createOrderLoading, setCreateOrderLoading] = useState(false);
+  const [ordered, setOrdered] = useState(false);
   //const [awardResult, setAwardResult] = useState("");
+  const router = useRouter();
 
   const supplierId = localStorage.getItem("supplier_id") as string;
   const {
@@ -453,25 +475,80 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
     // setAwardResult(null);
   };
   const createOrder = async () => {
+    // make payment
+    setCreateOrderLoading(true);
+    setOrdered(false);
     const result = await createOrders({
       request_id: requestId,
       delivery_type: "TUKTUK",
     });
-    console.log(result);
-    requestRefetch();
+
+    if (result.status) {
+      notify.success("Order created successfully");
+      setOpen(false);
+      setCreateOrderLoading(false);
+      setOrdered(true);
+      requestRefetch();
+    } else {
+      notify.error(result.message || "Failed to create order");
+      setCreateOrderLoading(false);
+    }
   };
-  //console.log("Request Details:", request);
-  const isCompleted = request?.status === "completed";
+  //console.log("Request Details:", request, "Quotes:", quotes);
+  const totalAmount = quotes.reduce((acc, quote) => {
+    return acc + Number(quote.total_price);
+  }, 0);
+  const isCompleted = request?.status === "COMPLETED";
   // Show success screen
+  if (ordered) {
+    return (
+      <Card p="lg" className="text-center">
+        <Text> ✅ Order created successfully</Text>
+        <Button
+          onClick={() => router.push("/keyman/dashboard/requests")}
+          className="mt-4"
+          variant="light"
+        >
+          Back to Requests
+        </Button>
+      </Card>
+    );
+  }
+  if (createOrderLoading)
+    return <LoadingComponent message="Creating order..." variant="pulse" />;
   if (success || !!awardee) {
     return (
-      <AwardSuccessComponent
-        onBackToRequests={resetAwardResult}
-        onMakeOrder={createOrder}
-        supplierName={awardee ? awardee.detail.name : ""}
-        itemName={"item"}
-        isCompleted={isCompleted}
-      />
+      <>
+        <PaymentModal
+          isOpen={open}
+          onClose={() => setOpen(false)}
+          type="request"
+          typeId={requestId}
+          amount={totalAmount}
+          description=""
+          availablePaymentMethods={["mpesa", "airtel_money", "t_kash"]}
+          onPaymentSuccess={() => {
+            setOpen(false);
+
+            notify.success("Your payment will be processed shortly");
+            //refetchBalance();
+            // Handle payment success logic here
+            requestRefetch();
+          }}
+          onPaymentError={(error) => {
+            notify.error(error || "An error occurred while processing payment");
+            // Handle payment error logic here
+          }}
+        />
+        <AwardSuccessComponent
+          onBackToRequests={resetAwardResult}
+          onMakePayment={() => setOpen(true)}
+          createOrder={createOrder}
+          supplierName={awardee ? awardee.detail.name : ""}
+          itemName={"item"}
+          isCompleted={isCompleted}
+        />
+      </>
     );
   }
 
