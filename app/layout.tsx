@@ -11,6 +11,7 @@ import "@mantine/notifications/styles.css";
 import "@mantine/nprogress/styles.css";
 import "@mantine/dates/styles.css";
 import "leaflet/dist/leaflet.css";
+import "@mantine/carousel/styles.css";
 import ChatBot from "@/components/keyman-bot";
 const poppins = Poppins({
   variable: "--font-poppins",
