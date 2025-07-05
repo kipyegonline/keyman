@@ -14,8 +14,7 @@ export default function SupplierComponentDashboard() {
   const {
     data: supplier,
     isLoading,
-    error,
-    isError,
+
     refetch,
   } = useQuery({
     queryKey: [supplierId],
@@ -27,7 +26,7 @@ export default function SupplierComponentDashboard() {
     else return null;
   }, [supplier]);
 
-  console.log(supplier, isError, error, isLoading);
+  //console.log(supplier, isError, error, isLoading);
   if (isLoading)
     return <LoadingComponent message="Fetching supplier details" />;
   return (

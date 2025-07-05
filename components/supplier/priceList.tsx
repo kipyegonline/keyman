@@ -467,7 +467,7 @@ export const PricelistItem: React.FC<{
 
               {/* Price Section */}
               <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
-                <Flex align="center" justify="space-between" display="none">
+                <Flex align="center" justify="space-between">
                   <Box display={hideControls ? "block" : "none"}>
                     <Text size="xs" c="dimmed" mb={2}>
                       Current Price

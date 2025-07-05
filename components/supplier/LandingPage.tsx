@@ -62,16 +62,19 @@ import { notify } from "@/lib/notifications";
 import { inviteUserToSupplier } from "@/api/supplier";
 
 type Props = { supplierDetails: SupplierDetails };
-
+type Stafftype = "staff" | "service_provider";
+type Role = "normal" | "advanced";
 const SupplierDashboard: React.FC<Props> = ({
   supplierDetails: _supplierInfo,
 }) => {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
-  const [newStaffName, setNewStaffName] = useState("");
-  const [newStaffRole, setNewStaffRole] = useState("");
+
   const [staffEmail, setNewStaffEmail] = useState("");
-  const [serviceType, setServicetype] = useState("");
+  const [type, setType] = useState<Stafftype | "">("");
   const [loading, setLoading] = useState(false);
+  const [ksNumber, setKSNumber] = useState("");
+  const [serviceType, setServiceType] = useState("");
+  const [role, setRole] = useState<"normal" | "advanced" | "">("");
 
   const [animateCards, setAnimateCards] = useState(false);
 
@@ -111,16 +114,41 @@ const SupplierDashboard: React.FC<Props> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  const validateStaff = () =>
-    newStaffName.trim() &&
-    newStaffRole.trim() &&
-    staffEmail.trim().length > 7 &&
-    serviceType.trim().length > 0;
+  const validateStaff = () => {
+    if (type.length === 0) {
+      notify.error("Please select type of staff");
+      return false;
+    }
+    if (type === "staff") {
+      if (staffEmail.trim().length < 5) {
+        notify.error("Please enter a valid email address");
+        return false;
+      }
+
+      if (role.trim().length < 3) {
+        notify.error("Please select a valid role");
+        return false;
+      }
+      return true;
+    } else if (type === "service_provider") {
+      if (ksNumber.trim().length < 3) {
+        notify.error("Please enter a valid KS Number");
+        return false;
+      }
+      if (serviceType.trim().length < 3) {
+        notify.error("Please enter a valid service type");
+        return false;
+      }
+      return true;
+    }
+    return true;
+  };
+
   const resetFormState = () => {
     setNewStaffEmail("");
-    setNewStaffName("");
-    setNewStaffRole("");
-    setServicetype("");
+
+    setRole("");
+    setServiceType("");
   };
 
   const handleInviteStaff = async () => {
@@ -129,12 +157,11 @@ const SupplierDashboard: React.FC<Props> = ({
         return notify.error("You cannot invite yourself as supplier");
       const payload = {
         email: staffEmail,
-        name: newStaffName,
-        role: "normal",
-        type: newStaffRole,
+        role,
+        type,
         service_types: serviceType,
         supplier_detail_id: _supplierInfo?.id,
-        ks_number: _supplierInfo?.keyman_number,
+        ks_number: ksNumber,
       };
       setLoading(true);
       const response = await inviteUserToSupplier(payload);
@@ -176,40 +203,56 @@ const SupplierDashboard: React.FC<Props> = ({
       radius="md"
     >
       <Stack gap="md">
-        <TextInput
-          label="Staff Name"
-          placeholder="Enter full name"
-          value={newStaffName}
-          onChange={(e) => setNewStaffName(e.target.value)}
-          required
-        />
-        <TextInput
-          label="Staff Email"
-          placeholder="Enter email address"
-          value={staffEmail}
-          onChange={(e) => setNewStaffEmail(e.target.value)}
-          required
-        />
-
         <Select
-          label="Choose role"
-          onChange={(value) => (value ? setNewStaffRole(value) : null)}
+          label="Choose Type "
+          onChange={(value) => (value ? setType(value as Stafftype) : null)}
           required
+          value={type}
           data={[
             { label: "staff", value: "staff" },
             { label: "Service provider", value: "service_provider" },
           ]}
         />
-
-        {newStaffRole && (
-          <TextInput
-            label={` Indicate type of ${newStaffRole.toLowerCase()}`}
-            placeholder="Enter type"
-            value={serviceType}
-            onChange={(e) => setServicetype(e.target.value)}
-            required
-          />
+        {type === "service_provider" && (
+          <>
+            <TextInput
+              label="Enter provider KS Number"
+              placeholder="Enter Ks Number"
+              value={ksNumber}
+              onChange={(e) => setKSNumber(e.target.value)}
+              required
+            />
+            <TextInput
+              label={` Enter the type of service`}
+              placeholder="Enter service type"
+              value={serviceType}
+              onChange={(e) => setServiceType(e.target.value)}
+              required
+            />
+          </>
         )}
+        {type === "staff" && (
+          <>
+            <TextInput
+              label="Staff Email"
+              placeholder="Enter email address"
+              value={staffEmail}
+              onChange={(e) => setNewStaffEmail(e.target.value)}
+              required
+            />
+            <Select
+              label="Choose Type of role"
+              onChange={(value) => (value ? setRole(value as Role) : null)}
+              required
+              value={role}
+              data={[
+                { label: "Normal", value: "normal" },
+                { label: "Advanced", value: "advanced" },
+              ]}
+            />
+          </>
+        )}
+
         <Group justify="flex-end" mt="md">
           <Button variant="light" onClick={() => setInviteModalOpen(false)}>
             Cancel
@@ -217,7 +260,7 @@ const SupplierDashboard: React.FC<Props> = ({
           <Button
             onClick={handleInviteStaff}
             className="bg-gradient-to-r from-green-600 to-green-700"
-            disabled={!validateStaff() || loading}
+            disabled={loading}
             loading={loading}
           >
             Send Invitation

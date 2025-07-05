@@ -40,7 +40,7 @@ export default function SupplierClientComponent({
   const perPage = 25;
 
   const total = Math.ceil(_priceList?.length / perPage);
-  console.log(supplier, "yah");
+
   if (isLoading)
     return <LoadingComponent message="Loading supplier details..." />;
   return (

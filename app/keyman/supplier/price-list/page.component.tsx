@@ -28,7 +28,7 @@ export default function PriceListClientcomponent() {
       return prices?.items;
     } else return [];
   }, [prices]);
-  console.log(items, "adonai");
+
   return (
     <div className="">
       <PricelistDashboard
