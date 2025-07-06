@@ -60,4 +60,13 @@ export const ENDPOINTS = {
     MAKE_PAYYMENT: "/api/payments/pay",
     CONFIRM_PAYMENT: "",
   },
+  chatbot: {
+    CREATE_THREAD: "/api/ai-chat/threads",
+    GET_THREADS: "/api/ai-chat/threads",
+    GET_MESSAGES: (threadId: string) => `/api/ai-chat/threads/${threadId}`,
+    SEND_MESSAGE: (threadId: string) =>
+      `/api/ai-chat/threads/${threadId}/messages`,
+    GET_MESSAGE_COUNT: (threadId: string) =>
+      `/api/ai-chat/threads/${threadId}/messages/count`,
+  },
 };

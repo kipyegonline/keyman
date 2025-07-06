@@ -1,29 +1,33 @@
-"use client"
-import { KeymanUser } from '@/types';
-import React from 'react'
+"use client";
+import { KeymanUser } from "@/types";
+import React from "react";
 
-interface AppContext{
-  activeItem:string,
-  setActiveItem:(item:string)=>void,
-  mainDashboard:boolean,
-  toggleDashboard:()=>void, 
-  darkMode:boolean,
-  toggleDarkMode:()=>void,
-  user:KeymanUser|null,
-  loginUser:(user:KeymanUser,token:string)=>void
-  logOutUser:()=>void}
+interface AppContext {
+  activeItem: string;
+  setActiveItem: (item: string) => void;
+  mainDashboard: boolean;
+  toggleDashboard: () => void;
+  darkMode: boolean;
+  toggleDarkMode: () => void;
+  user: KeymanUser | null;
+  loginUser: (user: KeymanUser, token: string) => void;
+  logOutUser: () => void;
+  chatMode: boolean;
+  toggleChatMode: () => void;
+}
 
-const AppContext=React.createContext({} as AppContext);
-export const useAppContext=()=>React.useContext(AppContext)
-type Props={children:React.ReactNode}
-const token_name="auth_token";
-const keymanUser="keyman_user";
-
+const AppContext = React.createContext({} as AppContext);
+export const useAppContext = () => React.useContext(AppContext);
+type Props = { children: React.ReactNode };
+const token_name = "auth_token";
+const keymanUser = "keyman_user";
 
 // Bundled localStorage access logic
 const createStorageManager = () => {
   // Check if running in a browser environment with localStorage support
-  const isBrowser = typeof globalThis?.window !== 'undefined' && !!globalThis.window.localStorage;
+  const isBrowser =
+    typeof globalThis?.window !== "undefined" &&
+    !!globalThis.window.localStorage;
 
   const _getUser = (): KeymanUser | null => {
     if (isBrowser) {
@@ -72,24 +76,25 @@ const createStorageManager = () => {
     }
     return null;
   };
-const _setDashboard=(value:string)=>{
-  if (isBrowser) {
-    localStorage.setItem('dashboard', value);
-   
-  }}
-  const _getDash=()=>{
-    if(isBrowser){
-      return localStorage.getItem("dashboard")
-    }}
-
-    const _removeDash=()=>{
-      if(isBrowser){
-        localStorage.removeItem("dashboard")
-        return;
-      }
-      return null;
+  const _setDashboard = (value: string) => {
+    if (isBrowser) {
+      localStorage.setItem("dashboard", value);
     }
-  
+  };
+  const _getDash = () => {
+    if (isBrowser) {
+      return localStorage.getItem("dashboard");
+    }
+  };
+
+  const _removeDash = () => {
+    if (isBrowser) {
+      localStorage.removeItem("dashboard");
+      return;
+    }
+    return null;
+  };
+
   return {
     getUser: _getUser,
     setUser: _setUser,
@@ -97,75 +102,92 @@ const _setDashboard=(value:string)=>{
     getToken: _getToken,
     setToken: _setToken,
     removeToken: _removeToken,
-    setDashboard:_setDashboard,
-    getDash:_getDash,
-    removeDash:_removeDash
+    setDashboard: _setDashboard,
+    getDash: _getDash,
+    removeDash: _removeDash,
   };
-}
-  
-
+};
 
 // Call the factory function once
 const storageManager = createStorageManager();
 
 // Export the destructured methods
-export const { 
-  getUser, 
-  setUser, 
-  removeUser, 
-  getToken, 
- setToken, 
-  removeToken ,
+export const {
+  getUser,
+  setUser,
+  removeUser,
+  getToken,
+  setToken,
+  removeToken,
   setDashboard,
   getDash,
-  removeDash
+  removeDash,
 } = storageManager;
 
-const checkCurrentDash=()=>{
-  const storeDash=getDash();
-  if(storeDash){
-return storeDash==="dashboard";
+const checkCurrentDash = () => {
+  const storeDash = getDash();
+  if (storeDash) {
+    return storeDash === "dashboard";
   }
-  return true
-}
-export default function AppContextProvider({children}:Props) {
+  return true;
+};
+export default function AppContextProvider({ children }: Props) {
+  const [darkMode, setDarkMode] = React.useState(false);
+  const [mainDashboard, setMainDashboard] = React.useState(checkCurrentDash());
 
-     const [darkMode, setDarkMode] = React.useState(false);
-     const [mainDashboard,setMainDashboard]=React.useState(checkCurrentDash())
-     
-     const [activeItem, setActiveItem] = React.useState( getDash() ??'dashboard');
-     const [user, _setUser] = React.useState<KeymanUser|null>(null);
-      
-      React.useEffect(() => {
-        const storedUser = getUser();
-        if (storedUser) {
-          _setUser(storedUser);
-        }
-       
-      }, []);
-      
+  const [activeItem, setActiveItem] = React.useState(getDash() ?? "dashboard");
+  const [user, _setUser] = React.useState<KeymanUser | null>(null);
+  const [chatMode, setChatMode] = React.useState(false);
+
+  React.useEffect(() => {
+    const storedUser = getUser();
+    if (storedUser) {
+      _setUser(storedUser);
+    }
+  }, []);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
-  const toggleDashboard=()=>{
-    
-    setMainDashboard(!mainDashboard)
-    if(mainDashboard)
-     setDashboard("supplier") 
-    else setDashboard("dashboard")
+  const toggleDashboard = () => {
+    setMainDashboard(!mainDashboard);
+    if (mainDashboard) setDashboard("supplier");
+    else setDashboard("dashboard");
+  };
+  const toggleChatMode = () => {
+    //if (!chatMode)
 
-  } 
-  const loginUser=(user:KeymanUser,token:string)=>{
-    setUser(user);  
-  _setUser(user);
-    setToken(token);}
-    const logOutUser=()=>{
+    setChatMode(true);
+    setTimeout(() => setChatMode(false), 2000);
+  };
+  const loginUser = (user: KeymanUser, token: string) => {
+    setUser(user);
+    _setUser(user);
+    setToken(token);
+  };
+  const logOutUser = () => {
     removeUser();
     removeToken();
-    removeDash()
-    _setUser(null);}
+    removeDash();
+    _setUser(null);
+  };
   return (
-   <AppContext value={{toggleDarkMode,darkMode,user,loginUser,logOutUser,activeItem,setActiveItem,toggleDashboard,mainDashboard}}>{children}</AppContext>
-  )
+    <AppContext
+      value={{
+        toggleDarkMode,
+        toggleChatMode,
+        chatMode,
+        darkMode,
+        user,
+        loginUser,
+        logOutUser,
+        activeItem,
+        setActiveItem,
+        toggleDashboard,
+        mainDashboard,
+      }}
+    >
+      {children}
+    </AppContext>
+  );
 }

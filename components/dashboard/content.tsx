@@ -39,6 +39,7 @@ import { getRequests } from "@/api/requests";
 import { RequestDeliveryItem } from "@/types";
 import Link from "next/link";
 import { Order } from "@/types/orders";
+import DashboardSearch from "../keyman-bot/DashboardSearch";
 // Main Content Component
 const MainContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,7 +137,9 @@ const MainContent: React.FC = () => {
       />
       {/* AI Search Bar */}
       <Paper p="lg" mb="xl" className="!shadow-lg max-w-[768px] mx-auto">
+        <DashboardSearch />
         <TextInput
+          display={"none"}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.currentTarget.value)}
           placeholder="Ask Keyman AI about materials, prices, or construction tips..."

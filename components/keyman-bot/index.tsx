@@ -14,6 +14,15 @@ import {
   HardHat,
 } from "lucide-react";
 import { Image } from "@mantine/core";
+import { useAppContext } from "@/providers/AppContext";
+import { useQuery } from "@tanstack/react-query";
+import {
+  createThread,
+  getMessageCount,
+  getMessages,
+  getThreads,
+  sendMessage,
+} from "@/api/chatbot";
 
 interface Message {
   id: string;
@@ -30,7 +39,7 @@ interface ConstructionItem {
   description: string;
   icon: React.ReactNode;
 }
-
+/*eslint-disable*/
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -45,7 +54,109 @@ const ChatBot: React.FC = () => {
   const [inputValue, setInputValue] = useState("");
   const [cart, setCart] = useState<ConstructionItem[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { chatMode } = useAppContext();
+  // get the thread ID from the API
+  const { data, isLoading } = useQuery({
+    queryKey: ["chatbot-threads"],
+    queryFn: async () => await createThread(),
+    enabled: isOpen,
+  });
+
+  const threadId = React.useMemo(() => {
+    if (data?.thread) return data.thread.id;
+    return "";
+  }, [data]);
+  console.log("is open", { isOpen, sending, threadId });
+  // get message count for the thread
+  const {
+    data: messageCountData,
+    isLoading: isMessageCountLoading,
+    refetch: refetchCount,
+  } = useQuery({
+    queryKey: ["chatbot-message-count", threadId],
+    queryFn: async () => await getMessageCount(threadId),
+    refetchOnWindowFocus: false,
+    enabled: !!threadId,
+  });
+  const messageCount = React.useMemo(() => {
+    if (messageCountData?.count) return messageCountData.count;
+    return 0;
+  }, [messageCountData]);
+  // get messages
+
+  const {
+    data: messagesData,
+    isLoading: isMessagesLoading,
+    refetch: refetchMesages,
+  } = useQuery({
+    queryKey: ["chatbot-messages", threadId],
+    queryFn: async () => await getMessages(threadId),
+    refetchOnWindowFocus: false,
+    enabled: !!threadId,
+  });
+  const _messages = React.useMemo(() => {
+    if (messagesData?.thread) {
+      return messagesData.thread?.messages;
+      /*.map(
+        (msg: Record<string, string>) => ({
+          id: msg.id,
+          text: msg.content,
+          sender: msg.role === "user" ? "user" : "bot",
+          timestamp: new Date(msg.created_at),
+          component: msg.component ? JSON.parse(msg.component) : null,
+        })
+      );*/
+    }
+    return [];
+  }, [messagesData]);
+  // send message to the thread
+
+  const {
+    data: sendMessageData,
+    isLoading: isSendMessageLoading,
+    isSuccess: messageSuccess,
+  } = useQuery({
+    queryKey: ["chatbot-send-message", inputValue],
+    queryFn: async () =>
+      await sendMessage(threadId, {
+        content: inputValue,
+        type: "text",
+      }),
+    refetchOnWindowFocus: false,
+    enabled: sending,
+  });
+  // get threads
+  const { data: threadsData, isLoading: isThreadsLoading } = useQuery({
+    queryKey: ["chatbot-threads"],
+    queryFn: async () => await getThreads(),
+    refetchOnWindowFocus: false,
+    enabled: false,
+  });
+
+  React.useEffect(() => {
+    if (chatMode && !isOpen) {
+      setIsOpen(true);
+    }
+  }, [chatMode]);
+  React.useEffect(() => {
+    if (messageSuccess && sendMessageData?.status) {
+      console.log("Message sent successfully", sendMessageData);
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        text: sendMessageData.message.content,
+        sender: "user",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, newMessage]);
+      // setInputValue("");
+      setTimeout(() => {
+        refetchMesages();
+        refetchCount();
+      }, 2000);
+    }
+  }, [messageSuccess]);
 
   const constructionItems: ConstructionItem[] = [
     {
@@ -187,16 +298,11 @@ const ChatBot: React.FC = () => {
 
   const handleSendMessage = () => {
     if (inputValue.trim()) {
-      const userMessage: Message = {
-        id: Date.now().toString(),
-        text: inputValue,
-        sender: "user",
-        timestamp: new Date(),
-      };
+      setSending(true);
 
-      setMessages((prev) => [...prev, userMessage]);
-      simulateBotResponse(inputValue);
-      setInputValue("");
+      setTimeout(() => {
+        setSending(false);
+      }, 2000);
     }
   };
 
@@ -224,7 +330,7 @@ const ChatBot: React.FC = () => {
       {/* Chat Window */}
       <div
         className={`
-        absolute bottom-16 right-0 w-72 sm:w-96 max-h-[80vh] bg-white rounded-2xl shadow-2xl
+        absolute bottom-16 right-0 w-72 sm:w-72 max-h-[80vh] bg-white rounded-2xl shadow-2xl
         transform transition-all duration-300 ease-in-out flex flex-col
         ${
           isOpen
