@@ -517,12 +517,12 @@ const RequestSourceStep: React.FC<{
       {form.values.created_from === "items" && <ItemsComponent />}
       {form.values.created_from === "image" && (
         <Alert icon={<ImageIcon size={16} />} color="orange">
-          Image upload component will be implemented here.
+          Image upload feature is currently unavailabe.
         </Alert>
       )}
       {form.values.created_from === "voice_note" && (
         <Alert icon={<Mic size={16} />} color="green">
-          Voice note recording component will be implemented here.
+          Voice note recording feature is currently unavailabe.
         </Alert>
       )}
     </div>
