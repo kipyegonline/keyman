@@ -23,11 +23,10 @@ import {
   Divider,
   Alert,
   Pagination,
+  Textarea,
 } from "@mantine/core";
 import {
   Edit3,
-  //Package,
-  //Truck,
   Weight,
   Save,
   X,
@@ -35,24 +34,25 @@ import {
   Filter,
   Plus,
   TrendingUp,
-  //Zap,
   CheckCircle2,
   HandCoins,
   Coins,
+  Package,
+  AlertCircle,
 } from "lucide-react";
 import { updateSupplierPriceList } from "@/api/supplier";
-
 import { notify } from "@/lib/notifications";
+import { createItem } from "@/api/items";
 
 export interface Pricelist {
   id?: string;
   description: string;
   name: string;
-  price: string;
+  price: number;
   swahili_name: string;
-  transportation_type: string;
-  type: string;
-  weight_in_kgs: string;
+  transportation_type: "TUKTUK" | "PICKUP" | "LORRY";
+  type: "goods" | "services" | "professional_services" | "Select Type";
+  weight_in_kgs: number;
 }
 
 const getItemEmoji = (type: string, name: string): string => {
@@ -80,6 +80,11 @@ const getTransportationIcon = (type: string) => {
       return "🚚";
   }
 };
+const services = [
+  { label: "Goods", value: "goods" },
+  { label: "Services", value: "services" },
+  { label: "Professional Services", value: "professional_services" },
+];
 
 const getTransportationColor = (type: string) => {
   switch (type.toLowerCase()) {
@@ -93,7 +98,9 @@ const getTransportationColor = (type: string) => {
       return "#3D6B2C";
   }
 };
+
 let wordCount = 0;
+
 export default function PricelistDashboard({
   handleSearch,
   isPending,
@@ -112,6 +119,20 @@ export default function PricelistDashboard({
   const [successMessage, setSuccessMessage] = useState("");
   const [current, setCurrent] = useState(0);
 
+  // Add Item Modal States
+  const [addModalOpened, setAddModalOpened] = useState(false);
+  const [addForm, setAddForm] = useState<Pricelist>({
+    description: "",
+    name: "",
+    price: 0,
+    swahili_name: "",
+    transportation_type: "TUKTUK",
+    type: "Select Type",
+    weight_in_kgs: 0,
+  });
+  const [addLoading, setAddLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+
   const supplierId = localStorage.getItem("supplier_id");
 
   const handleSearchQuery = (value: string) => {
@@ -124,6 +145,7 @@ export default function PricelistDashboard({
     if (value.length < wordCount) wordCount--;
     else wordCount++;
   };
+
   const handleEditClick = (item: Pricelist) => {
     setSelectedItem(item);
     setEditForm({ ...item });
@@ -153,8 +175,102 @@ export default function PricelistDashboard({
       } else notify.error(response.message);
     }
   };
-  const perPage = 25;
 
+  // Add Item Functions
+  const validateAddForm = (): boolean => {
+    const errors: string[] = [];
+
+    if (!addForm.name.trim()) {
+      errors.push("Item name is required");
+    }
+
+    /*if (!addForm.swahili_name.trim()) {
+      errors.push("Swahili name is required");
+    }
+
+    if (!addForm.description.trim()) {
+      errors.push("Description is required");
+    }*/
+
+    if (!addForm.type.trim() || addForm.type === "Select Type") {
+      errors.push("Item type is required");
+    }
+
+    if (!addForm.price || Number(addForm.price) <= 0) {
+      errors.push("Price must be greater than 0");
+    }
+
+    if (!addForm.weight_in_kgs || Number(addForm.weight_in_kgs) <= 0) {
+      errors.push("Weight must be greater than 0");
+    }
+
+    if (!addForm.transportation_type) {
+      errors.push("Transportation type is required");
+    }
+
+    setValidationErrors(errors);
+    return errors.length === 0;
+  };
+
+  const handleAddItem = async () => {
+    if (!validateAddForm()) {
+      return;
+    }
+    console.log(addForm);
+    setAddLoading(true);
+
+    try {
+      const response = await createItem({
+        supplier_detail_id: supplierId as string,
+        ...addForm,
+      });
+
+      if (response.status) {
+        setSuccessMessage(`New item "${addForm.name}" added successfully`);
+        setAddModalOpened(false);
+        setAddForm({
+          description: "",
+          name: "",
+          price: 0,
+          swahili_name: "",
+          transportation_type: "TUKTUK",
+          type: "Select Type",
+          weight_in_kgs: 0,
+        });
+        setValidationErrors([]);
+
+        // Optional: Refresh the items list
+        // You might want to call a refresh function here
+
+        setTimeout(() => {
+          setSuccessMessage("");
+        }, 3000);
+      } else {
+        notify.error("Somethhing went wrong, try againlater");
+      }
+    } catch (error) {
+      console.error("Error adding item:", error);
+      notify.error("Failed to add item. Please try again.");
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
+  const handleAddModalClose = () => {
+    setAddModalOpened(false);
+    setValidationErrors([]);
+    setAddForm({
+      description: "",
+      name: "",
+      price: 0,
+      swahili_name: "",
+      transportation_type: "TUKTUK",
+      type: "Select Type",
+      weight_in_kgs: 0,
+    });
+  };
+
+  const perPage = 25;
   const filteredItems = items;
   const total = Math.ceil(filteredItems?.length / perPage);
 
@@ -169,10 +285,20 @@ export default function PricelistDashboard({
           borderRadius: "20px",
         }}
       >
-        <Flex justify="space-between" align="center" wrap="wrap" gap="md">
+        <Flex
+          justify="space-between"
+          align="center"
+          direction={{ base: "column", md: "row" }}
+          wrap="wrap"
+          gap="md"
+        >
           <Box>
             <Title order={1} c="white" mb="xs">
-              <Flex align="center" gap="md">
+              <Flex
+                align="center"
+                direction={{ base: "column", md: "row" }}
+                gap="md"
+              >
                 <Avatar
                   size="lg"
                   radius="xl"
@@ -187,14 +313,13 @@ export default function PricelistDashboard({
               Manage and update construction item prices with ease
             </Text>
           </Box>
-          <Group className="!hidden">
+          <Group justify="center">
             <Paper
               p="md"
               radius="md"
               style={{ backgroundColor: "rgba(255,255,255,0.15)" }}
             >
               <Text c="white" size="sm" fw={500}>
-                {" "}
                 Total Items
               </Text>
               <Text c="white" size="xl" fw={700}>
@@ -204,9 +329,11 @@ export default function PricelistDashboard({
             <Button
               leftSection={<Plus size={18} />}
               variant="filled"
-              color="#3D6B2C"
+              color="white"
+              c="#3D6B2C"
               size="lg"
               radius="xl"
+              onClick={() => setAddModalOpened(true)}
             >
               Add New Item
             </Button>
@@ -275,6 +402,7 @@ export default function PricelistDashboard({
             />
           ))}
       </Grid>
+
       <Box my="md">
         {filteredItems.length > perPage && (
           <Pagination
@@ -319,10 +447,8 @@ export default function PricelistDashboard({
             <NumberInput
               label="Price (KES)"
               placeholder="Enter new price"
-              value={parseFloat(editForm.price || "0")}
-              onChange={(value) =>
-                setEditForm({ ...editForm, price: value?.toString() || "0" })
-              }
+              value={Number(editForm.price || 0)}
+              onChange={(value) => setEditForm({ ...editForm, price: +value })}
               leftSection={<HandCoins size={16} />}
               thousandSeparator=","
               decimalScale={2}
@@ -337,7 +463,8 @@ export default function PricelistDashboard({
               onChange={(value) =>
                 setEditForm({
                   ...editForm,
-                  transportation_type: value || "TUKTUK",
+                  transportation_type:
+                    (value as Pricelist["transportation_type"]) || "TUKTUK",
                 })
               }
               data={[
@@ -352,11 +479,11 @@ export default function PricelistDashboard({
 
             <NumberInput
               label="Weight (kg)"
-              value={parseFloat(editForm.weight_in_kgs || "0")}
+              value={Number(editForm.weight_in_kgs || 0)}
               onChange={(value) =>
                 setEditForm({
                   ...editForm,
-                  weight_in_kgs: value?.toString() || "0",
+                  weight_in_kgs: +value || 0,
                 })
               }
               leftSection={<Weight size={16} />}
@@ -388,6 +515,193 @@ export default function PricelistDashboard({
             </Group>
           </Stack>
         )}
+      </Modal>
+
+      {/* Add Item Modal */}
+      <Modal
+        opened={addModalOpened}
+        onClose={handleAddModalClose}
+        title={
+          <Group>
+            <Avatar
+              size="sm"
+              radius="xl"
+              style={{ backgroundColor: "#3D6B2C" }}
+            >
+              <Plus size={16} color="white" />
+            </Avatar>
+            <Text fw={600}>Add New Item</Text>
+          </Group>
+        }
+        size="lg"
+        radius="lg"
+        centered
+      >
+        <Stack gap="md">
+          {/* Validation Errors */}
+          {validationErrors.length > 0 && (
+            <Alert
+              icon={<AlertCircle size={16} />}
+              title="Please fix the following errors:"
+              color="red"
+              variant="light"
+            >
+              <ul style={{ margin: 0, paddingLeft: 20 }}>
+                {validationErrors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </Alert>
+          )}
+
+          {/* Item Name */}
+          <TextInput
+            label="Item Name"
+            placeholder="Enter item name"
+            value={addForm.name}
+            onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+            leftSection={<Package size={16} />}
+            size="lg"
+            required
+            radius="md"
+            error={validationErrors.some((error) =>
+              error.includes("Item name")
+            )}
+          />
+
+          {/* Swahili Name */}
+          <TextInput
+            label="Swahili Name"
+            placeholder="Enter Swahili name"
+            value={addForm.swahili_name}
+            onChange={(e) =>
+              setAddForm({ ...addForm, swahili_name: e.target.value })
+            }
+            leftSection={<Package size={16} />}
+            size="lg"
+            radius="md"
+            error={validationErrors.some((error) =>
+              error.includes("Swahili name")
+            )}
+          />
+
+          {/* Description */}
+          <Textarea
+            label="Description"
+            placeholder="Enter item description"
+            value={addForm.description}
+            onChange={(e) =>
+              setAddForm({ ...addForm, description: e.target.value })
+            }
+            size="lg"
+            radius="md"
+            minRows={3}
+            error={validationErrors.some((error) =>
+              error.includes("Description")
+            )}
+          />
+
+          {/* Item Type */}
+          <Select
+            label="Item Type"
+            value={addForm.type}
+            onChange={(value) =>
+              setAddForm({
+                ...addForm,
+                type: (value as Pricelist["type"]) || "SELECT Type",
+              })
+            }
+            leftSection={<Package size={16} />}
+            data={services}
+            size="lg"
+            required
+            radius="md"
+            error={validationErrors.some((error) =>
+              error.includes("Item type")
+            )}
+          />
+
+          {/* Price */}
+          <NumberInput
+            label="Price (KES)"
+            placeholder="Enter price"
+            value={Number(addForm.price || 0)}
+            onChange={(value) => setAddForm({ ...addForm, price: +value || 0 })}
+            leftSection={<HandCoins size={16} />}
+            thousandSeparator=","
+            decimalScale={2}
+            size="lg"
+            required
+            radius="md"
+            min={0}
+            error={validationErrors.some((error) => error.includes("Price"))}
+          />
+
+          {/* Weight */}
+          <NumberInput
+            label="Weight (kg)"
+            placeholder="Enter weight"
+            value={Number(addForm.weight_in_kgs || 0)}
+            onChange={(value) =>
+              setAddForm({
+                ...addForm,
+                weight_in_kgs: +value || 0,
+              })
+            }
+            leftSection={<Weight size={16} />}
+            decimalScale={2}
+            size="lg"
+            required
+            radius="md"
+            min={0}
+            error={validationErrors.some((error) => error.includes("Weight"))}
+          />
+
+          {/* Transportation Type */}
+          <Select
+            label="Transportation Type"
+            value={addForm.transportation_type}
+            onChange={(value) =>
+              setAddForm({
+                ...addForm,
+                transportation_type:
+                  (value as Pricelist["transportation_type"]) || "TUKTUK",
+              })
+            }
+            data={[
+              { value: "TUKTUK", label: "🛺 TukTuk" },
+              { value: "PICKUP", label: "🚛 Pickup" },
+              { value: "LORRY", label: "🚚 Lorry" },
+            ]}
+            size="lg"
+            required
+            radius="md"
+            error={validationErrors.some((error) =>
+              error.includes("Transportation type")
+            )}
+          />
+
+          <Group justify="flex-end" mt="xl">
+            <Button
+              variant="light"
+              color="gray"
+              leftSection={<X size={16} />}
+              onClick={handleAddModalClose}
+              radius="xl"
+            >
+              Cancel
+            </Button>
+            <Button
+              color="#3D6B2C"
+              leftSection={<Plus size={16} />}
+              onClick={handleAddItem}
+              loading={addLoading}
+              radius="xl"
+            >
+              Add Item
+            </Button>
+          </Group>
+        </Stack>
       </Modal>
     </section>
   );
@@ -468,12 +782,12 @@ export const PricelistItem: React.FC<{
               {/* Price Section */}
               <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
                 <Flex align="center" justify="space-between">
-                  <Box display={hideControls ? "block" : "none"}>
+                  <Box>
                     <Text size="xs" c="dimmed" mb={2}>
                       Current Price
                     </Text>
                     <Text size="xl" fw={700} c="#3D6B2C">
-                      KES {parseFloat(item.price).toLocaleString()}
+                      KES {Number(item.price).toLocaleString()}
                     </Text>
                   </Box>
                   <Avatar
@@ -516,7 +830,7 @@ export const PricelistItem: React.FC<{
                   radius="xl"
                   onClick={handleEditClick}
                 >
-                  Add Price
+                  Update Price
                 </Button>
               )}
             </Stack>

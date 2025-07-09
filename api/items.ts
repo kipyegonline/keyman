@@ -1,14 +1,25 @@
-import AxiosClient from "@/config/axios"
-import { ENDPOINTS } from "@/lib/endpoints"
-import { AxiosError } from "axios"
+import AxiosClient from "@/config/axios";
+import { ENDPOINTS } from "@/lib/endpoints";
+import { AxiosError } from "axios";
 
 interface ItemResponse {
-    id: string;
-    name: string;
-    description?: string;
-    category_id?: string;
-    created_at: string;
-    updated_at: string;
+  id: string;
+  name: string;
+  description?: string;
+  category_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateItemPayload {
+  supplier_detail_id: string;
+  name: string;
+  description: string;
+  swahili_name: string;
+  type: "goods" | "services" | "professional_services" | "Select Type";
+  price: number;
+  weight_in_kgs: number;
+  transportation_type: "TUKTUK" | "PICKUP" | "LORRY";
 }
 
 /**
@@ -18,17 +29,51 @@ interface ItemResponse {
  * @returns List of items matching the search criteria
  */
 export const getItems = async (itemName: string, categoryId?: string) => {
-    try {
-        const endpoint = `${ENDPOINTS.items.GET_ITEMS(itemName)}${categoryId || ''}`;
-        const response = await AxiosClient.get<ItemResponse[]>(endpoint);
-       
-        return response.data;
-    } catch (error) {
-        if (error instanceof AxiosError) {
-            return error.response?.data || { message: 'An error occurred while fetching items', status: false };
-        } else {
-            console.error('An unexpected error occurred:', error);
-            return { message: 'An unexpected error occurred', status: false };
+  try {
+    const endpoint = `${ENDPOINTS.items.GET_ITEMS(itemName)}${
+      categoryId || ""
+    }`;
+    const response = await AxiosClient.get<ItemResponse[]>(endpoint);
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while fetching items",
+          status: false,
         }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
     }
-}
+  }
+};
+
+/**
+ * Create a new item for a supplier.
+ * @param payload The data for the new item.
+ * @returns The created item data.
+ */
+export const createItem = async (payload: CreateItemPayload) => {
+  try {
+    const response = await AxiosClient.post(
+      ENDPOINTS.items.ADD_SUPPLIER_ITEM,
+      payload
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while creating the item",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};

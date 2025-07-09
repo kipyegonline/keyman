@@ -46,6 +46,7 @@ export const ENDPOINTS = {
         return `/api/items?name=${item}&item_category_id=${categoryId}`;
       else return `/api/items?name=${item}&item_category_id=`;
     },
+    ADD_SUPPLIER_ITEM: `/api/item`,
   },
   projects: {
     GET_PROJETCS: "/api/projects",
