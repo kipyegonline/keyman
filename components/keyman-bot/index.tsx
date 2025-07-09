@@ -39,40 +39,40 @@ interface ConstructionItem {
   description: string;
   icon: React.ReactNode;
 }
-/*eslint-disable*/
+// eslint-disable
+const welcome = {
+  id: "1",
+  text: "Hello! I'm your  assistant. I can help you find materials, answer questions, and manage your cart. How can I assist you today?",
+  sender: "bot",
+  timestamp: new Date(),
+};
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      text: "Hello! I'm your construction assistant. I can help you find materials, answer questions, and manage your cart. How can I assist you today?",
-      sender: "bot",
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [cart, setCart] = useState<ConstructionItem[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [sending, setSending] = useState(false);
+  const [counter, setCounter] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { chatMode } = useAppContext();
+  const { chatMode, message } = useAppContext();
   // get the thread ID from the API
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["chatbot-threads"],
     queryFn: async () => await createThread(),
-    enabled: isOpen,
+    //enabled: isOpen,
   });
 
   const threadId = React.useMemo(() => {
     if (data?.thread) return data.thread.id;
     return "";
   }, [data]);
-  console.log("is open", { isOpen, sending, threadId });
+
   // get message count for the thread
   const {
     data: messageCountData,
-    isLoading: isMessageCountLoading,
+
     refetch: refetchCount,
   } = useQuery({
     queryKey: ["chatbot-message-count", threadId],
@@ -88,26 +88,17 @@ const ChatBot: React.FC = () => {
 
   const {
     data: messagesData,
-    isLoading: isMessagesLoading,
+
     refetch: refetchMesages,
   } = useQuery({
-    queryKey: ["chatbot-messages", threadId],
+    queryKey: ["chatbot-messages", messageCount],
     queryFn: async () => await getMessages(threadId),
     refetchOnWindowFocus: false,
-    enabled: !!threadId,
+    enabled: messageCount > 0 && !!threadId,
   });
   const _messages = React.useMemo(() => {
     if (messagesData?.thread) {
       return messagesData.thread?.messages;
-      /*.map(
-        (msg: Record<string, string>) => ({
-          id: msg.id,
-          text: msg.content,
-          sender: msg.role === "user" ? "user" : "bot",
-          timestamp: new Date(msg.created_at),
-          component: msg.component ? JSON.parse(msg.component) : null,
-        })
-      );*/
     }
     return [];
   }, [messagesData]);
@@ -116,9 +107,11 @@ const ChatBot: React.FC = () => {
   const {
     data: sendMessageData,
     isLoading: isSendMessageLoading,
-    isSuccess: messageSuccess,
+
+    isError,
+    status: sendStatus,
   } = useQuery({
-    queryKey: ["chatbot-send-message", inputValue],
+    queryKey: ["chatbot-send-message", inputValue, counter],
     queryFn: async () =>
       await sendMessage(threadId, {
         content: inputValue,
@@ -132,17 +125,24 @@ const ChatBot: React.FC = () => {
     queryKey: ["chatbot-threads"],
     queryFn: async () => await getThreads(),
     refetchOnWindowFocus: false,
-    enabled: false,
+    enabled: !true,
   });
 
+  // search bar
   React.useEffect(() => {
     if (chatMode && !isOpen) {
       setIsOpen(true);
     }
+    setInputValue(message);
   }, [chatMode]);
+
   React.useEffect(() => {
-    if (messageSuccess && sendMessageData?.status) {
-      console.log("Message sent successfully", sendMessageData);
+    if (sendStatus === "success" && sendMessageData?.status) {
+      setCounter((count) => count + 1);
+      console.log(messageCountData, "message send success...");
+      //refetchMesages();
+      refetchCount();
+
       const newMessage: Message = {
         id: Date.now().toString(),
         text: sendMessageData.message.content,
@@ -151,12 +151,13 @@ const ChatBot: React.FC = () => {
       };
       setMessages((prev) => [...prev, newMessage]);
       // setInputValue("");
-      setTimeout(() => {
-        refetchMesages();
-        refetchCount();
-      }, 2000);
     }
-  }, [messageSuccess]);
+  }, [sendStatus]);
+
+  React.useEffect(() => {
+    console.log(counter, messageCount, "msg count");
+    if (counter > 0) refetchMesages();
+  }, [counter]);
 
   const constructionItems: ConstructionItem[] = [
     {
@@ -245,57 +246,6 @@ const ChatBot: React.FC = () => {
     </div>
   );
 
-  const simulateBotResponse = (userMessage: string) => {
-    setIsTyping(true);
-
-    setTimeout(() => {
-      setIsTyping(false);
-
-      let botResponse = "";
-      let component = null;
-
-      const lowerMessage = userMessage.toLowerCase();
-
-      if (
-        lowerMessage.includes("items") ||
-        lowerMessage.includes("materials") ||
-        lowerMessage.includes("products")
-      ) {
-        botResponse =
-          "Here are our available construction items. Click the + button to add items to your cart:";
-        component = <ConstructionItemsList />;
-      } else if (lowerMessage.includes("cart")) {
-        botResponse = `You have ${
-          cart.length
-        } items in your cart. Total value: $${cart
-          .reduce((sum, item) => sum + item.price, 0)
-          .toFixed(2)}`;
-      } else if (
-        lowerMessage.includes("hello") ||
-        lowerMessage.includes("hi")
-      ) {
-        botResponse =
-          "Hello! I'm here to help you with construction materials and tools. Would you like to see our available items?";
-      } else if (lowerMessage.includes("help")) {
-        botResponse =
-          "I can help you with:\n• Browse construction materials\n• Add items to your cart\n• Check your cart status\n• Answer questions about our products\n\nWhat would you like to do?";
-      } else {
-        botResponse =
-          "I understand you're asking about construction materials. Would you like me to show you our available items, or do you have a specific question about our products?";
-      }
-
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        text: botResponse,
-        sender: "bot",
-        timestamp: new Date(),
-        component: component,
-      };
-
-      setMessages((prev) => [...prev, newMessage]);
-    }, 1000 + Math.random() * 1000);
-  };
-
   const handleSendMessage = () => {
     if (inputValue.trim()) {
       setSending(true);
@@ -324,7 +274,7 @@ const ChatBot: React.FC = () => {
   const restoreChatbot = () => {
     setIsMinimized(false);
   };
-
+  console.log({ messagesData, sendStatus, counter, messageCount }, "mx");
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {/* Chat Window */}
@@ -434,7 +384,7 @@ const ChatBot: React.FC = () => {
                   </div>
                 ))}
 
-                {isTyping && (
+                {isSendMessageLoading && (
                   <div className="flex justify-start">
                     <div className="bg-white text-gray-800 border border-gray-200 rounded-2xl px-4 py-2 shadow-sm">
                       <div className="flex items-center space-x-2">
@@ -465,7 +415,7 @@ const ChatBot: React.FC = () => {
                   type="text"
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyPress={handleKeyPress}
+                  onKeyDown={handleKeyPress}
                   placeholder="Type your message..."
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D6B2C] focus:border-transparent"
                 />

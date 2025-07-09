@@ -8,11 +8,13 @@ export default function DashboardSearch() {
   const [showAITransition, setShowAITransition] = useState(false);
   const searchRef = useRef(null);
 
-  const { toggleChatMode } = useAppContext();
+  const { toggleChatMode, setChatMessage } = useAppContext();
 
   const activateAIMode = () => {
     toggleChatMode();
     setShowAITransition(false);
+    setChatMessage(searchValue);
+    setTimeout(() => setSearchValue(""), 1000);
 
     // Add initial message if there's a search query
     if (searchValue.trim()) {
@@ -36,6 +38,11 @@ export default function DashboardSearch() {
       setShowAITransition(true);
     } else {
       setShowAITransition(false);
+    }
+  };
+  const handleKeyChange = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      if (searchValue.length > 2) activateAIMode();
     }
   };
   return (
@@ -68,6 +75,7 @@ export default function DashboardSearch() {
               ref={searchRef}
               type="text"
               value={searchValue}
+              onKeyDown={handleKeyChange}
               onChange={handleSearchChange}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}

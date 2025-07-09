@@ -69,4 +69,5 @@ export const ENDPOINTS = {
     GET_MESSAGE_COUNT: (threadId: string) =>
       `/api/ai-chat/threads/${threadId}/messages/count`,
   },
+  banners: { BANNERS_NEAR_ME: "/api/banners/close-by" },
 };

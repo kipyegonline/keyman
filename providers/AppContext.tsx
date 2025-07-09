@@ -14,6 +14,8 @@ interface AppContext {
   logOutUser: () => void;
   chatMode: boolean;
   toggleChatMode: () => void;
+  message: string;
+  setChatMessage: (text: string) => void;
 }
 
 const AppContext = React.createContext({} as AppContext);
@@ -138,6 +140,7 @@ export default function AppContextProvider({ children }: Props) {
   const [activeItem, setActiveItem] = React.useState(getDash() ?? "dashboard");
   const [user, _setUser] = React.useState<KeymanUser | null>(null);
   const [chatMode, setChatMode] = React.useState(false);
+  const [message, setMessage] = React.useState("");
 
   React.useEffect(() => {
     const storedUser = getUser();
@@ -145,6 +148,7 @@ export default function AppContextProvider({ children }: Props) {
       _setUser(storedUser);
     }
   }, []);
+  const setChatMessage = (text: string) => setMessage(text);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -185,6 +189,8 @@ export default function AppContextProvider({ children }: Props) {
         setActiveItem,
         toggleDashboard,
         mainDashboard,
+        message,
+        setChatMessage,
       }}
     >
       {children}
