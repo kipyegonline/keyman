@@ -87,7 +87,7 @@ const formatDate = (dateString: string) => {
 };
 const openGoogleMaps = (lat: number, long: number) => {
   if (lat && long) {
-    window.open(`https://maps.google.com/?q=${long},${lat}`, "_blank");
+    window.open(`https://maps.google.com/?q=${lat},${long}`, "_blank");
   }
 };
 

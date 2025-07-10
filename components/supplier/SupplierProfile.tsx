@@ -103,7 +103,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
   supplier,
 }) => {
   const handleViewLocation = () => {
-    const googleMapsUrl = `https://www.google.com/maps?q=${supplier?.location?.coordinates[0]},${supplier?.location?.coordinates[1]}`;
+    const googleMapsUrl = `https://www.google.com/maps?q=${supplier?.location?.coordinates[1]},${supplier?.location?.coordinates[0]}`;
     window.open(googleMapsUrl, "_blank");
   };
 

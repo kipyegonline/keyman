@@ -216,7 +216,7 @@ export default function PricelistDashboard({
     if (!validateAddForm()) {
       return;
     }
-    console.log(addForm);
+
     setAddLoading(true);
 
     try {

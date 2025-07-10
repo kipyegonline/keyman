@@ -35,13 +35,17 @@ export default function PriceListClientcomponent() {
       return prices?.items;
     } else return [];
   }, [prices]);
-  console.log(priceList);
+  const _priceList = React.useMemo(() => {
+    if (priceList?.price_list) return priceList?.price_list;
+    return [];
+  }, [priceList]);
+
   return (
     <div className="">
       <PricelistDashboard
         handleSearch={handleSearch}
         isPending={isPending}
-        prices={items}
+        prices={[..._priceList, ...items]}
       />
     </div>
   );

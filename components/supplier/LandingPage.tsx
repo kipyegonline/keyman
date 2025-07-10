@@ -180,8 +180,9 @@ const SupplierDashboard: React.FC<Props> = ({
 
   const openGoogleMaps = () => {
     const [long, lat] = _supplierInfo?.location?.coordinates;
+
     if (lat && long) {
-      window.open(`https://maps.google.com/?q=${long},${lat}`, "_blank");
+      window.open(`https://maps.google.com/?q=${lat},${long}`, "_blank");
     }
   };
   const removeStaffMember = (staff: SupplierDetails["staff"][0]) => {
