@@ -3,7 +3,11 @@ import { Image } from "@mantine/core";
 import Autoplay from "embla-carousel-autoplay";
 import React from "react";
 
-function KeymanBanner({ banners }: { banners: string[] }) {
+function KeymanBanner({
+  banners,
+}: {
+  banners: { url: string; description: string }[];
+}) {
   const height = 240;
   const autoplay = React.useRef(
     Autoplay({
@@ -36,11 +40,12 @@ function KeymanBanner({ banners }: { banners: string[] }) {
         banners.map((banner, index) => (
           <Carousel.Slide key={index}>
             <Image
-              src={banner}
-              alt=""
+              src={banner.url}
+              alt={banner.description}
+              title={banner.description}
               height={height}
               radius={"md"}
-              fallbackSrc={banner}
+              fallbackSrc={"/keyman_hero.jpeg"}
             />
           </Carousel.Slide>
         ))
