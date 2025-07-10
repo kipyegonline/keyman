@@ -68,7 +68,7 @@ const ChatBot: React.FC = () => {
     if (data?.thread) return data.thread.id;
     return "";
   }, [data]);
-  console.log("is open", { isOpen, sending, threadId });
+
   // get message count for the thread
   const {
     data: messageCountData,

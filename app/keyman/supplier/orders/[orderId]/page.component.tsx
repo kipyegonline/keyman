@@ -8,7 +8,11 @@ import Link from "next/link";
 import React from "react";
 
 export default function OrderClientComponent({ orderId }: { orderId: string }) {
-  const { data: order, isLoading } = useQuery({
+  const {
+    data: order,
+    isLoading,
+    refetch: refresh,
+  } = useQuery({
     queryKey: ["order", orderId],
     queryFn: async () => getOrderDetails(orderId),
     enabled: !!orderId,
@@ -29,7 +33,14 @@ export default function OrderClientComponent({ orderId }: { orderId: string }) {
           Order details {_order?.code ?? ""}
         </Link>
       </Breadcrumbs>
-      {_order && "id" in _order && <OrderDetails order={_order} />}
+      {_order && "id" in _order && (
+        <OrderDetails
+          order={_order}
+          refreshOrder={() => {
+            refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

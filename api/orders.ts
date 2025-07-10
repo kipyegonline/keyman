@@ -70,11 +70,29 @@ export const getOrderDetails = async (orderId: string) => {
     }
   }
 };
+type IItem = {
+  supplier_order_item_id: string;
+  photo?: string;
+  confirmation_type: "SUPPLIER" | "CLIENT";
+  latitude: number;
+  longitude: number;
+  comments: string;
+  quantity: string;
+};
+export interface ReleaseItem {
+  rating: number;
+  comments: string;
+  items: IItem[];
+}
 
-export const confirmItemReceipt = async (orderId: string) => {
+export const confirmItemReceipt = async (
+  orderId: string,
+  payload: ReleaseItem
+) => {
   try {
     const response = await AxiosClient.post(
-      ENDPOINTS.orders.ITEM_RECEIPT_CONFIRMATION(orderId)
+      ENDPOINTS.orders.ITEM_RECEIPT_CONFIRMATION(orderId),
+      payload
     );
     return response.data;
   } catch (error) {

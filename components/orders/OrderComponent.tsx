@@ -46,6 +46,27 @@ import {
   Camera,
   Map,
 } from "lucide-react";
+import OrderCompletionSection from "./OrderCompletion";
+interface OrderItem {
+  amounts: {
+    ordered: number;
+    pending: {
+      release: number;
+      receive: number;
+    };
+    received: number;
+    released: number;
+  };
+  created_at: string;
+  id: string;
+  item_id: string;
+  name: string;
+  quantity: string;
+  request_item_id: string;
+  supplier_order_id: string;
+  unit_price: string;
+  updated_at: string;
+}
 
 // Order interface from your previous message
 interface Order {
@@ -61,7 +82,7 @@ interface Order {
     media: string[];
   };
   id: string;
-  items: Array<Record<string, string>>;
+  items: Array<OrderItem>;
   rating: number;
   request: {
     id: string;
@@ -84,14 +105,23 @@ interface Order {
   supplier_detail_id: string;
   total: number;
   updated_at: string;
+  order_completion?: {
+    receive: boolean;
+    release: boolean;
+  };
 }
 
 interface OrderDetailsProps {
   order: Order;
   onBack?: () => void;
+  refreshOrder: () => void;
 }
 
-const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
+const OrderDetails: React.FC<OrderDetailsProps> = ({
+  order,
+  onBack,
+  refreshOrder,
+}) => {
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
 
@@ -163,7 +193,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
     }
     return;
   };
-
+  console.log(order, "der fuhre");
   return (
     <Container size="xl" py="md">
       <div className="animate-in slide-in-from-bottom-4 duration-500">
@@ -312,15 +342,15 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                           </Table.Td>
                           <Table.Td>
                             <Badge variant="light" size="sm">
-                              {item.unit || "units"}
+                              {item.quantity || "units"}
                             </Badge>
                           </Table.Td>
                           <Table.Td>
                             <Text fw={500} c="#3D6B2C">
                               <NumberFormatter
                                 value={getEstimatecost(
-                                  item.quantity,
-                                  item.unit_price
+                                  item?.quantity,
+                                  item?.unit_price
                                 )}
                                 prefix="KSh "
                                 thousandSeparator=","
@@ -333,6 +363,14 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ order, onBack }) => {
                   </Table>
                 </ScrollArea>
               </Card>
+              <OrderCompletionSection
+                orderCompletion={order?.order_completion}
+                items={order?.items}
+                orderId={order.id}
+                onRelease={() => {
+                  refreshOrder();
+                }}
+              />
 
               {/* Timeline */}
               <Card

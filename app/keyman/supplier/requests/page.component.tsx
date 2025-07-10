@@ -42,7 +42,7 @@ export default function RequestClientComponent() {
       ) : (
         <Box p="lg">
           <Text size="md" pb="md">
-            You have requests
+            You have no requests at the moment.
           </Text>
         </Box>
       )}
