@@ -112,8 +112,8 @@ const formatDate = (dateString: string) => {
   });
 };
 
-type Props = { orders: Order[] };
-const OrdersTable: React.FC<Props> = ({ orders: _orders }) => {
+type Props = { orders: Order[]; isSupplier: boolean };
+const OrdersTable: React.FC<Props> = ({ orders: _orders, isSupplier }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const router = useRouter();
@@ -161,7 +161,8 @@ const OrdersTable: React.FC<Props> = ({ orders: _orders }) => {
 
   const handleOrder = (id: string) => {
     navigateTo();
-    router.push(`/keyman/supplier/orders/${id}`);
+    if (isSupplier) router.push(`/keyman/supplier/orders/${id}`);
+    else router.push(`/keyman/dashboard/orders/${id}`);
   };
   const rows = filteredOrders.toReversed().map((order, index) => (
     <Table.Tr

@@ -39,6 +39,7 @@ export default function OrderClientComponent({ orderId }: { orderId: string }) {
           refreshOrder={() => {
             refresh();
           }}
+          isSupplier={true}
         />
       )}
     </div>

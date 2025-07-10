@@ -24,7 +24,7 @@ export default function OrdersClientcomponent() {
   return (
     <div className="px-4 md:px-14">
       {ordersList.length > 0 ? (
-        <OrdersTable orders={ordersList} />
+        <OrdersTable orders={ordersList} isSupplier={true} />
       ) : (
         <Box p="lg">
           <Text size="md" pb="md">

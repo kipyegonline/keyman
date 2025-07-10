@@ -47,6 +47,7 @@ import {
   Map,
 } from "lucide-react";
 import OrderCompletionSection from "./OrderCompletion";
+import OrderCompletionSectionClient from "./OrderCompletionClient";
 interface OrderItem {
   amounts: {
     ordered: number;
@@ -115,12 +116,14 @@ interface OrderDetailsProps {
   order: Order;
   onBack?: () => void;
   refreshOrder: () => void;
+  isSupplier: boolean;
 }
 
 const OrderDetails: React.FC<OrderDetailsProps> = ({
   order,
   onBack,
   refreshOrder,
+  isSupplier,
 }) => {
   const [commentModalOpen, setCommentModalOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
@@ -193,7 +196,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
     }
     return;
   };
-  console.log(order, "der fuhre");
+  console.log(order, "order....");
   return (
     <Container size="xl" py="md">
       <div className="animate-in slide-in-from-bottom-4 duration-500">
@@ -363,14 +366,26 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
                   </Table>
                 </ScrollArea>
               </Card>
-              <OrderCompletionSection
-                orderCompletion={order?.order_completion}
-                items={order?.items}
-                orderId={order.id}
-                onRelease={() => {
-                  refreshOrder();
-                }}
-              />
+
+              {isSupplier ? (
+                <OrderCompletionSection
+                  orderCompletion={order?.order_completion}
+                  items={order?.items}
+                  orderId={order.id}
+                  onRelease={() => {
+                    refreshOrder();
+                  }}
+                />
+              ) : (
+                <OrderCompletionSectionClient
+                  orderCompletion={order?.order_completion}
+                  items={order?.items}
+                  orderId={order.id}
+                  onReceive={() => {
+                    refreshOrder();
+                  }}
+                />
+              )}
 
               {/* Timeline */}
               <Card

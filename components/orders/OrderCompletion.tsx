@@ -29,6 +29,7 @@ import {
   Check,
 } from "lucide-react";
 import { confirmItemReceipt, ReleaseItem } from "@/api/orders";
+import { getCurrentLocation } from "@/lib/geolocation";
 
 interface OrderItem {
   amounts: {
@@ -70,13 +71,14 @@ const OrderCompletionSection: React.FC<OrderCompletionProps> = ({
   const [modalOpen, setModalOpen] = useState(false);
   const [isReleasing, setIsReleasing] = useState(false);
   const [releaseSuccess, setReleaseSuccess] = useState(false);
-  console.log(items, "items");
+
   const handleRelease = async () => {
     if (confirm("Release items?")) {
       setIsReleasing(true);
       try {
         // Call the API function
         if (true) {
+          const coords = await getCurrentLocation();
           let payLoaditems: ReleaseItem["items"] = [];
           items?.forEach((item) => {
             const payloadItem = {} as ReleaseItem["items"][0];
@@ -84,8 +86,8 @@ const OrderCompletionSection: React.FC<OrderCompletionProps> = ({
             payloadItem["supplier_order_item_id"] = item.id;
             payloadItem["quantity"] = item.quantity;
             payloadItem["confirmation_type"] = "SUPPLIER";
-            payloadItem["latitude"] = -1.1891891891892;
-            payloadItem["longitude"] = 36.926872332723;
+            payloadItem["latitude"] = coords.lat;
+            payloadItem["longitude"] = coords.lng;
             payloadItem["comments"] = "";
 
             payLoaditems = [payloadItem, ...payLoaditems];
