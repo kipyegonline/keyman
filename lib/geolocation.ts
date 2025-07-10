@@ -112,23 +112,6 @@ const getCurrentLocationAdvanced = (
   });
 };
 
-export const getDetailedLocation = async (): Promise<void> => {
-  try {
-    const location: DetailedCoordinates = await getCurrentLocationAdvanced({
-      enableHighAccuracy: true,
-      timeout: 5000,
-    });
-    console.log("Detailed location:", location);
-  } catch (error) {
-    if (error instanceof GeolocationPositionError) {
-      console.error("Geolocation error code:", error.code);
-      console.error("Geolocation error message:", error.message);
-    } else if (error instanceof Error) {
-      console.error("Error:", error.message);
-    }
-  }
-};
-
 // Export the functions and types
 export { getCurrentLocation, getCurrentLocationAdvanced };
 export type { Coordinates, DetailedCoordinates, GeolocationOptions };

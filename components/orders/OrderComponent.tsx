@@ -196,7 +196,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
     }
     return;
   };
-  console.log(order, "order....");
+
   return (
     <Container size="xl" py="md">
       <div className="animate-in slide-in-from-bottom-4 duration-500">

@@ -91,7 +91,6 @@ const OrderCompletionSection: React.FC<OrderCompletionProps> = ({
             payloadItem["comments"] = "";
 
             payLoaditems = [payloadItem, ...payLoaditems];
-            console.log(payLoaditems, "items");
           });
           const payload = { items: payLoaditems, comments: "", rating: 2 };
           const result = await confirmItemReceipt(orderId, payload);
