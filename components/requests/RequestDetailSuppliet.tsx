@@ -138,7 +138,7 @@ const RequestDetailSuplier: React.FC<{
   };
 
   const getValuation = (totalAmount: number, balance: number) => {
-    return balance > (2 / 100) * (totalAmount / 20);
+    return balance >= (2 / 100) * (totalAmount / 20);
   };
   const getTotalAmount = (orderItems: PricedRequestItem[]) => {
     return orderItems.reduce((total, item) => {
@@ -165,6 +165,7 @@ const RequestDetailSuplier: React.FC<{
     // check value
     const totalAmount = getTotalAmount(orderItems);
     const valuated = getValuation(totalAmount, _balance);
+
     if (valuated) {
       setTransportOpen(true);
     } else {
