@@ -1,6 +1,13 @@
 "use client";
 import React from "react";
-import { Wrench, Edit, DollarSign, MapPin, Share, LogOut } from "lucide-react";
+import {
+  //Wrench,
+  //Edit,
+  //DollarSign,
+  MapPin,
+  //Share,
+  LogOut,
+} from "lucide-react";
 import {
   Group,
   Title,
@@ -32,11 +39,11 @@ const TopNavigation: React.FC = () => {
   } = useAppContext();
   const router = useRouter();
   const profileMenuItems = [
-    { label: "Edit Profile", icon: Edit, key: "profile" },
-    { label: "Hardware/Service Profile", icon: Wrench, key: "hardware" },
-    { label: "Price List", icon: DollarSign, key: "price" },
+    // { label: "Edit Profile", icon: Edit, key: "profile" },
+    //{ label: "Hardware/Service Profile", icon: Wrench, key: "hardware" },
+    //{ label: "Price List", icon: DollarSign, key: "price" },
     { label: "Delivery Locations", icon: MapPin, key: "delivery" },
-    { label: "Share", icon: Share, key: "share" },
+    // { label: "Share", icon: Share, key: "share" },
     { label: "Logout", icon: LogOut, key: "logout" },
   ];
   const handleLogout = () => {
@@ -83,11 +90,7 @@ const TopNavigation: React.FC = () => {
         break;
     }
   };
-  const randomNumber = () => {
-    const num = Math.floor(Math.random() * 10);
-    if (num === 0) return randomNumber();
-    return num;
-  };
+
   const MobileNav = (
     <Flex>
       <Group display={{ base: "flex", lg: "none" }} align="center" className="">
@@ -153,7 +156,7 @@ const TopNavigation: React.FC = () => {
           </ActionIcon>
 
           {/* Notifications */}
-          <Indicator inline label={randomNumber()} size={16}>
+          <Indicator inline label={null} size={16}>
             <ActionIcon
               variant="subtle"
               size="lg"
