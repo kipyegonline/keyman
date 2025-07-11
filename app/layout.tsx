@@ -1,7 +1,7 @@
 "use client";
 import { Poppins } from "next/font/google";
 import { AppProgressProvider as ProgressBar } from "@bprogress/next";
-
+import { GoogleAnalytics } from "@next/third-parties/google";
 import AppProviders from "@/providers";
 
 import { COLOUR } from "@/CONSTANTS/color";
@@ -18,6 +18,7 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
+const TrackingId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID as string;
 
 export default function RootLayout({
   children,
@@ -29,6 +30,7 @@ export default function RootLayout({
       <body className={`${poppins.variable}  antialiased`}>
         <AppProviders>
           <main className=""> {children}</main>
+          <GoogleAnalytics gaId={TrackingId} />
           <ChatBot />
 
           <ProgressBar
