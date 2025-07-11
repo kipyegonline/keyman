@@ -272,7 +272,8 @@ export interface RequestDelivery {
     | "IN_PROGRESS"
     | " COMPLETED"
     | "CANCELLED"
-    | "awarded";
+    | "awarded"
+    | "quoting";
   updated_at: string;
 }
 export interface RequestDeliveryItem {
@@ -305,7 +306,8 @@ export interface RequestDeliveryItem {
     | "IN_PROGRESS"
     | "COMPLETED"
     | "CANCELLED"
-    | "awarded";
+    | "awarded"
+    | "quoting";
   transports: Array<{
     id: string;
     transportable_id: string;

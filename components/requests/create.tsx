@@ -169,6 +169,7 @@ const RequestSourceStep: React.FC<{
   const [selectedItems, setSelectedItems] =
     useState<KeymanItem[]>(_selectedItems);
   const [searchQuery, setSearchQuery] = useState("");
+  //const [q, setQue] = React.useState("");
   const { data: items, isLoading } = useQuery({
     queryKey: ["items", searchQuery],
     enabled: searchQuery.length > 2,
@@ -319,12 +320,12 @@ const RequestSourceStep: React.FC<{
     const totalPages = Math.ceil(total / perPage);
     const prev = (activePage - 1) * perPage;
     const next = (activePage - 1) * perPage + perPage;
+
     return (
       <div className="space-y-6">
         <Grid>
           <Grid.Col span={{ base: 12, md: 6 }}>
             <div className="space-y-4">
-              search: {searchQuery}
               <TextInput
                 placeholder="Search for items..."
                 value={searchQuery}
@@ -333,6 +334,7 @@ const RequestSourceStep: React.FC<{
                 leftSection={isLoading ? <Loader2 /> : <Search size={16} />}
                 className="transition-all  duration-200 hover:scale-[1.02]"
               />
+
               {isLoading && (
                 <Center p="md">
                   <Loader />
@@ -866,3 +868,21 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
 };
 
 export default RequestCreator;
+export const SearchComponent = ({ searchQuery = (f: string) => f }) => {
+  const [q, setQue] = React.useState("");
+  React.useEffect(() => {
+    if (q.length > 2) searchQuery(q);
+  }, [q]);
+  console.log("jjjjjj", q);
+  return (
+    <div>
+      <p>{q}</p>
+      <input
+        value={q}
+        onChange={(e) => setQue(e.target.value)}
+        placeholder="Independent"
+        className="transition-all  duration-200 hover:scale-[1.02] py-1 px-2 border border-gray-400 w-1/2"
+      />
+    </div>
+  );
+};

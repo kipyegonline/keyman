@@ -30,13 +30,21 @@ import {
   Building2,
   Hash,
   Navigation,
+  LucideProps,
 } from "lucide-react";
 import { RequestDeliveryItem } from "@/types";
 import QuotesAccordion from "./QuotesList";
 import React from "react";
 
+type StatusConfig = {
+  color: string;
+  bg: string;
+  icon: React.ComponentType<LucideProps>;
+  label: string;
+};
+
 const getStatusConfig = (status: RequestDeliveryItem["status"]) => {
-  const configs = {
+  const configs: Record<string, StatusConfig> = {
     SUBMITTED: {
       color: "#3D6B2C",
       bg: "rgba(61, 107, 44, 0.1)",
@@ -91,17 +99,18 @@ const openGoogleMaps = (lat: number, long: number) => {
   }
 };
 
-const RequestDetail: React.FC<{ request: RequestDeliveryItem }> = ({
-  request: selectedRequest,
-}) => {
+const RequestDetail: React.FC<{
+  request: RequestDeliveryItem;
+  refresh: () => void;
+}> = ({ request: selectedRequest, refresh }) => {
   const [show, setShow] = React.useState({ id: 0 + "", show: false });
   const StatusBadge: React.FC<{ status: RequestDeliveryItem["status"] }> = ({
     status,
   }) => {
     const config = getStatusConfig(status);
 
-    const IconComponent = config?.icon;
     if (!config) return null;
+    const IconComponent = config.icon;
 
     // console.log(selectedRequest, "request");
 
@@ -121,7 +130,7 @@ const RequestDetail: React.FC<{ request: RequestDeliveryItem }> = ({
       </Badge>
     );
   };
-
+  console.log(selectedRequest, "sr");
   return (
     <Box>
       {selectedRequest && (
@@ -328,7 +337,9 @@ const RequestDetail: React.FC<{ request: RequestDeliveryItem }> = ({
                               }))
                             }
                           >
-                            {show.show ? "Hide" : "View quotes"}
+                            {show.show && show.id === item.id
+                              ? "Hide"
+                              : "View quotes"}
                           </Button>
                         </Stack>
                       )}
@@ -344,10 +355,12 @@ const RequestDetail: React.FC<{ request: RequestDeliveryItem }> = ({
                       visual={item.visual_confirmation_required === 1}
                       requestId={selectedRequest.id}
                       status={selectedRequest.status}
+                      refresh={refresh}
                     />
                   )}
                 </Paper>
               ))}
+              <Button>Make payments</Button>
             </Stack>
           </Card>
 

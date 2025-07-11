@@ -119,22 +119,22 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
     status,
   }) => {
     const config = getStatusConfig(status);
-    const IconComponent = config?.icon;
 
     if (!config) return null;
+    const IconComponent = config.icon;
     return (
       <Badge
         variant="light"
         style={{
-          backgroundColor: config?.bg,
-          color: config?.color,
-          border: `1px solid ${config?.color}20`,
+          backgroundColor: config.bg,
+          color: config.color,
+          border: `1px solid ${config.color}20`,
           fontWeight: 600,
           transition: "all 0.2s ease",
         }}
         leftSection={<IconComponent size={12} />}
       >
-        {config?.label}
+        {config.label}
       </Badge>
     );
   };

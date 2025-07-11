@@ -165,7 +165,7 @@ const RequestDetailSuplier: React.FC<{
     // check value
     const totalAmount = getTotalAmount(orderItems);
     const valuated = getValuation(totalAmount, _balance);
-
+    console.log(totalAmount, valuated, _balance, "bal");
     if (valuated) {
       setTransportOpen(true);
     } else {
@@ -223,6 +223,14 @@ const RequestDetailSuplier: React.FC<{
     //return;
     const totalCost = getTotalAmount(orderItems);
     const totalWeight = gettotalWeight(selectedRequest);
+    // do a  check once more
+
+    const valuated = getValuation(totalCost, _balance);
+
+    if (!valuated) {
+      setShowModal(true);
+      return;
+    }
 
     //send to server
     const items = orderItems.map((item) => ({

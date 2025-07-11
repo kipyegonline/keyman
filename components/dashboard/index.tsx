@@ -5,7 +5,7 @@ import Sidebar from "./sideNav";
 import Navigation from "./TopNav";
 import { useAppContext } from "@/providers/AppContext";
 import SupplierDashboard from "./SupplierDashboard";
-import { useRouter } from "next/navigation";
+//import { useRouter } from "next/navigation";
 
 // Main Dashboard Component
 const Dashboard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -13,9 +13,9 @@ const Dashboard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isDark] = useState(false);
 
   const { mainDashboard } = useAppContext();
-  const router = useRouter();
+  //const router = useRouter();
   React.useEffect(() => {
-    if (!mainDashboard) router.push("/keyman/supplier");
+    //if (!mainDashboard) router.push("/keyman/supplier");
   }, []);
 
   return (

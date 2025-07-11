@@ -42,7 +42,7 @@ import { awardRequestItems, getRequestDetails } from "@/api/requests";
 import { createOrders } from "@/api/orders";
 import { Quote } from "@/types";
 import { useQuery } from "@tanstack/react-query";
-import PaymentModal from "../Tokens";
+
 import { notify } from "@/lib/notifications";
 import { useRouter } from "next/navigation";
 import LoadingComponent from "@/lib/LoadingComponent";
@@ -61,6 +61,7 @@ interface QuotesAccordionProps {
   requestId: string;
   status: string;
   visual: boolean;
+  refresh: () => void;
 }
 
 // Image Gallery Component
@@ -135,7 +136,7 @@ const ImageGallery: React.FC<{ images: string[]; itemName: string }> = ({
 };
 
 // Success Component
-const AwardSuccessComponent: React.FC<{
+export const AwardSuccessComponent: React.FC<{
   onBackToRequests: () => void;
   onMakePayment: () => void;
   supplierName: string;
@@ -294,7 +295,21 @@ const QuoteCard: React.FC<{
   itemName?: string;
   onAward: () => void;
   isAwarding: boolean;
-}> = ({ quote, itemName, onAward, isAwarding }) => {
+  awarded: Quote | undefined;
+}> = ({ quote, itemName, onAward, isAwarding, awarded }) => {
+  const handleAward = () => {
+    if (awarded) {
+    } else {
+      onAward();
+    }
+  };
+  const setButtonStatus = () => {
+    if (awarded) {
+      return `Awarded to ${awarded.detail.name}`;
+    } else {
+      return isAwarding ? "Awarding..." : "Award This Quote";
+    }
+  };
   return (
     <Card
       shadow="sm"
@@ -411,12 +426,13 @@ const QuoteCard: React.FC<{
           size="md"
           radius="md"
           rightSection={isAwarding ? <Loader size={16} /> : <Award size={16} />}
-          onClick={onAward}
+          onClick={handleAward}
           loading={isAwarding}
+          disabled={!!awarded}
           className="transition-all duration-300 hover:scale-105 hover:shadow-lg"
           style={{ backgroundColor: "#3D6B2C" }}
         >
-          {isAwarding ? "Awarding..." : "Award This Quote"}
+          {setButtonStatus()}
         </Button>
       </Stack>
     </Card>
@@ -428,6 +444,7 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
   quotes,
   requestId,
   status,
+  refresh,
 }) => {
   const [awardingQuote, setAwardingQuote] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -452,6 +469,7 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
   const awardee = quotes?.find((quote: Quote) => quote.is_awarded === 1);
 
   const handleAwardQuote = async (id: string) => {
+    if (!confirm("Award quote?")) return;
     try {
       const payload = { quote_id: [id] };
       setAwardingQuote(id);
@@ -459,6 +477,8 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
       const result = await awardRequestItems(requestId, payload);
       if (result.status) {
         setSuccess(true);
+        notify.success("Quote awarded successfully");
+        refresh();
       } else {
         setError("Something went wrong...");
       }
@@ -514,54 +534,16 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
       </Card>
     );
   }
+
   if (createOrderLoading)
     return <LoadingComponent message="Creating order..." variant="pulse" />;
-  if (success || !!awardee) {
-    return (
-      <>
-        <PaymentModal
-          isOpen={open}
-          onClose={() => setOpen(false)}
-          type="request"
-          typeId={requestId}
-          amount={totalAmount}
-          description=""
-          availablePaymentMethods={["mpesa", "airtel_money", "t_kash"]}
-          onPaymentSuccess={() => {
-            setOpen(false);
-
-            notify.success("Your payment will be processed shortly");
-            //refetchBalance();
-            // Handle payment success logic here
-            requestRefetch();
-          }}
-          onPaymentError={(error) => {
-            notify.error(error || "An error occurred while processing payment");
-            // Handle payment error logic here
-          }}
-        />
-        <AwardSuccessComponent
-          onBackToRequests={resetAwardResult}
-          onMakePayment={() => setOpen(true)}
-          createOrder={createOrder}
-          supplierName={awardee ? awardee.detail.name : ""}
-          itemName={"item"}
-          isCompleted={isCompleted}
-        />
-      </>
-    );
-  }
 
   return (
     <Container size="lg" mt="md">
       <Stack gap="xl">
         {/* Header */}
         <Box className="text-center">
-          {status === "awarded" ? (
-            <Text size="md" c="dimmed" className="text-gray-800 mb-2">
-              The item was awarded to <b>{"supplier"}</b>
-            </Text>
-          ) : (
+          {status === "awarded" ? null : (
             <>
               <Text size="xl" fw={700} className="text-gray-800 mb-2">
                 📋 Review Quotes for Your Item
@@ -581,6 +563,7 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
             onCancel={resetAwardResult}
           />
         )}
+
         <Transition mounted={true} duration={300} transition="fade">
           {(styles) => (
             <Stack gap="md" style={styles}>
@@ -596,6 +579,7 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
                   <QuoteCard
                     key={quote.id}
                     quote={quote}
+                    awarded={awardee}
                     onAward={() => handleAwardQuote(quote.id)}
                     isAwarding={awardingQuote === quote.id && loading}
                   />
