@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback, memo } from "react";
 import {
   Stepper,
   Button,
   Group,
   TextInput,
   Select,
-  Table,
   Card,
   Text,
   Checkbox,
@@ -15,19 +14,16 @@ import {
   Container,
   Title,
   Paper,
-  //Loader,
-  //Notification,
   Divider,
   Pagination,
   Loader,
-  //Box,
   Center,
   Grid,
   Flex,
 } from "@mantine/core";
 import { DatePickerInput as DateInput } from "@mantine/dates";
 import { useForm, UseFormReturnType } from "@mantine/form";
-//import { useState as useToggle } from "@mantine/hooks";
+import { useDebouncedValue } from "@mantine/hooks";
 import {
   Calendar,
   MapPin,
@@ -43,10 +39,9 @@ import {
   ArrowRight,
   ArrowLeft,
   ExternalLink,
-  Loader2,
   Minus,
 } from "lucide-react";
-
+/*eslint-disable*/
 import { useQuery } from "@tanstack/react-query";
 import { getItems } from "@/api/items";
 import { KeymanItem } from "@/types/requests";
@@ -62,6 +57,7 @@ interface DeliveryLocation {
   latitude: string;
   longitude: string;
 }
+
 interface RequestForm {
   delivery_date: string;
   location_id: string;
@@ -69,7 +65,8 @@ interface RequestForm {
   items: KeymanItem[];
   ks_number?: string;
 }
-// Mock data for locations and items
+
+// Mock data for locations
 const mockLocations: DeliveryLocation[] = [
   {
     id: "1",
@@ -90,6 +87,371 @@ const mockLocations: DeliveryLocation[] = [
     longitude: "-73.9934",
   },
 ];
+
+// Optimized Search Input Component
+const DebouncedSearchInput = memo<{
+  onSearch: (query: string) => void;
+  isLoading: boolean;
+}>(({ onSearch, isLoading }) => {
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearch] = useDebouncedValue(searchValue, 500);
+
+  React.useEffect(() => {
+    if (debouncedSearch.length >= 3) {
+      onSearch(debouncedSearch);
+    } else if (debouncedSearch.length === 0) {
+      onSearch("");
+    }
+  }, [debouncedSearch, onSearch]);
+
+  return (
+    <TextInput
+      placeholder="Search for items... (minimum 3 characters)"
+      value={searchValue}
+      onChange={(e) => setSearchValue(e.target.value)}
+      leftSection={isLoading ? <Loader size={16} /> : <Search size={16} />}
+      className="transition-all duration-200 hover:scale-[1.02]"
+    />
+  );
+});
+
+DebouncedSearchInput.displayName = "DebouncedSearchInput";
+
+// Optimized Item List Component
+const ItemsList = memo<{
+  items: KeymanItem[];
+  onAddItem: (item: KeymanItem) => void;
+  onRemoveItem: (itemId: string) => void;
+  selectedItems: KeymanItem[];
+  activePage: number;
+  onPageChange: (page: number) => void;
+  totalPages: number;
+  isLoading: boolean;
+  searchQuery: string;
+}>(
+  ({
+    items,
+    onAddItem,
+    onRemoveItem,
+    selectedItems,
+    activePage,
+    onPageChange,
+    totalPages,
+    isLoading,
+    searchQuery,
+  }) => {
+    const perPage = 25;
+    const startIndex = (activePage - 1) * perPage;
+    const endIndex = startIndex + perPage;
+
+    const paginatedItems = useMemo(() => {
+      return items.slice(startIndex, endIndex);
+    }, [items, startIndex, endIndex]);
+
+    const getItemQuantity = useCallback(
+      (itemId: string) => {
+        const selectedItem = selectedItems.find((item) => item.id === itemId);
+        return selectedItem?.quantity || 0;
+      },
+      [selectedItems]
+    );
+
+    if (isLoading) {
+      return (
+        <Center p="md">
+          <Loader />
+        </Center>
+      );
+    }
+
+    if (items.length === 0 && searchQuery.length >= 3) {
+      return (
+        <Text size="sm" c="dimmed" ta="center" p="md">
+          No items found for "{searchQuery}". Try a different search term.
+        </Text>
+      );
+    }
+
+    if (searchQuery.length > 0 && searchQuery.length < 3) {
+      return (
+        <Text size="sm" c="dimmed" ta="center" p="md">
+          Please enter at least 3 characters to search for items.
+        </Text>
+      );
+    }
+
+    if (items.length === 0 && searchQuery.length === 0) {
+      return (
+        <Text size="sm" c="dimmed" ta="center" p="md">
+          Start typing to search for items...
+        </Text>
+      );
+    }
+
+    return (
+      <>
+        <Card className="p-4 !overflow-y-scroll max-h-[600px]">
+          <Text size="sm" c="dimmed">
+            Showing {Math.min(perPage, items.length)} items of {items.length}{" "}
+            items
+          </Text>
+          <div className="space-y-2">
+            {paginatedItems.map((item: KeymanItem) => {
+              const quantity = getItemQuantity(item.id);
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                >
+                  <div>
+                    <Text size="sm" fw={500}>
+                      {item.name}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {item.description}
+                    </Text>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ActionIcon
+                      onClick={() => onAddItem(item)}
+                      color="green"
+                      variant="light"
+                    >
+                      <Plus size={16} />
+                    </ActionIcon>
+                    {quantity > 0 && (
+                      <>
+                        <Text size="sm" fw={500}>
+                          {quantity}
+                        </Text>
+                        <ActionIcon
+                          onClick={() => onRemoveItem(item.id)}
+                          color="red"
+                          variant="light"
+                        >
+                          <Minus size={16} />
+                        </ActionIcon>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+        {totalPages > 1 && (
+          <Pagination
+            total={totalPages}
+            value={activePage}
+            onChange={onPageChange}
+            size="sm"
+          />
+        )}
+      </>
+    );
+  }
+);
+
+ItemsList.displayName = "ItemsList";
+
+// Optimized Selected Items Component
+const SelectedItemsList = memo<{
+  items: KeymanItem[];
+  onUpdateItem: (index: number, field: keyof KeymanItem, value: any) => void;
+  onDeleteItem: (itemId: string) => void;
+  onNext: () => void;
+}>(({ items, onUpdateItem, onDeleteItem, onNext }) => {
+  if (items.length === 0) return null;
+
+  return (
+    <Card className="p-4 mt-10">
+      <Text size="sm" fw={500} className="mb-4">
+        Selected Items ({items.length})
+      </Text>
+      {items.map((item, i) => (
+        <div
+          key={item.id}
+          className="flex relative mb-2 border-green items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+        >
+          <div className="flex-1">
+            <Text size="sm" fw={500}>
+              {item.name}
+            </Text>
+            <Text size="xs" c="dimmed">
+              {item.description}
+            </Text>
+            <Text size="xs" fw={600} c="dimmed">
+              Quantity{" "}
+              <Badge color="green" size="md" variant="light" className="ml-4">
+                {item.quantity}
+              </Badge>
+            </Text>
+            <Text size="xs" fw={600} c="dimmed" className="w-full">
+              Require visual images?
+              <Checkbox
+                className="inline-block ml-2 relative top-1"
+                checked={!!item.visual_confirmation_required}
+                onChange={(e) =>
+                  onUpdateItem(
+                    i,
+                    "visual_confirmation_required",
+                    e.target.checked
+                  )
+                }
+              />
+            </Text>
+          </div>
+          <ActionIcon
+            color="red"
+            variant="subtle"
+            className="!absolute bottom-0 right-2"
+            onClick={() => onDeleteItem(item.id)}
+          >
+            <Trash2 size={16} />
+          </ActionIcon>
+        </div>
+      ))}
+      <Button onClick={onNext} className="bg-[#3D6B2C] hover:bg-[#388E3C] mt-4">
+        Next
+      </Button>
+    </Card>
+  );
+});
+
+SelectedItemsList.displayName = "SelectedItemsList";
+
+// Request Type Selector Component
+const CreatedFromSelector = memo<{
+  form: UseFormReturnType<RequestForm>;
+}>(({ form }) => {
+  const options = [
+    { value: "items", label: "Items", icon: Package, color: "#3D6B2C" },
+    { value: "image", label: "Image", icon: ImageIcon, color: "#F08C23" },
+    { value: "voice_note", label: "Voice Note", icon: Mic, color: "#388E3C" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <Text className="text-sm font-medium text-gray-700">Request Type</Text>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {options.map((option) => {
+          const Icon = option.icon;
+          return (
+            <Card
+              key={option.value}
+              className={`p-4 cursor-pointer border-2 transition-all duration-300 hover:scale-105 ${
+                form.values.created_from === option.value
+                  ? "border-[#3D6B2C] bg-green-50"
+                  : "border-gray-200 hover:border-gray-300"
+              }`}
+              onClick={() => form.setFieldValue("created_from", option.value)}
+            >
+              <div className="text-center">
+                <Icon
+                  size={32}
+                  className="mx-auto mb-2"
+                  style={{
+                    color:
+                      form.values.created_from === option.value
+                        ? option.color
+                        : "#6b7280",
+                  }}
+                />
+                <Text size="sm" fw={500}>
+                  {option.label}
+                </Text>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
+  );
+});
+
+CreatedFromSelector.displayName = "CreatedFromSelector";
+
+// Items Search and Selection Component
+const ItemsSearchComponent = memo<{
+  selectedItems: KeymanItem[];
+  onAddItem: (item: KeymanItem) => void;
+  onRemoveItem: (itemId: string) => void;
+  onUpdateItem: (index: number, field: keyof KeymanItem, value: any) => void;
+  onDeleteItem: (itemId: string) => void;
+  onNext: () => void;
+}>(
+  ({
+    selectedItems,
+    onAddItem,
+    onRemoveItem,
+    onUpdateItem,
+    onDeleteItem,
+    onNext,
+  }) => {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activePage, setActivePage] = useState(1);
+
+    // Debounced search query for API calls
+    const { data: items, isLoading } = useQuery({
+      queryKey: ["items", searchQuery],
+      enabled: searchQuery.length >= 3,
+      queryFn: async () => {
+        return await getItems(searchQuery);
+      },
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+
+    const filteredItems = useMemo(() => {
+      return items?.items || [];
+    }, [items]);
+
+    const totalPages = useMemo(() => {
+      return Math.ceil(filteredItems.length / 25);
+    }, [filteredItems.length]);
+
+    const handleSearch = useCallback((query: string) => {
+      setSearchQuery(query);
+      setActivePage(1); // Reset to first page on new search
+    }, []);
+
+    return (
+      <div className="space-y-6">
+        <Grid>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <div className="space-y-4">
+              <DebouncedSearchInput
+                onSearch={handleSearch}
+                isLoading={isLoading}
+              />
+
+              <ItemsList
+                items={filteredItems}
+                onAddItem={onAddItem}
+                onRemoveItem={onRemoveItem}
+                selectedItems={selectedItems}
+                activePage={activePage}
+                onPageChange={setActivePage}
+                totalPages={totalPages}
+                isLoading={isLoading}
+                searchQuery={searchQuery}
+              />
+            </div>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 6 }}>
+            <SelectedItemsList
+              items={selectedItems}
+              onUpdateItem={onUpdateItem}
+              onDeleteItem={onDeleteItem}
+              onNext={onNext}
+            />
+          </Grid.Col>
+        </Grid>
+      </div>
+    );
+  }
+);
+
+ItemsSearchComponent.displayName = "ItemsSearchComponent";
 
 // Step 1: Delivery Details Component
 const DeliveryDetailsStep: React.FC<{
@@ -163,373 +525,117 @@ const DeliveryDetailsStep: React.FC<{
 const RequestSourceStep: React.FC<{
   form: UseFormReturnType<RequestForm>;
   onItemsChange: (items: KeymanItem[]) => void;
-  _selectedItems: KeymanItem[];
+  selectedItems: KeymanItem[];
   nextStep: () => void;
-}> = ({ form, onItemsChange, _selectedItems, nextStep }) => {
-  const [selectedItems, setSelectedItems] =
-    useState<KeymanItem[]>(_selectedItems);
-  const [searchQuery, setSearchQuery] = useState("");
-  //const [q, setQue] = React.useState("");
-  const { data: items, isLoading } = useQuery({
-    queryKey: ["items", searchQuery],
-    enabled: searchQuery.length > 2,
-    queryFn: async () => {
-      return await getItems(searchQuery);
-    },
-  });
-
-  const filteredItems = React.useMemo(() => {
-    if (items?.items?.length > 0) return items.items;
-    else return [];
-  }, [items]);
-
-  const addItem = (item: KeymanItem) => {
-    const existingItemIndex = selectedItems.findIndex(
-      (_item) => _item.id === item.id
-    );
-
-    if (existingItemIndex > -1) {
-      // Item already exists, so we increment its quantity
-      const updatedItems = selectedItems.map((_item, index) => {
-        if (index === existingItemIndex) {
-          // The quantity from TextInput is a string, so we parse, increment, and convert back
-          const newQuantity = Number(_item.quantity || "0") + 1;
-          return {
-            ..._item,
-            quantity: newQuantity,
-          };
-        }
-        return _item;
-      });
-      setSelectedItems(updatedItems);
-      onItemsChange(updatedItems);
-    } else {
-      // Item is new, add it to the list with quantity '1'
-      const updatedItems = [
-        { ...item, quantity: 1, item_id: item.id },
-        ...selectedItems,
-      ];
-      setSelectedItems(updatedItems);
-      onItemsChange(updatedItems);
-    }
-  };
-
-  const removeItem = (itemId: string) => {
-    const existingItemIndex = selectedItems.findIndex(
-      (_item) => _item.id === itemId
-    );
-
-    if (existingItemIndex > -1) {
-      const currentQuantity = Number(
-        selectedItems[existingItemIndex].quantity || "0"
+}> = memo(({ form, onItemsChange, selectedItems, nextStep }) => {
+  // Optimized item management functions
+  const handleAddItem = useCallback(
+    (item: KeymanItem) => {
+      const existingItemIndex = selectedItems.findIndex(
+        (_item) => _item.id === item.id
       );
 
-      if (currentQuantity > 1) {
-        // Decrement quantity if greater than 1
-        const updatedItems = selectedItems.map((_item, index) =>
-          index === existingItemIndex
-            ? { ..._item, quantity: currentQuantity - 1 }
-            : _item
-        );
-        setSelectedItems(updatedItems);
+      let updatedItems: KeymanItem[];
+      if (existingItemIndex > -1) {
+        updatedItems = selectedItems.map((_item, index) => {
+          if (index === existingItemIndex) {
+            const newQuantity = Number(_item.quantity || "0") + 1;
+            return { ..._item, quantity: newQuantity };
+          }
+          return _item;
+        });
       } else {
-        // Remove item if quantity is 1
-        setSelectedItems(selectedItems.filter((item) => item.id !== itemId));
+        updatedItems = [
+          { ...item, quantity: 1, id: item.id },
+          ...selectedItems,
+        ];
       }
-      onItemsChange(selectedItems); // Call onItemsChange after state update
-    }
-  };
-  const deleteItem = (itemId: string) => {
-    if (confirm("Delete item?")) {
-      const updatedItems = selectedItems.filter((item) => item.id !== itemId);
-      setSelectedItems(updatedItems);
       onItemsChange(updatedItems);
-    }
-  };
-  const updateItem = (
-    index: number,
-    field: keyof KeymanItem,
-    value: string | number | boolean
-  ) => {
-    const updatedItems = [...selectedItems];
-    updatedItems[index] = { ...updatedItems[index], [field]: value };
-    setSelectedItems(updatedItems);
-    onItemsChange(updatedItems);
-  };
+    },
+    [selectedItems, onItemsChange]
+  );
 
-  const CreatedFromSelector = () => {
-    return (
-      <div className="space-y-4">
-        <Text className="text-sm font-medium text-gray-700">Request Type</Text>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[
-            { value: "items", label: "Items", icon: Package, color: "#3D6B2C" },
-            {
-              value: "image",
-              label: "Image",
-              icon: ImageIcon,
-              color: "#F08C23",
-            },
-            {
-              value: "voice_note",
-              label: "Voice Note",
-              icon: Mic,
-              color: "#388E3C",
-            },
-          ].map((option) => {
-            const Icon = option.icon;
-            return (
-              <Card
-                key={option.value}
-                className={`p-4 cursor-pointer border-2 transition-all duration-300 hover:scale-105 ${
-                  form.values.created_from === option.value
-                    ? "border-[#3D6B2C] bg-green-50"
-                    : "border-gray-200 hover:border-gray-300"
-                }`}
-                onClick={() => form.setFieldValue("created_from", option.value)}
-              >
-                <div className="text-center">
-                  {
-                    <Icon
-                      size={32}
-                      className="mx-auto mb-2"
-                      style={{
-                        color:
-                          form.values.created_from === option.value
-                            ? option.color
-                            : "#6b7280",
-                      }}
-                    />
-                  }
-                  <Text size="sm" fw={500}>
-                    {option.label}
-                  </Text>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
+  const handleRemoveItem = useCallback(
+    (itemId: string) => {
+      const existingItemIndex = selectedItems.findIndex(
+        (_item) => _item.id === itemId
+      );
 
-  const ItemsComponent = () => {
-    const perPage = 25;
-    const total = filteredItems.length;
-    const [activePage, setPage] = useState(1);
-    const totalPages = Math.ceil(total / perPage);
-    const prev = (activePage - 1) * perPage;
-    const next = (activePage - 1) * perPage + perPage;
+      if (existingItemIndex > -1) {
+        const currentQuantity = Number(
+          selectedItems[existingItemIndex].quantity || "0"
+        );
+        let updatedItems: KeymanItem[];
 
-    return (
-      <div className="space-y-6">
-        <Grid>
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            <div className="space-y-4">
-              <TextInput
-                placeholder="Search for items..."
-                value={searchQuery}
-                disabled={isLoading}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                leftSection={isLoading ? <Loader2 /> : <Search size={16} />}
-                className="transition-all  duration-200 hover:scale-[1.02]"
-              />
+        if (currentQuantity > 1) {
+          updatedItems = selectedItems.map((_item, index) =>
+            index === existingItemIndex
+              ? { ..._item, quantity: currentQuantity - 1 }
+              : _item
+          );
+        } else {
+          updatedItems = selectedItems.filter((item) => item.id !== itemId);
+        }
+        onItemsChange(updatedItems);
+      }
+    },
+    [selectedItems, onItemsChange]
+  );
 
-              {isLoading && (
-                <Center p="md">
-                  <Loader />
-                </Center>
-              )}
-              {filteredItems.length > 0 && (
-                <Card className="p-4   !overflow-y-scroll max-h-[600px]">
-                  <Text size="sm" c="dimmed">
-                    Showing 25 items of {filteredItems.length} items
-                  </Text>
-                  <div className="space-y-2">
-                    {filteredItems.slice(prev, next).map((item: KeymanItem) => (
-                      <div
-                        key={item.id}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-                      >
-                        <div>
-                          <Text size="sm" fw={500}>
-                            {item.name}
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            {item.description}
-                          </Text>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <ActionIcon onClick={() => addItem(item)}>
-                            <Plus size={16} className="text-[#3D6B2C]" />
-                          </ActionIcon>
-                          {item?.quantity}
+  const handleDeleteItem = useCallback(
+    (itemId: string) => {
+      if (confirm("Delete item?")) {
+        const updatedItems = selectedItems.filter((item) => item.id !== itemId);
+        onItemsChange(updatedItems);
+      }
+    },
+    [selectedItems, onItemsChange]
+  );
 
-                          <ActionIcon>
-                            {" "}
-                            <Minus
-                              size={16}
-                              onClick={() => removeItem(item.id)}
-                              className="border-[#3D6B2C]"
-                            />
-                          </ActionIcon>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              )}
-              {totalPages > 1 && (
-                <Pagination
-                  total={totalPages}
-                  value={activePage}
-                  onChange={setPage}
-                  size="sm"
-                  // withPages={false}
-                />
-              )}
-            </div>
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 6 }}>
-            {selectedItems.length > 0 && (
-              <Card className="p-4 mt-10">
-                <Text size="sm" fw={500} className="mb-4">
-                  Selected Items ({selectedItems.length})
-                </Text>
-                {selectedItems.map((item, i) => (
-                  <div
-                    key={item.id}
-                    className="flex relative mb-2   border-green items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-                  >
-                    <div>
-                      <Text size="sm" fw={500}>
-                        {item.name}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {item.description}
-                      </Text>
-                      <Text size="xs" fw={600} c="dimmed">
-                        Quantity{" "}
-                        <Badge
-                          color="green"
-                          size="md"
-                          variant="light"
-                          className="ml-4"
-                        >
-                          {item.quantity}
-                        </Badge>
-                      </Text>
-                      <Text size="xs" fw={600} c="dimmed" className=" w-full">
-                        Require visual images?
-                        <Checkbox
-                          className="inline-block ml-2 relative top-1"
-                          checked={!!item.visual_confirmation_required}
-                          onChange={(e) =>
-                            updateItem(
-                              i,
-                              "visual_confirmation_required",
-                              e.target.checked
-                            )
-                          }
-                        />
-                      </Text>
-                      <ActionIcon
-                        color="red"
-                        variant="subtle"
-                        className="text-end !absolute bottom-0 right-2"
-                        onClick={() => deleteItem(item.id)}
-                      >
-                        <Trash2 size={16} />
-                      </ActionIcon>
-                    </div>
-                  </div>
-                ))}
-                <Button onClick={nextStep}>Next</Button>
-                <div className="overflow-x-auto hidden">
-                  <Table>
-                    <Table.Thead>
-                      <Table.Tr>
-                        <Table.Th>Item</Table.Th>
-                        <Table.Th>Quantity</Table.Th>
-                        <Table.Th>Visual Confirmation</Table.Th>
-                        <Table.Th>Actions</Table.Th>
-                      </Table.Tr>
-                    </Table.Thead>
-                    <Table.Tbody>
-                      {selectedItems.map((item, index) => (
-                        <Table.Tr key={index}>
-                          <Table.Td>
-                            <div>
-                              <Text size="sm" fw={500}>
-                                {item.name}
-                              </Text>
-                              <Text size="xs" color="dimmed">
-                                {item.description}
-                              </Text>
-                            </div>
-                          </Table.Td>
-                          <Table.Td>
-                            <TextInput
-                              size="sm"
-                              value={item.quantity}
-                              onChange={(e) =>
-                                updateItem(index, "quantity", e.target.value)
-                              }
-                              className="w-20"
-                            />
-                          </Table.Td>
-                          <Table.Td>
-                            <Checkbox
-                              checked={!!item.visual_confirmation_required}
-                              onChange={(e) =>
-                                updateItem(
-                                  index,
-                                  "visual_confirmation_required",
-                                  e.target.checked
-                                )
-                              }
-                            />
-                          </Table.Td>
-                          <Table.Td>
-                            <ActionIcon
-                              color="red"
-                              variant="subtle"
-                              onClick={() => removeItem(item.id)}
-                            >
-                              <Trash2 size={16} />
-                            </ActionIcon>
-                          </Table.Td>
-                        </Table.Tr>
-                      ))}
-                    </Table.Tbody>
-                  </Table>
-                </div>
-              </Card>
-            )}
-          </Grid.Col>
-        </Grid>
-      </div>
-    );
-  };
+  const handleUpdateItem = useCallback(
+    (
+      index: number,
+      field: keyof KeymanItem,
+      value: string | number | boolean
+    ) => {
+      const updatedItems = [...selectedItems];
+      updatedItems[index] = { ...updatedItems[index], [field]: value };
+      onItemsChange(updatedItems);
+    },
+    [selectedItems, onItemsChange]
+  );
 
   return (
     <div className="space-y-6">
-      <CreatedFromSelector />
+      <CreatedFromSelector form={form} />
 
-      {form.values.created_from === "items" && <ItemsComponent />}
+      {form.values.created_from === "items" && (
+        <ItemsSearchComponent
+          selectedItems={selectedItems}
+          onAddItem={handleAddItem}
+          onRemoveItem={handleRemoveItem}
+          onUpdateItem={handleUpdateItem}
+          onDeleteItem={handleDeleteItem}
+          onNext={nextStep}
+        />
+      )}
+
       {form.values.created_from === "image" && (
         <Alert icon={<ImageIcon size={16} />} color="orange">
-          Image upload feature is currently unavailabe.
+          Image upload feature is currently unavailable.
         </Alert>
       )}
+
       {form.values.created_from === "voice_note" && (
         <Alert icon={<Mic size={16} />} color="green">
-          Voice note recording feature is currently unavailabe.
+          Voice note recording feature is currently unavailable.
         </Alert>
       )}
     </div>
   );
-};
+});
+
+RequestSourceStep.displayName = "RequestSourceStep";
 
 // Step 3: Preview Component
 const PreviewStep: React.FC<{
@@ -642,10 +748,10 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const itemVerified = "visual_confirmation_required";
+
   const form = useForm<RequestForm>({
     initialValues: {
-      delivery_date: "", // new Date().toLocaleDateString(),
+      delivery_date: "",
       location_id: "",
       created_from: "",
       ks_number: "",
@@ -658,58 +764,56 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
     },
   });
 
-  const nextStep = () => {
+  const nextStep = useCallback(() => {
     if (active === 0) {
       if (Object.keys(form.errors).length > 1) return;
-      else {
-        setActive(1);
-        return;
-      }
-    }
-    let message;
-    if (active === 1 && form.values.created_from === "items") {
-      if (items.length === 0) {
-        message = "Please add at least one item";
-        setError(message);
-        return;
-      } else {
-        const quanityNotAdded = items.some((item) => !("quantity" in item));
-        if (quanityNotAdded) {
-          message = "Please add quanity to all selected items";
-          setError(message);
-          notify.error(message);
-          return;
-        }
-      }
-    } else {
-      message = "Please select a request type";
-      setError(message);
+      setActive(1);
       return;
     }
+
+    if (active === 1 && form.values.created_from === "items") {
+      if (items.length === 0) {
+        setError("Please add at least one item");
+        return;
+      }
+      const quantityNotAdded = items.some((item) => !("quantity" in item));
+      if (quantityNotAdded) {
+        const message = "Please add quantity to all selected items";
+        setError(message);
+        notify.error(message);
+        return;
+      }
+    } else if (active === 1) {
+      setError("Please select a request type");
+      return;
+    }
+
     setActive((current) => Math.min(current + 1, 2));
     setError(null);
-  };
+  }, [active, form.errors, form.values.created_from, items]);
 
-  const prevStep = () => setActive((current) => Math.max(current - 1, 0));
+  const prevStep = useCallback(() => {
+    setActive((current) => Math.max(current - 1, 0));
+  }, []);
 
   const handleSubmit = async () => {
     const selectedLocation = locations.find(
       (loc) => loc.id === form.values.location_id
     );
     if (!selectedLocation) {
-      notify.error("Looks like you did not add a delivery location ");
+      notify.error("Looks like you did not add a delivery location");
       return;
     }
-    const [lng, ltd] = selectedLocation?.location?.coordinates;
-    for (const item of items) {
-      if ("photo" in item) delete item["photo"];
 
-      if (itemVerified in item) {
-        item[itemVerified] = 1;
-      } else {
-        item[itemVerified] = 0;
-      }
-    }
+    const [lng, ltd] = selectedLocation?.location?.coordinates;
+    const processedItems = items.map((item) => {
+      const newItem = { ...item };
+      if ("photo" in newItem) delete newItem["photo"];
+      newItem.visual_confirmation_required =
+        newItem.visual_confirmation_required ? 1 : 0;
+      return newItem;
+    });
+
     const payload = {
       status: "SUBMITTED",
       delivery_date: form?.values?.delivery_date ?? "",
@@ -717,8 +821,7 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
       longitude: lng,
       ks_number: form.values.ks_number,
       created_from: form.values.created_from,
-      //  ks_number: `KS-${Date.now()}`,
-      items: items,
+      items: processedItems,
     };
 
     setLoading(true);
@@ -733,7 +836,6 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
       } else {
         notify.error("Something went wrong. Try again later.");
       }
-      //setSuccess(true);
     } catch (err) {
       setError("Failed to submit request. Please try again.");
       console.log(err);
@@ -771,7 +873,7 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
               variant="outline"
               className="bg-[#3D6B2C] hover:bg-[#388E3C]"
             >
-              return to Dashboard
+              Return to Dashboard
             </Button>
           </Flex>
         </Card>
@@ -824,7 +926,7 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
             <RequestSourceStep
               form={form}
               onItemsChange={setItems}
-              _selectedItems={items}
+              selectedItems={items}
               nextStep={nextStep}
             />
           )}
@@ -868,21 +970,3 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
 };
 
 export default RequestCreator;
-export const SearchComponent = ({ searchQuery = (f: string) => f }) => {
-  const [q, setQue] = React.useState("");
-  React.useEffect(() => {
-    if (q.length > 2) searchQuery(q);
-  }, [q]);
-  console.log("jjjjjj", q);
-  return (
-    <div>
-      <p>{q}</p>
-      <input
-        value={q}
-        onChange={(e) => setQue(e.target.value)}
-        placeholder="Independent"
-        className="transition-all  duration-200 hover:scale-[1.02] py-1 px-2 border border-gray-400 w-1/2"
-      />
-    </div>
-  );
-};
