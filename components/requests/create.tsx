@@ -59,7 +59,7 @@ interface DeliveryLocation {
 }
 
 interface RequestForm {
-  delivery_date: string;
+  delivery_date: Date | null;
   location_id: string;
   created_from: string;
   items: KeymanItem[];
@@ -663,8 +663,8 @@ const PreviewStep: React.FC<{
                   Delivery Date
                 </Text>
                 <Text fw={500}>
-                  {form?.values?.delivery_date
-                    ? new Date(form?.values?.delivery_date).toLocaleDateString()
+                  {form.values.delivery_date
+                    ? form.values.delivery_date.toLocaleDateString()
                     : "Not selected"}
                 </Text>
               </div>
@@ -751,7 +751,7 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
 
   const form = useForm<RequestForm>({
     initialValues: {
-      delivery_date: "",
+      delivery_date: null,
       location_id: "",
       created_from: "",
       ks_number: "",
@@ -816,7 +816,7 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
 
     const payload = {
       status: "SUBMITTED",
-      delivery_date: form?.values?.delivery_date ?? "",
+      delivery_date: form.values.delivery_date?.toISOString() ?? "",
       latitude: ltd,
       longitude: lng,
       ks_number: form.values.ks_number,
