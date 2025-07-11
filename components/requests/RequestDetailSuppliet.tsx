@@ -223,10 +223,9 @@ const RequestDetailSuplier: React.FC<{
     //return;
     const totalCost = getTotalAmount(orderItems);
     const totalWeight = gettotalWeight(selectedRequest);
-    // do a  check once more
+    // do a valuation check once  check once more
 
     const valuated = getValuation(totalCost, _balance);
-
     if (!valuated) {
       setShowModal(true);
       return;
