@@ -39,96 +39,75 @@ interface ConstructionItem {
   description: string;
   icon: React.ReactNode;
 }
-// eslint-disable
-const welcome = {
-  id: "1",
-  text: "Hello! I'm your  assistant. I can help you find materials, answer questions, and manage your cart. How can I assist you today?",
-  sender: "bot",
-  timestamp: new Date(),
-};
+
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [cart, setCart] = useState<ConstructionItem[]>([]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [counter, setCounter] = useState(1);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
+  const [expectedMessageCount, setExpectedMessageCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { chatMode, message } = useAppContext();
-  // get the thread ID from the API
-  const { data } = useQuery({
+
+  // Get thread ID
+  const { data: threadData } = useQuery({
     queryKey: ["chatbot-threads"],
     queryFn: async () => await createThread(),
-    //enabled: isOpen,
   });
 
   const threadId = React.useMemo(() => {
-    if (data?.thread) return data.thread.id;
+    if (threadData?.thread) return threadData.thread.id;
     return "";
-  }, [data]);
+  }, [threadData]);
 
-  // get message count for the thread
-  const {
-    data: messageCountData,
-
-    refetch: refetchCount,
-  } = useQuery({
+  // Get message count with polling when waiting for response
+  const { data: messageCountData, refetch: refetchCount } = useQuery({
     queryKey: ["chatbot-message-count", threadId],
     queryFn: async () => await getMessageCount(threadId),
     refetchOnWindowFocus: false,
     enabled: !!threadId,
+    // Enable polling when waiting for response
+    refetchInterval: isWaitingForResponse ? 1000 : false, // Poll every second
+    refetchIntervalInBackground: false,
   });
+
   const messageCount = React.useMemo(() => {
     if (messageCountData?.count) return messageCountData.count;
     return 0;
   }, [messageCountData]);
-  // get messages
 
-  const {
-    data: messagesData,
-
-    refetch: refetchMesages,
-  } = useQuery({
-    queryKey: ["chatbot-messages", messageCount],
+  // Get messages when message count changes
+  const { data: messagesData, refetch: refetchMessages } = useQuery({
+    queryKey: ["chatbot-messages", threadId, messageCount],
     queryFn: async () => await getMessages(threadId),
     refetchOnWindowFocus: false,
     enabled: messageCount > 0 && !!threadId,
   });
-  const _messages = React.useMemo(() => {
+
+  const apiMessages = React.useMemo(() => {
     if (messagesData?.thread) {
-      return messagesData.thread?.messages;
+      return messagesData.thread?.messages || [];
     }
     return [];
   }, [messagesData]);
-  // send message to the thread
 
-  const {
-    data: sendMessageData,
-    isLoading: isSendMessageLoading,
-
-    isError,
-    status: sendStatus,
-  } = useQuery({
-    queryKey: ["chatbot-send-message", inputValue, counter],
-    queryFn: async () =>
-      await sendMessage(threadId, {
-        content: inputValue,
+  // Send message function
+  const sendMessageMutation = async (content: string) => {
+    try {
+      const response = await sendMessage(threadId, {
+        content,
         type: "text",
-      }),
-    refetchOnWindowFocus: false,
-    enabled: sending,
-  });
-  // get threads
-  const { data: threadsData, isLoading: isThreadsLoading } = useQuery({
-    queryKey: ["chatbot-threads"],
-    queryFn: async () => await getThreads(),
-    refetchOnWindowFocus: false,
-    enabled: !true,
-  });
+      });
+      return response;
+    } catch (error) {
+      console.error("Error sending message:", error);
+      throw error;
+    }
+  };
 
-  // search bar
+  // Handle search bar integration
   React.useEffect(() => {
     if (chatMode && !isOpen) {
       setIsOpen(true);
@@ -136,28 +115,28 @@ const ChatBot: React.FC = () => {
     setInputValue(message);
   }, [chatMode]);
 
+  // Monitor message count changes when waiting for response
   React.useEffect(() => {
-    if (sendStatus === "success" && sendMessageData?.status) {
-      setCounter((count) => count + 1);
-      console.log(messageCountData, "message send success...");
-      //refetchMesages();
-      refetchCount();
-
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        text: sendMessageData.message.content,
-        sender: "user",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, newMessage]);
-      // setInputValue("");
+    if (isWaitingForResponse && messageCount >= expectedMessageCount) {
+      console.log("Response received, stopping polling");
+      setIsWaitingForResponse(false);
+      setExpectedMessageCount(0);
     }
-  }, [sendStatus]);
+  }, [messageCount, expectedMessageCount, isWaitingForResponse]);
 
+  // Update local messages when API messages change
   React.useEffect(() => {
-    console.log(counter, messageCount, "msg count");
-    if (counter > 0) refetchMesages();
-  }, [counter]);
+    if (apiMessages.length > 0) {
+      const formattedMessages: Message[] = apiMessages.map((msg: any) => ({
+        id: msg.id || Date.now().toString(),
+        text: msg.content || msg.text || "",
+        sender: msg.role === "user" ? "user" : "bot",
+        timestamp: new Date(msg.created_at || Date.now()),
+      }));
+      console.log(formattedMessages);
+      // setMessages(formattedMessages);
+    }
+  }, [apiMessages]);
 
   const constructionItems: ConstructionItem[] = [
     {
@@ -246,13 +225,28 @@ const ChatBot: React.FC = () => {
     </div>
   );
 
-  const handleSendMessage = () => {
-    if (inputValue.trim()) {
-      setSending(true);
+  const handleSendMessage = async () => {
+    if (inputValue.trim() && !isWaitingForResponse) {
+      const messageToSend = inputValue.trim();
 
-      setTimeout(() => {
-        setSending(false);
-      }, 2000);
+      // Clear input immediately
+      setInputValue("");
+
+      // Set expected message count (current + 2: user message + bot response)
+      setExpectedMessageCount(messageCount + 2);
+      setIsWaitingForResponse(true);
+
+      try {
+        // Send the message
+        await sendMessageMutation(messageToSend);
+        console.log("Message sent successfully, waiting for response...");
+      } catch (error) {
+        console.error("Failed to send message:", error);
+        setIsWaitingForResponse(false);
+        setExpectedMessageCount(0);
+        // Restore input value on error
+        setInputValue(messageToSend);
+      }
     }
   };
 
@@ -274,7 +268,18 @@ const ChatBot: React.FC = () => {
   const restoreChatbot = () => {
     setIsMinimized(false);
   };
-  console.log({ messagesData, sendStatus, counter, messageCount }, "mx");
+
+  console.log(
+    {
+      messagesData,
+      messageCount,
+      expectedMessageCount,
+      isWaitingForResponse,
+      apiMessages,
+    },
+    "chat debug"
+  );
+
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {/* Chat Window */}
@@ -384,7 +389,7 @@ const ChatBot: React.FC = () => {
                   </div>
                 ))}
 
-                {isSendMessageLoading && (
+                {isWaitingForResponse && (
                   <div className="flex justify-start">
                     <div className="bg-white text-gray-800 border border-gray-200 rounded-2xl px-4 py-2 shadow-sm">
                       <div className="flex items-center space-x-2">
@@ -417,11 +422,12 @@ const ChatBot: React.FC = () => {
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleKeyPress}
                   placeholder="Type your message..."
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D6B2C] focus:border-transparent"
+                  disabled={isWaitingForResponse}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D6B2C] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
                 />
                 <button
                   onClick={handleSendMessage}
-                  disabled={!inputValue.trim()}
+                  disabled={!inputValue.trim() || isWaitingForResponse}
                   className="bg-[#3D6B2C] hover:bg-[#2d5220] disabled:bg-gray-300 disabled:cursor-not-allowed text-white p-2 rounded-xl transition-colors transform hover:scale-105"
                 >
                   <Send className="w-5 h-5" />

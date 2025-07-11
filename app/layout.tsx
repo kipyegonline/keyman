@@ -13,6 +13,7 @@ import "@mantine/dates/styles.css";
 import "leaflet/dist/leaflet.css";
 import "@mantine/carousel/styles.css";
 import ChatBot from "@/components/keyman-bot";
+import NewChatBot from "@/components/keyman-bot/v3";
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
@@ -29,7 +30,9 @@ export default function RootLayout({
       <body className={`${poppins.variable}  antialiased`}>
         <AppProviders>
           <main className=""> {children}</main>
+
           <ChatBot />
+          {/*  <NewChatBot />*/}
 
           <ProgressBar
             height="4px"
