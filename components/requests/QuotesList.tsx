@@ -37,15 +37,13 @@ import {
   Trophy,
   Sparkles,
   ShoppingCart,
+  Check,
 } from "lucide-react";
-import { awardRequestItems, getRequestDetails } from "@/api/requests";
-import { createOrders } from "@/api/orders";
+import { awardRequestItems } from "@/api/requests";
+
 import { Quote } from "@/types";
-import { useQuery } from "@tanstack/react-query";
 
 import { notify } from "@/lib/notifications";
-import { useRouter } from "next/navigation";
-import LoadingComponent from "@/lib/LoadingComponent";
 
 interface RequestItem {
   id: string;
@@ -203,7 +201,9 @@ export const AwardSuccessComponent: React.FC<{
                     </Text>
                     <Text size="md" c="dimmed" className="max-w-md">
                       {`You've successfully awarded the quote to`}{" "}
-                      <strong className="text-[#3D6B2C]">{supplierName}</strong>
+                      <strong className=" invisible text-[#3D6B2C]">
+                        {supplierName}
+                      </strong>
                     </Text>
                   </>
                 )}
@@ -220,7 +220,7 @@ export const AwardSuccessComponent: React.FC<{
                   </Text>
                 ) : (
                   <Text size="sm" fw={500} className="text-[#3D6B2C]">
-                    Kindly make your payments to order item.
+                    Kindly make your payments to order items.
                   </Text>
                 )}
               </Paper>
@@ -421,19 +421,24 @@ const QuoteCard: React.FC<{
         )}
 
         {/* Award Button */}
-
-        <Button
-          size="md"
-          radius="md"
-          rightSection={isAwarding ? <Loader size={16} /> : <Award size={16} />}
-          onClick={handleAward}
-          loading={isAwarding}
-          disabled={!!awarded}
-          className="transition-all duration-300 hover:scale-105 hover:shadow-lg"
-          style={{ backgroundColor: "#3D6B2C" }}
-        >
-          {setButtonStatus()}
-        </Button>
+        {!!awarded ? (
+          <Alert icon={<Check />}>{setButtonStatus()}</Alert>
+        ) : (
+          <Button
+            size="md"
+            radius="md"
+            rightSection={
+              isAwarding ? <Loader size={16} /> : <Award size={16} />
+            }
+            onClick={handleAward}
+            loading={isAwarding}
+            disabled={!!awarded}
+            className="transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            style={{ backgroundColor: "#3D6B2C" }}
+          >
+            {setButtonStatus()}
+          </Button>
+        )}
       </Stack>
     </Card>
   );
@@ -449,23 +454,7 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
   const [awardingQuote, setAwardingQuote] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [createOrderLoading, setCreateOrderLoading] = useState(false);
-  const [ordered, setOrdered] = useState(false);
-  //const [awardResult, setAwardResult] = useState("");
-  const router = useRouter();
 
-  const supplierId = localStorage.getItem("supplier_id") as string;
-  const {
-    data: payload,
-    refetch: requestRefetch,
-    // error: requestError,
-  } = useQuery({
-    queryKey: ["request", requestId],
-    queryFn: async () => await getRequestDetails(requestId, supplierId),
-  });
-  const request = payload?.request as RequestItem;
   const awardee = quotes?.find((quote: Quote) => quote.is_awarded === 1);
 
   const handleAwardQuote = async (id: string) => {
@@ -476,7 +465,6 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
       setLoading(true);
       const result = await awardRequestItems(requestId, payload);
       if (result.status) {
-        setSuccess(true);
         notify.success("Quote awarded successfully");
         refresh();
       } else {
@@ -490,53 +478,6 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
       setAwardingQuote(null);
     }
   };
-
-  const resetAwardResult = () => {
-    // setAwardResult(null);
-  };
-  const createOrder = async () => {
-    // make payment
-    setCreateOrderLoading(true);
-    setOrdered(false);
-    const result = await createOrders({
-      request_id: requestId,
-      delivery_type: "TUKTUK",
-    });
-
-    if (result.status) {
-      notify.success("Order created successfully");
-      setOpen(false);
-      setCreateOrderLoading(false);
-      setOrdered(true);
-      requestRefetch();
-    } else {
-      notify.error(result.message || "Failed to create order");
-      setCreateOrderLoading(false);
-    }
-  };
-  //console.log("Request Details:", request, "Quotes:", quotes);
-  const totalAmount = quotes.reduce((acc, quote) => {
-    return acc + Number(quote.total_price);
-  }, 0);
-  const isCompleted = request?.status === "COMPLETED";
-  // Show success screen
-  if (ordered) {
-    return (
-      <Card p="lg" className="text-center">
-        <Text> ✅ Order created successfully</Text>
-        <Button
-          onClick={() => router.push("/keyman/dashboard/requests")}
-          className="mt-4"
-          variant="light"
-        >
-          Back to Requests
-        </Button>
-      </Card>
-    );
-  }
-
-  if (createOrderLoading)
-    return <LoadingComponent message="Creating order..." variant="pulse" />;
 
   return (
     <Container size="lg" mt="md">
@@ -560,7 +501,7 @@ const QuotesAccordion: React.FC<QuotesAccordionProps> = ({
           <AwardErrorComponent
             message={error || "Failed to award quote"}
             onRetry={() => setError("")}
-            onCancel={resetAwardResult}
+            onCancel={() => {}}
           />
         )}
 

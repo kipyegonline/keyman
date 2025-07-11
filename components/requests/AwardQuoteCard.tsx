@@ -1,30 +1,72 @@
 import React from "react";
-import { AwardSuccessComponent, Quote } from "./QuotesList";
+import { AwardSuccessComponent } from "./QuotesList";
 import PaymentModal from "../Tokens";
 import { notify } from "@/lib/notifications";
+import LoadingComponent from "@/lib/LoadingComponent";
+import { Card, Text, Button } from "@mantine/core";
+import { createOrders } from "@/api/orders";
+import { useRouter } from "next/navigation";
 interface AwardQuoteCardProps {
-  open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   requestId: string;
   totalAmount: number;
   requestRefetch: () => void;
-  awardee: Quote;
+
   isCompleted: boolean;
-  createOrder: () => void;
-  resetAwardResult: () => void;
 }
 
 export default function AwardQuoteCard({
-  open,
-  setOpen,
   requestId,
   totalAmount,
   requestRefetch,
-  awardee,
+
   isCompleted,
-  createOrder,
-  resetAwardResult,
 }: AwardQuoteCardProps) {
+  const [open, setOpen] = React.useState(false);
+  const [createOrderLoading, setCreateOrderLoading] = React.useState(false);
+  const [ordered, setOrdered] = React.useState(false);
+  const resetAwardResult = () => {
+    // setAwardResult(null);
+  };
+  const router = useRouter();
+  const createOrder = async () => {
+    // make payment
+    setCreateOrderLoading(true);
+    setOrdered(false);
+
+    const result = await createOrders({
+      request_id: requestId,
+      delivery_type: "TUKTUK",
+    });
+
+    if (result.status) {
+      notify.success("Order created successfully");
+      setOpen(false);
+      setCreateOrderLoading(false);
+      setOrdered(true);
+      requestRefetch();
+    } else {
+      notify.error(result.message || "Failed to create order");
+      setCreateOrderLoading(false);
+    }
+  };
+  // Show success screen
+  if (ordered) {
+    return (
+      <Card p="lg" className="text-center">
+        <Text> ✅ Order created successfully</Text>
+        <Button
+          onClick={() => router.push("/keyman/dashboard/requests")}
+          className="mt-4"
+          variant="light"
+        >
+          Back to Requests
+        </Button>
+      </Card>
+    );
+  }
+
+  if (createOrderLoading)
+    return <LoadingComponent message="Creating order..." variant="pulse" />;
   return (
     <div>
       <PaymentModal
@@ -53,7 +95,7 @@ export default function AwardQuoteCard({
         onBackToRequests={resetAwardResult}
         onMakePayment={() => setOpen(true)}
         createOrder={createOrder}
-        supplierName={awardee ? awardee.detail.name : ""}
+        supplierName={""}
         itemName={"item"}
         isCompleted={isCompleted}
       />

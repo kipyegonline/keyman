@@ -35,6 +35,8 @@ import {
 import { RequestDeliveryItem } from "@/types";
 import QuotesAccordion from "./QuotesList";
 import React from "react";
+import AwardQuoteCard from "./AwardQuoteCard";
+import { calculateTotalAwardedAmount } from "@/lib/calculations";
 
 type StatusConfig = {
   color: string;
@@ -130,7 +132,10 @@ const RequestDetail: React.FC<{
       </Badge>
     );
   };
-  console.log(selectedRequest, "sr");
+
+  const isCompleted = selectedRequest?.status === "COMPLETED";
+  const totalAmount = calculateTotalAwardedAmount(selectedRequest.items);
+
   return (
     <Box>
       {selectedRequest && (
@@ -360,7 +365,14 @@ const RequestDetail: React.FC<{
                   )}
                 </Paper>
               ))}
-              <Button>Make payments</Button>
+              {(selectedRequest?.status === "awarded" || isCompleted) && (
+                <AwardQuoteCard
+                  requestId={selectedRequest?.id}
+                  isCompleted={isCompleted}
+                  requestRefetch={() => refresh()}
+                  totalAmount={totalAmount}
+                />
+              )}
             </Stack>
           </Card>
 
@@ -468,7 +480,7 @@ const RequestDetail: React.FC<{
           )}
 
           {/* Action Buttons */}
-          <Group justify="center" mt="xl">
+          <Group justify="center" mt="xl" display="none">
             <Button
               variant="light"
               style={{ backgroundColor: "#3D6B2C15", color: "#3D6B2C" }}

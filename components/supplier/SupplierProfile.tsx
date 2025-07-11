@@ -31,6 +31,7 @@ import {
   Clock,
   Award,
   CheckCircle,
+  Hash,
 } from "lucide-react";
 import { SupplierInfo } from "@/types";
 
@@ -53,6 +54,7 @@ interface ISupplierInfo {
   has_inventory?: boolean;
   is_escrow_only?: boolean;
   photo?: File | null;
+
   comments?: string;
   "categories[0]"?: string;
   "categories[1]"?: string;
@@ -196,6 +198,15 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
             </Badge>
             <Badge variant="filled" style={{ backgroundColor: "#F08C23" }}>
               {supplierData.yearsInBusiness} Years in Business
+            </Badge>
+            <Badge
+              variant="filled"
+              size="lg"
+              className="py-2"
+              style={{ backgroundColor: "#3D6B2C15", color: "#3D6B2C" }}
+            >
+              <Hash size={12} className="mr-2 inline-block" />
+              {supplier?.keyman_number}
             </Badge>
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
