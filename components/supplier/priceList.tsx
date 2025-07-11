@@ -249,7 +249,7 @@ export default function PricelistDashboard({
         notify.error("Somethhing went wrong, try againlater");
       }
     } catch (error) {
-      console.error("Error adding item:", error);
+      console.error("Error adding item:-----", error);
       notify.error("Failed to add item. Please try again.");
     } finally {
       setAddLoading(false);
