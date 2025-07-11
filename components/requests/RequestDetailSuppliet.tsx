@@ -165,7 +165,7 @@ const RequestDetailSuplier: React.FC<{
     // check value
     const totalAmount = getTotalAmount(orderItems);
     const valuated = getValuation(totalAmount, _balance);
-    console.log(totalAmount, valuated, _balance, "bal");
+
     if (valuated) {
       setTransportOpen(true);
     } else {

@@ -307,7 +307,7 @@ const QuoteCard: React.FC<{
     if (awarded) {
       return `Awarded to ${awarded.detail.name}`;
     } else {
-      return isAwarding ? "Awarding..." : "Award This Quote";
+      return isAwarding ? "Awarding..." : "Award  Quote";
     }
   };
   return (
@@ -405,7 +405,7 @@ const QuoteCard: React.FC<{
           p="md"
           className="bg-gradient-to-r from-[#3D6B2C05] to-[#388E3C05] border border-[#3D6B2C15]"
         >
-          <Group justify="space-between" align="center">
+          <Group justify="space-between" align="center" display="none">
             <Text fw={600} className="text-gray-700">
               Total Price
             </Text>

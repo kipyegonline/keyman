@@ -151,7 +151,12 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         }
         return null;
       },
-      amount: (value) => (value < 10 ? "Minimum amount is KES 10" : null),
+      amount: (value) =>
+        value < 10
+          ? "Minimum amount is KES 10"
+          : value < amount
+          ? `You must pay the indicated amount ${amount}`
+          : null,
     },
   });
   React.useEffect(() => {
