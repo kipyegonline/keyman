@@ -546,7 +546,7 @@ const RequestSourceStep: React.FC<{
         });
       } else {
         updatedItems = [
-          { ...item, quantity: 1, id: item.id },
+          { ...item, quantity: 1, item_id: item.id },
           ...selectedItems,
         ];
       }
@@ -640,7 +640,7 @@ RequestSourceStep.displayName = "RequestSourceStep";
 // Step 3: Preview Component
 const PreviewStep: React.FC<{
   form: UseFormReturnType<RequestForm>;
-  locations: DeliveryLocation[];
+  locations: Project[];
   items: KeymanItem[];
 }> = ({ form, locations, items }) => {
   const selectedLocation = locations.find(
@@ -931,7 +931,7 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
             />
           )}
           {active === 2 && (
-            <PreviewStep form={form} locations={mockLocations} items={items} />
+            <PreviewStep form={form} locations={locations} items={items} />
           )}
         </div>
 

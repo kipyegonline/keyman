@@ -102,6 +102,7 @@ export interface KeymanItem {
   weight_in_kgs: string;
   quantity?: number;
   visual_confirmation_required?: boolean | 1 | 0;
+  item_id?: string;
 }
 
 export interface CreateRequestPayload {
