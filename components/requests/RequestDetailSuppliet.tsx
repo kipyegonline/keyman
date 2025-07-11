@@ -223,6 +223,13 @@ const RequestDetailSuplier: React.FC<{
     //return;
     const totalCost = getTotalAmount(orderItems);
     const totalWeight = gettotalWeight(selectedRequest);
+    // do a valuation check once  check once more
+
+    const valuated = getValuation(totalCost, _balance);
+    if (!valuated) {
+      setShowModal(true);
+      return;
+    }
 
     //send to server
     const items = orderItems.map((item) => ({
