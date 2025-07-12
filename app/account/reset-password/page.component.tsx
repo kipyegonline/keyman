@@ -1,17 +1,31 @@
-"use client"
-import React, { useState } from 'react';
-import { useForm } from '@mantine/form';
-import { PasswordInput, Button, Text, Checkbox,  TextInput } from '@mantine/core';
-import { Eye, EyeOff, Lock, CheckCircle, ArrowLeft, Key, Mail } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { navigateTo } from '@/lib/helpers';
-import { resetPassword } from '@/api/registration';
+"use client";
+import React, { useState } from "react";
+import { useForm } from "@mantine/form";
+import {
+  PasswordInput,
+  Button,
+  Text,
+  Checkbox,
+  TextInput,
+} from "@mantine/core";
+import {
+  Eye,
+  EyeOff,
+  Lock,
+  CheckCircle,
+  ArrowLeft,
+  Key,
+  Mail,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { navigateTo } from "@/lib/helpers";
+import { resetPassword } from "@/api/registration";
 
-import Image from 'next/image';
-import { notify } from '@/lib/notifications';
+import Image from "next/image";
+import { notify } from "@/lib/notifications";
 
 interface ResetPasswordFormValues {
-  email:string
+  email: string;
   resetKey: string;
   password: string;
   confirmPassword: string;
@@ -20,55 +34,61 @@ interface ResetPasswordFormValues {
 const KeymanResetPassword: React.FC = () => {
   const [isReset, setIsReset] = useState(false);
   const [loading, setLoading] = useState(false);
-  const router=useRouter()
+  const router = useRouter();
   const form = useForm<ResetPasswordFormValues>({
     initialValues: {
-      email:"",
-      resetKey: '',
-      password: '',
-      confirmPassword: '',
+      email: "",
+      resetKey: "",
+      password: "",
+      confirmPassword: "",
     },
     validate: {
-       email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
-      resetKey: (value) => (value.length < 4 ? 'Please enter the reset key from your email' : null),
+      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
+      resetKey: (value) =>
+        value.length < 4 ? "Please enter the reset key from your email" : null,
       password: (value) => {
-        if (value.length < 8) return 'Password must be at least 8 characters';
-        if (!/[A-Z]/.test(value)) return 'Password must contain at least one uppercase letter';
-        if (!/[a-z]/.test(value)) return 'Password must contain at least one lowercase letter';
-        if (!/[0-9]/.test(value)) return 'Password must contain at least one number';
-        if (!/[^A-Za-z0-9]/.test(value)) return 'Password must contain at least one special character';
+        if (value.trim().length < 8)
+          return "Password must be at least 8 characters";
+        if (!/[A-Z]/.test(value))
+          return "Password must contain at least one uppercase letter";
+        if (!/[a-z]/.test(value))
+          return "Password must contain at least one lowercase letter";
+        if (!/[0-9]/.test(value))
+          return "Password must contain at least one number";
+        if (!/[^A-Za-z0-9]/.test(value))
+          return "Password must contain at least one special character";
         return null;
       },
       confirmPassword: (value, values) =>
-        value !== values.password ? 'Passwords did not match' : null,
+        value.trim() !== values.password ? "Passwords did not match" : null,
     },
   });
 
-  const handleSubmit = async(values: ResetPasswordFormValues) => {
-    setLoading(true)
+  const handleSubmit = async (values: ResetPasswordFormValues) => {
+    setLoading(true);
     // Handle password reset submission here
-    const response=await resetPassword({
-      email:values.email, 
+    const response = await resetPassword({
+      email: values.email,
       reset_code: values.resetKey,
       password: values.password,
       password_confirmation: values.confirmPassword,
-    }); 
+    });
     setLoading(false);
-    if(response.status){
-      setIsReset(true); 
-      form.reset();}
-      else{
-      const errorMessage=response?.message?.reset_code?.[0] || 'An error occurred while resetting your password.';
-    notify.error(errorMessage,'Password Reset Failed');
-     
+    if (response.status) {
+      setIsReset(true);
+      form.reset();
+    } else {
+      const errorMessage =
+        response?.message?.reset_code?.[0] ||
+        "An error occurred while resetting your password.";
+      notify.error(errorMessage, "Password Reset Failed");
     }
-    
   };
 
   const handleBackToLogin = () => {
     // Handle navigation back to login
-    navigateTo()
-    router.push('/account/login');
+    navigateTo();
+    router.push("/account/login");
     setIsReset(false);
   };
 
@@ -89,18 +109,21 @@ const KeymanResetPassword: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
           {/* Success State */}
-           
+
           <div className="text-center mb-8">
-           
             <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-              
-              <Image src="/keyman_logo.png" alt="" width={100} height={100}/>
+              <Image src="/keyman_logo.png" alt="" width={100} height={100} />
             </div>
             <Text size="xl" fw={600} className="text-gray-900 mb-4">
-             <CheckCircle size={30} className="text-green-600 inline-block mr-2 bg-green-100 " /> Password Reset Successfully!
+              <CheckCircle
+                size={30}
+                className="text-green-600 inline-block mr-2 bg-green-100 "
+              />{" "}
+              Password Reset Successfully!
             </Text>
             <Text size="sm" c="dimmed" className="mb-8 leading-relaxed">
-              Your password has been updated. You can now sign in with your new password.
+              Your password has been updated. You can now sign in with your new
+              password.
             </Text>
           </div>
 
@@ -136,23 +159,24 @@ const KeymanResetPassword: React.FC = () => {
             Reset Your Password
           </Text>
           <Text size="sm" c="dimmed" className="mb-6 leading-relaxed">
-            Enter the reset key from your email and create a new password for your account.
+            Enter the reset key from your email and create a new password for
+            your account.
           </Text>
         </div>
 
         {/* Form */}
         <div className="space-y-4">
-           <TextInput
+          <TextInput
             placeholder="Email Address"
             leftSection={<Mail size={16} />}
-            {...form.getInputProps('email')}
+            {...form.getInputProps("email")}
           />
-         
+
           <TextInput
             placeholder="Reset Key"
             leftSection={<Key size={16} />}
             size="md"
-            {...form.getInputProps('resetKey')}
+            {...form.getInputProps("resetKey")}
             description="Enter the 6-digit code sent to your email"
           />
 
@@ -164,9 +188,9 @@ const KeymanResetPassword: React.FC = () => {
               visibilityToggleIcon={({ reveal }) =>
                 reveal ? <EyeOff size={16} /> : <Eye size={16} />
               }
-              {...form.getInputProps('password')}
+              {...form.getInputProps("password")}
             />
-            
+
             {/* Password Strength Indicators */}
             {form.values.password && (
               <div className="space-y-2">
@@ -177,11 +201,11 @@ const KeymanResetPassword: React.FC = () => {
                       className={`h-1 flex-1 rounded-full ${
                         passwordStrength >= level
                           ? passwordStrength <= 2
-                            ? 'bg-red-400'
+                            ? "bg-red-400"
                             : passwordStrength <= 3
-                            ? 'bg-yellow-400'
-                            : 'bg-green-400'
-                          : 'bg-gray-200'
+                            ? "bg-yellow-400"
+                            : "bg-green-400"
+                          : "bg-gray-200"
                       }`}
                     />
                   ))}
@@ -194,7 +218,10 @@ const KeymanResetPassword: React.FC = () => {
                       readOnly
                       color="green"
                     />
-                    <Text size="xs" c={form.values.password.length >= 8 ? 'green' : 'dimmed'}>
+                    <Text
+                      size="xs"
+                      c={form.values.password.length >= 8 ? "green" : "dimmed"}
+                    >
                       At least 8 characters
                     </Text>
                   </div>
@@ -205,7 +232,12 @@ const KeymanResetPassword: React.FC = () => {
                       readOnly
                       color="green"
                     />
-                    <Text size="xs" c={/[0-9]/.test(form.values.password) ? 'green' : 'dimmed'}>
+                    <Text
+                      size="xs"
+                      c={
+                        /[0-9]/.test(form.values.password) ? "green" : "dimmed"
+                      }
+                    >
                       At least one number
                     </Text>
                   </div>
@@ -216,7 +248,12 @@ const KeymanResetPassword: React.FC = () => {
                       readOnly
                       color="green"
                     />
-                    <Text size="xs" c={/[A-Z]/.test(form.values.password) ? 'green' : 'dimmed'}>
+                    <Text
+                      size="xs"
+                      c={
+                        /[A-Z]/.test(form.values.password) ? "green" : "dimmed"
+                      }
+                    >
                       Uppercase letters
                     </Text>
                   </div>
@@ -227,7 +264,14 @@ const KeymanResetPassword: React.FC = () => {
                       readOnly
                       color="green"
                     />
-                    <Text size="xs" c={/[^A-Za-z0-9]/.test(form.values.password) ? 'green' : 'dimmed'}>
+                    <Text
+                      size="xs"
+                      c={
+                        /[^A-Za-z0-9]/.test(form.values.password)
+                          ? "green"
+                          : "dimmed"
+                      }
+                    >
                       One special character
                     </Text>
                   </div>
@@ -243,7 +287,7 @@ const KeymanResetPassword: React.FC = () => {
             visibilityToggleIcon={({ reveal }) =>
               reveal ? <EyeOff size={16} /> : <Eye size={16} />
             }
-            {...form.getInputProps('confirmPassword')}
+            {...form.getInputProps("confirmPassword")}
           />
 
           <div className="pt-4">
@@ -253,7 +297,11 @@ const KeymanResetPassword: React.FC = () => {
               size="md"
               loading={loading}
               className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors duration-200"
-              disabled={!form.isValid() || !form.values.password || !form.values.confirmPassword}
+              disabled={
+                !form.isValid() ||
+                !form.values.password ||
+                !form.values.confirmPassword
+              }
             >
               Reset Password
             </Button>

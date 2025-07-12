@@ -36,8 +36,8 @@ const PricingComponent: React.FC<{
     }
 
     if (_item) {
-      if (typeof _item.price === "number" && _item.price <= 10) {
-        notify.error("Price must be greater than 10");
+      if (typeof _item.price === "number" && _item.price <= 0) {
+        notify.error("Price must be greater than 1");
         return;
       }
       updateItemPrices({ ..._item, id: item?.id, file: file });

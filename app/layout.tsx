@@ -18,7 +18,7 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
-const TrackingId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID as string;
+const TrackingId = "G-J7CLC5DTXF";
 
 export default function RootLayout({
   children,
