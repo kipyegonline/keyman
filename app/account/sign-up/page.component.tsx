@@ -11,6 +11,7 @@ import {
   Group,
   Box,
   Title,
+  Flex,
 } from "@mantine/core";
 import { Eye, EyeOff, User, Mail, Phone, Lock } from "lucide-react";
 import Link from "next/link";
@@ -180,7 +181,8 @@ const KeymanSignupComponent: React.FC = () => {
 
         {/* Form */}
         <div className="space-y-4">
-          <Group grow>
+          <Flex direction={{ base: "column", md: "row" }} gap="md">
+            {" "}
             <TextInput
               placeholder="First Name"
               leftSection={<User size={16} />}
@@ -194,7 +196,7 @@ const KeymanSignupComponent: React.FC = () => {
               {...form.getInputProps("lastName")}
               className="w-full"
             />
-          </Group>
+          </Flex>
 
           <TextInput
             placeholder="Email Address"

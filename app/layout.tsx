@@ -13,6 +13,7 @@ import "@mantine/dates/styles.css";
 import "leaflet/dist/leaflet.css";
 import "@mantine/carousel/styles.css";
 import ChatBot from "@/components/keyman-bot";
+import AnalyticsScripts from "@/components/ui/AnalyticsScript";
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className={`${poppins.variable}  antialiased`}>
         <AppProviders>
           <main className=""> {children}</main>
+          <AnalyticsScripts />
           <GoogleAnalytics gaId={TrackingId} />
           <ChatBot />
 

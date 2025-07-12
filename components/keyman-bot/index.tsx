@@ -46,7 +46,7 @@ const ChatBot: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Hello! I'm your construction assistant. I can help you find materials, answer questions, and manage your cart. How can I assist you today?",
+      text: "Hello! I'm your construction assistant. I am still under development",
       sender: "bot",
       timestamp: new Date(),
     },

@@ -1,15 +1,27 @@
 "use client";
 
-import { createProject } from "@/api/projects";
+import { createProject, getProjects } from "@/api/projects";
 
 import GeoapifyMapInterface from "@/components/requests/GeoApifymap";
 import { notify } from "@/lib/notifications";
 //import DeliveryMap from '@/components/delivery/map'
-import { Alert, Button, Flex, Grid, Textarea, TextInput } from "@mantine/core";
+import {
+  Alert,
+  Button,
+  Divider,
+  Flex,
+  Grid,
+  Textarea,
+  TextInput,
+  Text,
+} from "@mantine/core";
+import { useQuery } from "@tanstack/react-query";
 import { ExternalLink } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 import React from "react";
+import LocationCards from "./LocationsCard.component";
+import LoadingComponent from "@/lib/LoadingComponent";
 
 const geoAPIKey = process.env.NEXT_PUBLIC_GEOAPIFY as string;
 const defaultState = { name: "", description: "", address: "" };
@@ -26,6 +38,11 @@ export default function DeliveryClientComponent() {
   const [coords, setSelectedCoordinates] = React.useState<Coordinates | null>(
     null
   );
+
+  const { data: locations, isLoading } = useQuery({
+    queryKey: ["locations"],
+    queryFn: async () => await getProjects(),
+  });
 
   const handleLocationSelect = (coordinates: Coordinates, name: string) => {
     setSelectedCoordinates(coordinates);
@@ -57,7 +74,6 @@ export default function DeliveryClientComponent() {
     }
     // If all validations pass, you can proceed with your submission logic here
 
-    console.log("Submitting:", { coords, info });
     const payload = { ...info, latitude: coords.lat, longitude: coords.lng };
     setLoading(true);
     setError("");
@@ -76,7 +92,7 @@ export default function DeliveryClientComponent() {
   };
 
   return (
-    <div className="px-2 md:px-10 min-h-screen">
+    <div className="px-2 md:px-10 min-h-screen ">
       <Grid>
         <Grid.Col span={{ base: 12, md: 8 }} className="mb-4 p-2 md:p-4 ">
           <GeoapifyMapInterface
@@ -87,8 +103,9 @@ export default function DeliveryClientComponent() {
             className="h-full ml-2 md:ml-[40px]"
           />
         </Grid.Col>
-        {coords && (
-          <Grid.Col span={{ base: 12, md: 4 }}>
+
+        <Grid.Col span={{ base: 12, md: 4 }}>
+          {coords && (
             <Flex direction={"column"} gap="md" p="md">
               <TextInput
                 label="Name"
@@ -129,8 +146,23 @@ export default function DeliveryClientComponent() {
                 </Alert>
               )}
             </Flex>
-          </Grid.Col>
-        )}
+          )}
+          <Divider />
+          {isLoading && (
+            <LoadingComponent
+              message="Loading your locations"
+              variant="pulse"
+            />
+          )}
+          {locations?.projects?.length > 0 && (
+            <>
+              <Text ta="center" size="lg" fw={700} py="md">
+                Your locations
+              </Text>
+              <LocationCards locations={locations?.projects} />
+            </>
+          )}
+        </Grid.Col>
       </Grid>
     </div>
   );
