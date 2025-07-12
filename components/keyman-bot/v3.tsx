@@ -79,20 +79,8 @@ const ItemCard: React.FC<{
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-4 w-64 flex-shrink-0 transform hover:scale-105">
-      <div className="relative h-40 mb-3 overflow-hidden rounded-lg bg-gray-100">
-        {item.photo ? (
-          <img
-            src={item.photo}
-            alt={item.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <Package className="w-12 h-12 text-gray-400" />
-          </div>
-        )}
-      </div>
+    <div className="bg-white rounded-xl border-red shadow-md hover:shadow-xl transition-all duration-300 p-4 w-64 flex-shrink-0 transform hover:scale-105">
+      <div className="relative h-20 mb-3 hidden overflow-hidden rounded-lg bg-gray-100"></div>
 
       <h4 className="font-semibold text-gray-800 mb-1 truncate">{item.name}</h4>
       <p className="text-sm text-gray-600 mb-3 line-clamp-2">
@@ -139,7 +127,7 @@ const ItemCard: React.FC<{
 };
 
 // Item Slider Component
-const ItemSlider: React.FC<{
+export const ItemSlider: React.FC<{
   items: Product[];
   onAddToCart: (item: Product, quantity: number) => void;
 }> = ({ items, onAddToCart }) => {
@@ -156,7 +144,7 @@ const ItemSlider: React.FC<{
   };
 
   if (!items || items.length === 0) return null;
-
+  console.log(items);
   return (
     <div className="relative mx-2">
       <button

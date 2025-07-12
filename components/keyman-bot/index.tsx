@@ -5,7 +5,6 @@ import {
   X,
   Minimize2,
   ShoppingCart,
-  Plus,
   Bot,
   User,
   Package,
@@ -20,17 +19,36 @@ import {
   createThread,
   getMessageCount,
   getMessages,
-  getThreads,
+  //getThreads,
   sendMessage,
 } from "@/api/chatbot";
-
-interface Message {
+import { ItemSlider } from "./v3";
+interface Product {
+  description: string;
   id: string;
-  text: string;
-  sender: "user" | "bot";
-  timestamp: Date;
-  component?: React.ReactNode;
+  name: string;
+  photo: string;
+  quantity: number;
 }
+interface UserMessage {
+  id: string;
+  role: "user";
+  content: string;
+  timestamp: number;
+}
+
+interface BotMessage {
+  id: string;
+  role: "assistant";
+  content: {
+    action: string;
+    content: string;
+    items: Product[];
+  };
+  timestamp: number;
+}
+
+type Message = UserMessage | BotMessage;
 
 interface ConstructionItem {
   id: string;
@@ -43,7 +61,7 @@ interface ConstructionItem {
 const ChatBot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [cart, setCart] = useState<ConstructionItem[]>([]);
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
@@ -63,7 +81,7 @@ const ChatBot: React.FC = () => {
   }, [threadData]);
 
   // Get message count with polling when waiting for response
-  const { data: messageCountData, refetch: refetchCount } = useQuery({
+  const { data: messageCountData } = useQuery({
     queryKey: ["chatbot-message-count", threadId],
     queryFn: async () => await getMessageCount(threadId),
     refetchOnWindowFocus: false,
@@ -79,7 +97,7 @@ const ChatBot: React.FC = () => {
   }, [messageCountData]);
 
   // Get messages when message count changes
-  const { data: messagesData, refetch: refetchMessages } = useQuery({
+  const { data: messagesData } = useQuery({
     queryKey: ["chatbot-messages", threadId, messageCount],
     queryFn: async () => await getMessages(threadId),
     refetchOnWindowFocus: false,
@@ -125,49 +143,7 @@ const ChatBot: React.FC = () => {
   }, [messageCount, expectedMessageCount, isWaitingForResponse]);
 
   // Update local messages when API messages change
-  React.useEffect(() => {
-    if (apiMessages.length > 0) {
-      const formattedMessages: Message[] = apiMessages.map((msg: any) => ({
-        id: msg.id || Date.now().toString(),
-        text: msg.content || msg.text || "",
-        sender: msg.role === "user" ? "user" : "bot",
-        timestamp: new Date(msg.created_at || Date.now()),
-      }));
-      console.log(formattedMessages);
-      // setMessages(formattedMessages);
-    }
-  }, [apiMessages]);
-
-  const constructionItems: ConstructionItem[] = [
-    {
-      id: "1",
-      name: "Steel Rebar",
-      price: 45.99,
-      description: "High-grade steel reinforcement bars",
-      icon: <Wrench className="w-5 h-5" />,
-    },
-    {
-      id: "2",
-      name: "Concrete Mix",
-      price: 12.5,
-      description: "Premium concrete mix 50lb bag",
-      icon: <Package className="w-5 h-5" />,
-    },
-    {
-      id: "3",
-      name: "Safety Helmet",
-      price: 29.99,
-      description: "OSHA compliant hard hat",
-      icon: <HardHat className="w-5 h-5" />,
-    },
-    {
-      id: "4",
-      name: "Hammer Drill",
-      price: 189.99,
-      description: "Professional grade hammer drill",
-      icon: <Hammer className="w-5 h-5" />,
-    },
-  ];
+  React.useEffect(() => {}, [apiMessages]);
 
   useEffect(() => {
     scrollToBottom();
@@ -177,53 +153,19 @@ const ChatBot: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const addToCart = (item: ConstructionItem) => {
-    setCart((prev) => [...prev, item]);
-
-    const botMessage: Message = {
-      id: Date.now().toString(),
-      text: `Great choice! I've added ${item.name} ($${
-        item.price
-      }) to your cart. Your cart now has ${cart.length + 1} items.`,
-      sender: "bot",
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, botMessage]);
+  const addToCart = (item: Product, quantity: number) => {
+    setCart((prevCart) => {
+      const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
+      if (existingItem) {
+        return prevCart.map((cartItem) =>
+          cartItem.id === item.id
+            ? { ...cartItem, cartQuantity: cartItem.cartQuantity + quantity }
+            : cartItem
+        );
+      }
+      return [...prevCart, { ...item, cartQuantity: quantity }];
+    });
   };
-
-  const ConstructionItemsList = () => (
-    <div className="bg-white rounded-lg p-4 shadow-lg border border-gray-200 max-w-sm">
-      <h3 className="text-lg font-semibold mb-3 text-gray-800">
-        Construction Items
-      </h3>
-      <div className="space-y-3">
-        {constructionItems.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            <div className="flex items-center space-x-3">
-              <div className="text-[#3D6B2C]">{item.icon}</div>
-              <div>
-                <p className="font-medium text-sm text-gray-800">{item.name}</p>
-                <p className="text-xs text-gray-600">{item.description}</p>
-                <p className="text-sm font-semibold text-[#388E3C]">
-                  ${item.price}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => addToCart(item)}
-              className="bg-[#3D6B2C] hover:bg-[#2d5220] text-white p-2 rounded-full transition-colors transform hover:scale-105"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 
   const handleSendMessage = async () => {
     if (inputValue.trim() && !isWaitingForResponse) {
@@ -239,7 +181,6 @@ const ChatBot: React.FC = () => {
       try {
         // Send the message
         await sendMessageMutation(messageToSend);
-        console.log("Message sent successfully, waiting for response...");
       } catch (error) {
         console.error("Failed to send message:", error);
         setIsWaitingForResponse(false);
@@ -269,17 +210,48 @@ const ChatBot: React.FC = () => {
     setIsMinimized(false);
   };
 
-  console.log(
-    {
-      messagesData,
-      messageCount,
-      expectedMessageCount,
-      isWaitingForResponse,
-      apiMessages,
-    },
-    "chat debug"
-  );
+  // Render user message
+  const RenderUserMessage = ({ text }: { text: string }) => {
+    return (
+      <div className="flex justify-end animate-in slide-in-from-right duration-300">
+        <div className="max-w-[80%] bg-[#3D6B2C] text-white rounded-2xl px-4 py-2 shadow-md">
+          <div className="flex items-start space-x-2">
+            <p className="text-sm">{text}</p>
+            <User className="w-4 h-4 mt-1 flex-shrink-0" />
+          </div>
+        </div>
+      </div>
+    );
+  };
 
+  // Render bot message
+  const RenderBotMessage = ({
+    text,
+    action,
+    items,
+  }: {
+    text: string;
+    action: string;
+    items: Product[];
+  }) => {
+    return (
+      <div className="flex justify-start animate-in slide-in-from-left duration-300">
+        <div className="max-w-[90%] space-y-3">
+          <div className="bg-white text-gray-800 border border-gray-200 rounded-2xl px-4 py-2 shadow-sm">
+            <div className="flex items-start space-x-2">
+              <Bot className="w-4 h-4 mt-1 text-[#3D6B2C] flex-shrink-0" />
+              <p className="text-sm">{text}</p>
+            </div>
+          </div>
+
+          {action === "material_selection" && items && items.length > 0 && (
+            <ItemSlider items={items} onAddToCart={addToCart} />
+          )}
+        </div>
+      </div>
+    );
+  };
+  console.log(apiMessages, "pi");
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {/* Chat Window */}
@@ -350,7 +322,26 @@ const ChatBot: React.FC = () => {
           <>
             <div className="flex-1 p-4 overflow-y-auto bg-gray-50 min-h-0">
               <div className="space-y-4">
-                {messages.map((message) => (
+                {apiMessages.length > 0 &&
+                  apiMessages.map((message: Message) => {
+                    if (message?.role === "user")
+                      return (
+                        <RenderUserMessage
+                          key={message.id}
+                          text={message.content}
+                        />
+                      );
+                    else
+                      return (
+                        <RenderBotMessage
+                          key={message.id}
+                          text={message?.content?.content}
+                          action={message?.content?.action}
+                          items={message?.content?.items}
+                        />
+                      );
+                  })}
+                {/*messages.map((message) => (
                   <div
                     key={message.id}
                     className={`flex ${
@@ -368,26 +359,9 @@ const ChatBot: React.FC = () => {
                           : "bg-white text-gray-800 border border-gray-200"
                       }
                     `}
-                    >
-                      <div className="flex items-start space-x-2">
-                        {message.sender === "bot" && (
-                          <Bot className="w-4 h-4 mt-1 text-[#3D6B2C]" />
-                        )}
-                        {message.sender === "user" && (
-                          <User className="w-4 h-4 mt-1 text-white" />
-                        )}
-                        <div className="flex-1">
-                          <p className="text-sm whitespace-pre-line">
-                            {message.text}
-                          </p>
-                          {message.component && (
-                            <div className="mt-3">{message.component}</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
+                    ></div>
                   </div>
-                ))}
+                ))*/}
 
                 {isWaitingForResponse && (
                   <div className="flex justify-start">

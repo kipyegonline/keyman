@@ -117,7 +117,7 @@ const RequestDetailSuplier: React.FC<{
 
   const openGoogleMaps = (lat: number, long: number) => {
     if (lat && long) {
-      window.open(`https://maps.google.com/?q=${long},${lat}`, "_blank");
+      window.open(`https://maps.google.com/?q=${lat},${long}`, "_blank");
     }
   };
 
@@ -138,7 +138,7 @@ const RequestDetailSuplier: React.FC<{
   };
 
   const getValuation = (totalAmount: number, balance: number) => {
-    return balance > (2 / 100) * (totalAmount / 20);
+    return balance >= (2 / 100) * (totalAmount / 20);
   };
   const getTotalAmount = (orderItems: PricedRequestItem[]) => {
     return orderItems.reduce((total, item) => {
@@ -165,6 +165,7 @@ const RequestDetailSuplier: React.FC<{
     // check value
     const totalAmount = getTotalAmount(orderItems);
     const valuated = getValuation(totalAmount, _balance);
+
     if (valuated) {
       setTransportOpen(true);
     } else {
@@ -222,6 +223,13 @@ const RequestDetailSuplier: React.FC<{
     //return;
     const totalCost = getTotalAmount(orderItems);
     const totalWeight = gettotalWeight(selectedRequest);
+    // do a valuation check once  check once more
+
+    const valuated = getValuation(totalCost, _balance);
+    if (!valuated) {
+      setShowModal(true);
+      return;
+    }
 
     //send to server
     const items = orderItems.map((item) => ({
