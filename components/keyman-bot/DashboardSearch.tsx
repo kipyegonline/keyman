@@ -32,10 +32,16 @@ export default function DashboardSearch() {
     setSearchValue(value);
 
     // Show AI transition hint after 3 characters or if conversational
-    if (value.length > 2) {
+    if (value.trim().length > 2) {
       setShowAITransition(true);
     } else {
       setShowAITransition(false);
+    }
+  };
+  const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    console.log(e);
+    if (e.key === "Enter" && searchValue.trim().length > 2) {
+      toggleChatMode();
     }
   };
   return (
@@ -68,6 +74,7 @@ export default function DashboardSearch() {
               ref={searchRef}
               type="text"
               value={searchValue}
+              onKeyDown={handleKey}
               onChange={handleSearchChange}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}

@@ -54,7 +54,7 @@ const TopNavigation: React.FC = () => {
     navigateTo();
     // For example, you might clear user data and redirect to login page
     //window.location.href = '/account/login';
-    router.push("/account/login");
+    router.push("/");
     logOutKeymanUser();
   };
   const handleClickedItem = (key: string) => {
@@ -148,6 +148,7 @@ const TopNavigation: React.FC = () => {
           {/* Dark Mode Toggle */}
           <ActionIcon
             variant="subtle"
+            display={"none"}
             onClick={toggleDarkMode}
             size="lg"
             className={isDark ? "hover:bg-gray-800 " : "hover:bg-gray-100"}
