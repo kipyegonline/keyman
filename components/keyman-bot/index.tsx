@@ -7,10 +7,6 @@ import {
   ShoppingCart,
   Bot,
   User,
-  Package,
-  Wrench,
-  Hammer,
-  HardHat,
 } from "lucide-react";
 import { Image } from "@mantine/core";
 import { useAppContext } from "@/providers/AppContext";
@@ -22,7 +18,12 @@ import {
   //getThreads,
   sendMessage,
 } from "@/api/chatbot";
-import { ItemSlider } from "./v3";
+import { CartView, ItemSlider } from "./v3";
+import { notify } from "@/lib/notifications";
+import { getProjects } from "@/api/projects";
+import { Project } from "@/types";
+import { createRequest } from "@/api/requests";
+import { CreateRequestPayload } from "@/types/requests";
 interface Product {
   description: string;
   id: string;
@@ -50,25 +51,44 @@ interface BotMessage {
 
 type Message = UserMessage | BotMessage;
 
-interface ConstructionItem {
+interface Product {
+  description: string;
   id: string;
   name: string;
-  price: number;
-  description: string;
-  icon: React.ReactNode;
+  photo: string;
+  quantity: number;
+}
+
+interface CartItem extends Product {
+  cartQuantity: number;
 }
 
 const ChatBot: React.FC = () => {
+  const dash = "dashboard";
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
-  const [cart, setCart] = useState<ConstructionItem[]>([]);
+
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [expectedMessageCount, setExpectedMessageCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [showCart, setShowCart] = useState(false);
+  const [checkoutSpinner, setCheckoutSpinner] = useState(false);
   const { chatMode, message } = useAppContext();
+  const isLoggedIn = localStorage.getItem("keyman_user");
+  const isMainDashboard = localStorage.getItem(dash) === dash;
+  const [location, setLocation] = useState("");
+  const [date, setDate] = useState("");
+  const [KSNumber, setKSNumber] = useState("");
 
+  // Get thread ID
+  const { data: locations, refetch: refreshLocation } = useQuery({
+    queryKey: ["locations"],
+    queryFn: async () => await getProjects(),
+    enabled: !!isLoggedIn && isMainDashboard,
+  });
   // Get thread ID
   const { data: threadData } = useQuery({
     queryKey: ["chatbot-threads"],
@@ -209,6 +229,89 @@ const ChatBot: React.FC = () => {
   const restoreChatbot = () => {
     setIsMinimized(false);
   };
+  const resetState = () => {
+    setCart([]);
+    setKSNumber("");
+    setDate("");
+    setLocation("");
+    setShowCart(false);
+  };
+  const handleCreateRequest = async () => {
+    const selectedLocation = locations?.projects?.find(
+      (loc: Project) => loc.id === location
+    );
+    const items = cart.map((cartItem) => ({
+      ...cartItem,
+      item_id: cartItem.id,
+      description: "",
+      visual_confirmation_required: 0,
+    }));
+    if (!selectedLocation) {
+      notify.error("Looks like you did not add a delivery location ");
+      return;
+    }
+    const [lng, ltd] = selectedLocation?.location?.coordinates;
+
+    for (const item of items) {
+      if ("photo" in item) {
+        /*eslint-disable */
+        //@ts-expect-error
+        delete item?.["photo"];
+      }
+    }
+    const payload: CreateRequestPayload = {
+      status: "SUBMITTED",
+      delivery_date: date ?? "",
+      latitude: ltd,
+      longitude: lng,
+      ks_number: KSNumber,
+      created_from: "items",
+      /*eslint-disable */
+      //@ts-expect-error
+      items,
+    };
+
+    setCheckoutSpinner(true);
+
+    try {
+      const response = await createRequest(payload);
+
+      if (response.status) {
+        notify.success("Request created successfully");
+        resetState();
+
+        // setSuccess(true);
+        // form.reset();
+        // setItems([]);
+      } else {
+        notify.error("Something went wrong. Try again later.");
+      }
+      //setSuccess(true);
+    } catch (err) {
+      notify.error("Failed to submit request. Please try again.");
+      console.log(err);
+    } finally {
+      setCheckoutSpinner(!true);
+    }
+  };
+  const handleCheckout = () => {
+    console.log("Proceeding to checkout with:", cart);
+    if (!!!isLoggedIn) {
+      notify.error("Please login to continue", "Login");
+      return;
+    }
+    if (!isMainDashboard) {
+      notify.error("Please checkout from your user dashboard");
+      return;
+    }
+    setCheckoutSpinner(true);
+    setTimeout(() => {
+      setCheckoutSpinner(!true);
+    }, 3000);
+    //show spinner kidogo
+
+    // Implement checkout logic
+  };
 
   // Render user message
   const RenderUserMessage = ({ text }: { text: string }) => {
@@ -236,7 +339,7 @@ const ChatBot: React.FC = () => {
   }) => {
     return (
       <div className="flex justify-start animate-in slide-in-from-left duration-300">
-        <div className="max-w-[90%] space-y-3">
+        <div className="max-w-[100%] space-y-3">
           <div className="bg-white text-gray-800 border border-gray-200 rounded-2xl px-4 py-2 shadow-sm">
             <div className="flex items-start space-x-2">
               <Bot className="w-4 h-4 mt-1 text-[#3D6B2C] flex-shrink-0" />
@@ -251,7 +354,7 @@ const ChatBot: React.FC = () => {
       </div>
     );
   };
-  console.log(apiMessages, "pi");
+
   return (
     <div className="fixed bottom-4 right-4 z-50">
       {/* Chat Window */}
@@ -283,12 +386,16 @@ const ChatBot: React.FC = () => {
           </div>
           <div className="flex items-center space-x-2">
             {cart.length > 0 && (
-              <div className="relative">
+              <button
+                onClick={() => setShowCart(!showCart)}
+                className="relative p-1 hover:bg-white/20 rounded transition-colors"
+              >
                 <ShoppingCart className="w-5 h-5" />
                 <span className="absolute -top-2 -right-2 bg-[#F08C23] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {/*cart.reduce((sum, item) => sum + item.cartQuantity, 0)*/}
                   {cart.length}
                 </span>
-              </div>
+              </button>
             )}
             <button
               onClick={minimizeChatbot}
@@ -320,6 +427,33 @@ const ChatBot: React.FC = () => {
         {/* Messages Container */}
         {!isMinimized && (
           <>
+            {/* Cart View */}
+            {showCart && cart.length > 0 && (
+              <div className="p-4">
+                <CartView
+                  cart={cart}
+                  onClose={() => setShowCart(false)}
+                  onCheckout={handleCheckout}
+                  locations={locations?.projects ?? []}
+                  authInfo={{
+                    isLoggedIn: !!isLoggedIn,
+                    isMainDashboard,
+                    spinner: checkoutSpinner,
+                    isValid: !!date && !!location,
+                    date,
+                  }}
+                  sendLocation={(location) => setLocation(location)}
+                  sendDate={(date) => setDate(date)}
+                  locationConfig={{
+                    location,
+                    refresh: () => refreshLocation(),
+                  }}
+                  KSNumber={KSNumber}
+                  setKSNumber={setKSNumber}
+                  onCreateRequest={handleCreateRequest}
+                />
+              </div>
+            )}
             <div className="flex-1 p-4 overflow-y-auto bg-gray-50 min-h-0">
               <div className="space-y-4">
                 {apiMessages.length > 0 &&
@@ -341,27 +475,16 @@ const ChatBot: React.FC = () => {
                         />
                       );
                   })}
-                {/*messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${
-                      message.sender === "user"
-                        ? "justify-end"
-                        : "justify-start"
-                    }`}
-                  >
-                    <div
-                      className={`
-                      max-w-[80%] rounded-2xl px-4 py-2 shadow-sm
-                      ${
-                        message.sender === "user"
-                          ? "bg-[#3D6B2C] text-white"
-                          : "bg-white text-gray-800 border border-gray-200"
-                      }
-                    `}
-                    ></div>
+                {cart.length > 0 && !isWaitingForResponse && !showCart && (
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => setShowCart(true)}
+                      className="w-24 py-0 px-1  bg-[#F08C23] hover:bg-[#d87a1f] text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105"
+                    >
+                      Checkout
+                    </button>
                   </div>
-                ))*/}
+                )}
 
                 {isWaitingForResponse && (
                   <div className="flex justify-start">

@@ -9,12 +9,14 @@ import {
   Minus,
   Bot,
   User,
-  Package,
   CheckCircle,
   ChevronLeft,
   ChevronRight,
+  Box,
+  ArrowLeftRight,
+  Key,
 } from "lucide-react";
-import { Image } from "@mantine/core";
+import { Badge, Card, Image, Text, TextInput } from "@mantine/core";
 import { useAppContext } from "@/providers/AppContext";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -23,6 +25,10 @@ import {
   getMessages,
   sendMessage,
 } from "@/api/chatbot";
+import { DeliveryDate, DeliveryLocation } from "./DeliveryLocation";
+import { Project } from "@/types";
+import LoadingComponent from "@/lib/LoadingComponent";
+import Link from "next/link";
 
 // Interfaces
 interface Product {
@@ -79,11 +85,14 @@ const ItemCard: React.FC<{
   };
 
   return (
-    <div className="bg-white rounded-xl border-red shadow-md hover:shadow-xl transition-all duration-300 p-4 w-64 flex-shrink-0 transform hover:scale-105">
+    <div className="bg-white rounded-xl  shadow-md hover:shadow-xl transition-all duration-300 p-4 w-40 flex-shrink-0 transform hover:scale-105">
       <div className="relative h-20 mb-3 hidden overflow-hidden rounded-lg bg-gray-100"></div>
 
-      <h4 className="font-semibold text-gray-800 mb-1 truncate">{item.name}</h4>
-      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+      <h4 className="font-semibold text-gray-800 mb-1 truncate">
+        <Box className="mr-2 inline-block" />
+        {item.name}
+      </h4>
+      <p className="text-sm text-gray-600 mb-3 line-clamp-2 hidden">
         {item.description}
       </p>
 
@@ -106,22 +115,21 @@ const ItemCard: React.FC<{
             <Plus size={16} />
           </button>
         </div>
-
-        <button
-          onClick={handleAddToCart}
-          className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 transform ${
-            isAdding
-              ? "bg-green-500 text-white scale-95"
-              : "bg-[#3D6B2C] hover:bg-[#2d5220] text-white hover:scale-105"
-          }`}
-        >
-          {isAdding ? (
-            <CheckCircle className="w-4 h-4" />
-          ) : (
-            <span className="text-sm">Add</span>
-          )}
-        </button>
       </div>
+      <button
+        onClick={handleAddToCart}
+        className={`px-4 py-1 w-full mt-2 rounded-lg font-medium transition-all duration-300 transform ${
+          isAdding
+            ? "bg-green-500 text-white scale-95"
+            : "bg-[#3D6B2C] hover:bg-[#2d5220] text-white hover:scale-105"
+        }`}
+      >
+        {isAdding ? (
+          <CheckCircle className="w-4 h-4" />
+        ) : (
+          <span className="text-sm">Add</span>
+        )}
+      </button>
     </div>
   );
 };
@@ -146,7 +154,11 @@ export const ItemSlider: React.FC<{
   if (!items || items.length === 0) return null;
   console.log(items);
   return (
-    <div className="relative mx-2">
+    <div className="relative mx-2  w-full">
+      <Badge variant="filled" color="orange" size="xs">
+        {items?.length} items available
+      </Badge>
+
       <button
         onClick={() => scroll("left")}
         className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-gray-800/80 hover:bg-gray-800 text-white rounded-full flex items-center justify-center shadow-lg transition-colors"
@@ -156,7 +168,7 @@ export const ItemSlider: React.FC<{
 
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide py-4 px-12"
+        className="flex gap-4 overflow-x-auto scrollbar-hide py-4 px-4  w-full"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {items.map((item) => (
@@ -175,12 +187,90 @@ export const ItemSlider: React.FC<{
 };
 
 // Cart Component
-const CartView: React.FC<{
+export const CartView: React.FC<{
   cart: CartItem[];
   onCheckout: () => void;
   onClose: () => void;
-}> = ({ cart, onCheckout, onClose }) => {
-  const totalItems = cart.reduce((sum, item) => sum + item.cartQuantity, 0);
+  locations: Project[];
+  authInfo: {
+    isLoggedIn: boolean;
+    isMainDashboard: boolean;
+    spinner: boolean;
+    isValid: boolean;
+    date: string;
+  };
+  sendLocation: (location: string) => void;
+  sendDate: (date: string) => void;
+  onCreateRequest: () => void;
+  KSNumber: string;
+  setKSNumber: React.Dispatch<React.SetStateAction<string>>;
+  locationConfig: { refresh: () => void; location: string };
+}> = ({
+  cart,
+  onCheckout,
+  onClose,
+  onCreateRequest,
+  locations,
+  authInfo,
+
+  sendLocation,
+  sendDate,
+  KSNumber,
+  setKSNumber,
+  locationConfig,
+}) => {
+  //const totalItems = cart.reduce((sum, item) => sum + item.cartQuantity, 0);
+
+  const checkoutSection = (
+    <div>
+      {" "}
+      <div className="py-2">
+        {" "}
+        <DeliveryDate sendDate={sendDate} date={authInfo.date} />
+      </div>
+      <DeliveryLocation
+        locations={locations}
+        sendLocation={sendLocation}
+        config={locationConfig}
+      />
+      <TextInput
+        label=" KS number (optional)"
+        py="sm"
+        value={KSNumber}
+        onChange={(e) => setKSNumber(e.target.value)}
+      />
+    </div>
+  );
+  const supplierSection = (
+    <Card className=" bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200 py-2 mb-2">
+      <div className="text-center">
+        <Text className=" text-gray-600" size="xs">
+          You need to create this request from cutsomer dashboard
+        </Text>
+        <Link
+          href="/keyman/dashboard/"
+          className="inline-flex items-center gap-2 text-xs text-[#3D6B2C] hover:text-[#388E3C] font-medium"
+        >
+          <ArrowLeftRight size={16} /> Switch to Customer dashboard
+        </Link>
+      </div>
+    </Card>
+  );
+  const UnloggedSection = (
+    <Card className=" bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200 py-2 mb-2">
+      <div className="text-center">
+        <Text className="text-gray-600" size="xs">
+          You need to login in order complete checkout
+        </Text>
+        <Link
+          href="/account/login"
+          className="inline-flex items-center gap-2 text-xs text-[#3D6B2C] hover:text-[#388E3C] font-medium"
+        >
+          <Key size={16} /> Login
+        </Link>
+      </div>
+    </Card>
+  );
 
   return (
     <div className="bg-white rounded-xl shadow-xl p-4 mb-4 animate-in slide-in-from-top-2 duration-300">
@@ -211,14 +301,41 @@ const CartView: React.FC<{
       <div className="mt-4 pt-3 border-t border-gray-200">
         <div className="flex justify-between items-center mb-3">
           <span className="font-medium text-gray-700">Total Items:</span>
-          <span className="font-semibold text-[#3D6B2C]">{totalItems}</span>
+          <span className="font-semibold text-[#3D6B2C]">{cart.length}</span>
         </div>
-        <button
-          onClick={onCheckout}
-          className="w-full py-2 bg-[#F08C23] hover:bg-[#d87a1f] text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105"
-        >
-          Checkout
-        </button>
+        <div>
+          {authInfo.spinner ? (
+            <LoadingComponent
+              message="preparing checkout"
+              size="sm"
+              variant="minimal"
+            />
+          ) : !authInfo.isLoggedIn ? (
+            UnloggedSection
+          ) : authInfo.isMainDashboard ? (
+            checkoutSection
+          ) : (
+            supplierSection
+          )}
+        </div>
+
+        {!authInfo.isValid ? (
+          <button
+            onClick={onCheckout}
+            disabled={authInfo.spinner}
+            className="w-full py-2 bg-[#F08C23] hover:bg-[#d87a1f] text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105"
+          >
+            {authInfo.spinner ? "Preparing checkout..." : "Checkout"}
+          </button>
+        ) : (
+          <button
+            onClick={() => onCreateRequest()}
+            disabled={authInfo.spinner}
+            className="w-full py-2 bg-[#F08C23] hover:bg-[#d87a1f] text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105"
+          >
+            {authInfo.spinner ? "Submitting Request..." : "Create Request"}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -452,7 +569,11 @@ const ChatBot: React.FC = () => {
           </div>
 
           {action === "material_selection" && items && items.length > 0 && (
-            <ItemSlider items={items} onAddToCart={addToCart} />
+            <ItemSlider
+              items={items}
+              onAddToCart={addToCart}
+              onCheckout={() => null}
+            />
           )}
         </div>
       </div>
