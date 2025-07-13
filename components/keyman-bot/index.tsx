@@ -151,6 +151,10 @@ const ChatBot: React.FC = () => {
       setIsOpen(true);
     }
     setInputValue(message);
+    handleSendMessage();
+    setTimeout(() => {
+      setInputValue("");
+    }, 1000);
   }, [chatMode]);
 
   // Monitor message count changes when waiting for response
