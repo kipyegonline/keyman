@@ -233,7 +233,7 @@ const MainContent: React.FC = () => {
                 {_orders?.slice(0, 10)?.map((order: Order, index: number) => (
                   <Link
                     key={order?.id ?? index}
-                    href={`/keyboard/dashboard/orders/${order?.id}`}
+                    href={`/keyman/dashboard/orders/${order?.id}`}
                   >
                     <Paper
                       p="md"
