@@ -19,7 +19,7 @@ const poppins = Poppins({
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
-const TrackingId = "G-J7CLC5DTXF";
+const TrackingId = "G-RWPNV6R05V";
 
 export default function RootLayout({
   children,
