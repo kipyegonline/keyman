@@ -12,8 +12,11 @@ import "@mantine/nprogress/styles.css";
 import "@mantine/dates/styles.css";
 import "leaflet/dist/leaflet.css";
 import "@mantine/carousel/styles.css";
-import ChatBot from "@/components/keyman-bot";
+//import ChatBot from "@/components/keyman-bot";
 import AnalyticsScripts from "@/components/ui/AnalyticsScript";
+//import ChatBot from "@/components/keyman-bot";
+import ChatBot from "@/components/keyman-bot/v2";
+
 const poppins = Poppins({
   variable: "--font-poppins",
   subsets: ["latin"],

@@ -8,11 +8,13 @@ export default function DashboardSearch() {
   const [showAITransition, setShowAITransition] = useState(false);
   const searchRef = useRef(null);
 
-  const { toggleChatMode } = useAppContext();
+  const { toggleChatMode, setChatMessage } = useAppContext();
 
   const activateAIMode = () => {
     toggleChatMode();
     setShowAITransition(false);
+    setChatMessage(searchValue);
+    setTimeout(() => setSearchValue(""), 1000);
 
     // Add initial message if there's a search query
     if (searchValue.trim()) {

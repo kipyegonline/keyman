@@ -4,7 +4,11 @@ import { useMediaQuery } from "@mantine/hooks";
 import Autoplay from "embla-carousel-autoplay";
 import React from "react";
 
-function KeymanBanner() {
+function KeymanBanner({
+  banners,
+}: {
+  banners: { url: string; description: string }[];
+}) {
   const matches = useMediaQuery("(max-width: 480px)");
   const height = matches ? "auto" : 240;
   const autoplay = React.useRef(
@@ -34,24 +38,43 @@ function KeymanBanner() {
       mx="auto"
       className="  w-[90%]"
     >
-      <Carousel.Slide>
-        <Image
-          src="/keyman_hero.jpeg"
-          alt=""
-          height={height}
-          radius={"md"}
-          fallbackSrc="/keyman_hero.jpeg"
-        />
-      </Carousel.Slide>
-      <Carousel.Slide>
-        <Image
-          src="/keyman_hero.jpeg"
-          alt=""
-          height={height}
-          radius={"md"}
-          fallbackSrc="/keyman_hero.jpeg"
-        />
-      </Carousel.Slide>
+      {banners.length > 0 ? (
+        banners.map((banner, index) => (
+          <Carousel.Slide key={index}>
+            <Image
+              src={banner.url}
+              alt={banner.description}
+              title={banner.description}
+              height={height}
+              radius={"md"}
+              fallbackSrc={"/keyman_hero.jpeg"}
+            />
+          </Carousel.Slide>
+        ))
+      ) : (
+        <>
+          {" "}
+          <Carousel.Slide>
+            <Image
+              src="/keyman_hero.jpeg"
+              alt=""
+              height={height}
+              radius={"md"}
+              fallbackSrc="/keyman_hero.jpeg"
+            />
+          </Carousel.Slide>
+          <Carousel.Slide>
+            <Image
+              src="/keyman_hero.jpeg"
+              alt=""
+              height={height}
+              radius={"md"}
+              fallbackSrc="/keyman_hero.jpeg"
+            />
+          </Carousel.Slide>
+        </>
+      )}
+
       {/* ...other slides */}
     </Carousel>
   );

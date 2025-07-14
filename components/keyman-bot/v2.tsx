@@ -24,6 +24,7 @@ import { getProjects } from "@/api/projects";
 import { Project } from "@/types";
 import { createRequest } from "@/api/requests";
 import { CreateRequestPayload } from "@/types/requests";
+/*eslint-disable*/
 interface Product {
   description: string;
   id: string;
@@ -31,6 +32,7 @@ interface Product {
   photo: string;
   quantity: number;
 }
+
 interface UserMessage {
   id: string;
   role: "user";
@@ -51,34 +53,36 @@ interface BotMessage {
 
 type Message = UserMessage | BotMessage;
 
-interface Product {
-  description: string;
-  id: string;
-  name: string;
-  photo: string;
-  quantity: number;
-}
-
 interface CartItem extends Product {
   cartQuantity: number;
+  attachImage: boolean;
 }
-
+const dash = "dashboard";
+const checkDash = () => {
+  const _dash = localStorage.getItem("dashboard");
+  if (_dash === null) return true;
+  return _dash === dash;
+};
+const checkAuth = () => {
+  const user = localStorage.getItem("keyman_user");
+  return !!user;
+};
 const ChatBot: React.FC = () => {
-  const dash = "dashboard";
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
-
   const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
   const [expectedMessageCount, setExpectedMessageCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [checkoutSpinner, setCheckoutSpinner] = useState(false);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const { chatMode, message } = useAppContext();
-  const isLoggedIn = localStorage.getItem("keyman_user");
-  const isMainDashboard = localStorage.getItem(dash) === dash;
+  const isLoggedIn = checkAuth();
+  const isMainDashboard = checkDash();
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
   const [KSNumber, setKSNumber] = useState("");
@@ -87,8 +91,9 @@ const ChatBot: React.FC = () => {
   const { data: locations, refetch: refreshLocation } = useQuery({
     queryKey: ["locations"],
     queryFn: async () => await getProjects(),
-    enabled: !!isLoggedIn && isMainDashboard,
+    enabled: isLoggedIn && isMainDashboard,
   });
+
   // Get thread ID
   const { data: threadData } = useQuery({
     queryKey: ["chatbot-threads"],
@@ -106,8 +111,7 @@ const ChatBot: React.FC = () => {
     queryFn: async () => await getMessageCount(threadId),
     refetchOnWindowFocus: false,
     enabled: !!threadId,
-    // Enable polling when waiting for response
-    refetchInterval: isWaitingForResponse ? 1000 : false, // Poll every second
+    refetchInterval: isWaitingForResponse ? 1000 : false,
     refetchIntervalInBackground: false,
   });
 
@@ -151,65 +155,120 @@ const ChatBot: React.FC = () => {
       setIsOpen(true);
     }
     setInputValue(message);
+    setShowCart(false);
+
     handleSendMessage();
-    setTimeout(() => {
-      setInputValue("");
-    }, 1000);
   }, [chatMode]);
 
   // Monitor message count changes when waiting for response
   React.useEffect(() => {
     if (isWaitingForResponse && messageCount >= expectedMessageCount) {
-      console.log("Response received, stopping polling");
       setIsWaitingForResponse(false);
       setExpectedMessageCount(0);
     }
   }, [messageCount, expectedMessageCount, isWaitingForResponse]);
 
   // Update local messages when API messages change
-  React.useEffect(() => {}, [apiMessages]);
+  React.useEffect(() => {
+    // Check if we should auto-scroll (user is near bottom)
+    if (messagesContainerRef.current && shouldAutoScroll) {
+      const container = messagesContainerRef.current;
+      const isNearBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight <
+        100;
+      setShouldAutoScroll(isNearBottom);
+    }
+  }, [apiMessages]);
 
+  // Auto-scroll effect - only scroll when appropriate
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (shouldAutoScroll && messagesEndRef.current) {
+      // Use requestAnimationFrame for smoother scrolling
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
+      });
+    }
+  }, [apiMessages, shouldAutoScroll]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  // Handle scroll events to detect if user scrolled up
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      const isAtBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight <
+        50;
+      setShouldAutoScroll(isAtBottom);
+    }
   };
 
-  const addToCart = (item: Product, quantity: number) => {
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      setShouldAutoScroll(true);
+    }
+  };
+  const imageRequired = (required: boolean) => (required ? 1 : 0);
+
+  const addToCart = (item: Product, quantity: number, attachImage: boolean) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
       if (existingItem) {
         return prevCart.map((cartItem) =>
           cartItem.id === item.id
-            ? { ...cartItem, cartQuantity: cartItem.cartQuantity + quantity }
+            ? {
+                ...cartItem,
+                cartQuantity: cartItem.cartQuantity + quantity,
+                attachImage,
+              }
             : cartItem
         );
       }
-      return [...prevCart, { ...item, cartQuantity: quantity }];
+      return [...prevCart, { ...item, cartQuantity: quantity, attachImage }];
+    });
+  };
+
+  const updateCart = (
+    item: Product,
+    newQuantity: number,
+    attachImage: boolean
+  ) => {
+    setCart((prevCart) => {
+      if (newQuantity === 0) {
+        // Remove item from cart
+        return prevCart.filter((cartItem) => cartItem.id !== item.id);
+      }
+      // Update quantity
+      return prevCart.map((cartItem) =>
+        cartItem.id === item.id
+          ? {
+              ...cartItem,
+              cartQuantity: newQuantity,
+              attachImage,
+            }
+          : cartItem
+      );
     });
   };
 
   const handleSendMessage = async () => {
     if (inputValue.trim() && !isWaitingForResponse) {
       const messageToSend = inputValue.trim();
-
-      // Clear input immediately
       setInputValue("");
-
-      // Set expected message count (current + 2: user message + bot response)
       setExpectedMessageCount(messageCount + 2);
       setIsWaitingForResponse(true);
 
+      // Ensure we auto-scroll for new user messages
+      setShouldAutoScroll(true);
+
       try {
-        // Send the message
         await sendMessageMutation(messageToSend);
       } catch (error) {
         console.error("Failed to send message:", error);
         setIsWaitingForResponse(false);
         setExpectedMessageCount(0);
-        // Restore input value on error
         setInputValue(messageToSend);
       }
     }
@@ -233,6 +292,7 @@ const ChatBot: React.FC = () => {
   const restoreChatbot = () => {
     setIsMinimized(false);
   };
+
   const resetState = () => {
     setCart([]);
     setKSNumber("");
@@ -240,6 +300,7 @@ const ChatBot: React.FC = () => {
     setLocation("");
     setShowCart(false);
   };
+
   const handleCreateRequest = async () => {
     const selectedLocation = locations?.projects?.find(
       (loc: Project) => loc.id === location
@@ -248,21 +309,23 @@ const ChatBot: React.FC = () => {
       ...cartItem,
       item_id: cartItem.id,
       description: "",
-      visual_confirmation_required: 0,
+      visual_confirmation_required: imageRequired(cartItem.attachImage),
     }));
+
     if (!selectedLocation) {
       notify.error("Looks like you did not add a delivery location ");
       return;
     }
+
     const [lng, ltd] = selectedLocation?.location?.coordinates;
 
     for (const item of items) {
       if ("photo" in item) {
-        /*eslint-disable */
         //@ts-expect-error
         delete item?.["photo"];
       }
     }
+
     const payload: CreateRequestPayload = {
       status: "SUBMITTED",
       delivery_date: date ?? "",
@@ -270,7 +333,6 @@ const ChatBot: React.FC = () => {
       longitude: lng,
       ks_number: KSNumber,
       created_from: "items",
-      /*eslint-disable */
       //@ts-expect-error
       items,
     };
@@ -283,24 +345,19 @@ const ChatBot: React.FC = () => {
       if (response.status) {
         notify.success("Request created successfully");
         resetState();
-
-        // setSuccess(true);
-        // form.reset();
-        // setItems([]);
       } else {
         notify.error("Something went wrong. Try again later.");
       }
-      //setSuccess(true);
     } catch (err) {
       notify.error("Failed to submit request. Please try again.");
       console.log(err);
     } finally {
-      setCheckoutSpinner(!true);
+      setCheckoutSpinner(false);
     }
   };
+
   const handleCheckout = () => {
-    console.log("Proceeding to checkout with:", cart);
-    if (!!!isLoggedIn) {
+    if (!isLoggedIn) {
       notify.error("Please login to continue", "Login");
       return;
     }
@@ -310,18 +367,15 @@ const ChatBot: React.FC = () => {
     }
     setCheckoutSpinner(true);
     setTimeout(() => {
-      setCheckoutSpinner(!true);
+      setCheckoutSpinner(false);
     }, 3000);
-    //show spinner kidogo
-
-    // Implement checkout logic
   };
 
   // Render user message
   const RenderUserMessage = ({ text }: { text: string }) => {
     return (
       <div className="flex justify-end animate-in slide-in-from-right duration-300">
-        <div className="max-w-[80%] bg-[#3D6B2C] text-white rounded-2xl px-4 py-2 shadow-md">
+        <div className="max-w-[85%] bg-[#3D6B2C] text-white rounded-2xl px-4 py-2 shadow-md">
           <div className="flex items-start space-x-2">
             <p className="text-sm">{text}</p>
             <User className="w-4 h-4 mt-1 flex-shrink-0" />
@@ -352,7 +406,12 @@ const ChatBot: React.FC = () => {
           </div>
 
           {action === "material_selection" && items && items.length > 0 && (
-            <ItemSlider items={items} onAddToCart={addToCart} />
+            <ItemSlider
+              items={items}
+              onAddToCart={addToCart}
+              cartItems={cart}
+              onUpdateCart={updateCart}
+            />
           )}
         </div>
       </div>
@@ -364,18 +423,26 @@ const ChatBot: React.FC = () => {
       {/* Chat Window */}
       <div
         className={`
-        absolute bottom-16 right-0 w-72 sm:w-72 max-h-[80vh] bg-white rounded-2xl shadow-2xl
-        transform transition-all duration-300 ease-in-out flex flex-col
-        ${
-          isOpen
-            ? "translate-y-0 opacity-100 scale-100"
-            : "translate-y-4 opacity-0 scale-95 pointer-events-none"
-        }
-        ${isMinimized ? "h-12" : "h-[min(400px,80vh)]"}
-      `}
+          absolute bottom-16 right-0 
+          w-80 sm:w-96 md:w-[420px] lg:w-[480px] xl:w-[520px]
+          max-w-[calc(100vw-2rem)]
+          max-h-[85vh] sm:max-h-[80vh] md:max-h-[75vh] lg:max-h-[70vh]
+          bg-white rounded-2xl shadow-2xl
+          transform transition-all duration-300 ease-in-out flex flex-col
+          ${
+            isOpen
+              ? "translate-y-0 opacity-100 scale-100"
+              : "translate-y-4 opacity-0 scale-95 pointer-events-none"
+          }
+          ${
+            isMinimized
+              ? "h-12"
+              : "h-[min(600px,85vh)] sm:h-[min(550px,80vh)] md:h-[min(500px,75vh)] lg:h-[min(450px,70vh)]"
+          }
+        `}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#3D6B2C] to-[#388E3C] text-white p-4 rounded-t-2xl flex items-center justify-between">
+        <div className="bg-gradient-to-r from-[#3D6B2C] to-[#388E3C] text-white p-4 rounded-t-2xl flex items-center justify-between flex-shrink-0">
           <div className="flex items-center space-x-2">
             <div>
               <Image
@@ -385,7 +452,9 @@ const ChatBot: React.FC = () => {
               />
             </div>
             <div>
-              <h3 className="font-semibold">Keyman Assistant</h3>
+              <h3 className="font-semibold text-sm sm:text-base">
+                Keyman Assistant
+              </h3>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -396,7 +465,6 @@ const ChatBot: React.FC = () => {
               >
                 <ShoppingCart className="w-5 h-5" />
                 <span className="absolute -top-2 -right-2 bg-[#F08C23] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {/*cart.reduce((sum, item) => sum + item.cartQuantity, 0)*/}
                   {cart.length}
                 </span>
               </button>
@@ -418,7 +486,7 @@ const ChatBot: React.FC = () => {
 
         {/* Restore button when minimized */}
         {isMinimized && (
-          <div className="p-2">
+          <div className="p-2 flex-shrink-0">
             <button
               onClick={restoreChatbot}
               className="text-[#3D6B2C] hover:text-[#2d5220] text-sm font-medium"
@@ -428,19 +496,19 @@ const ChatBot: React.FC = () => {
           </div>
         )}
 
-        {/* Messages Container */}
+        {/* Main Content Area */}
         {!isMinimized && (
           <>
-            {/* Cart View */}
-            {showCart && cart.length > 0 && (
-              <div className="p-4">
+            {showCart && cart.length > 0 ? (
+              /* Cart View - Takes full height when shown */
+              <div className="flex-1 overflow-y-auto min-h-0">
                 <CartView
                   cart={cart}
                   onClose={() => setShowCart(false)}
                   onCheckout={handleCheckout}
                   locations={locations?.projects ?? []}
                   authInfo={{
-                    isLoggedIn: !!isLoggedIn,
+                    isLoggedIn: isLoggedIn,
                     isMainDashboard,
                     spinner: checkoutSpinner,
                     isValid: !!date && !!location,
@@ -457,65 +525,69 @@ const ChatBot: React.FC = () => {
                   onCreateRequest={handleCreateRequest}
                 />
               </div>
-            )}
-            <div className="flex-1 p-4 overflow-y-auto bg-gray-50 min-h-0">
-              <div className="space-y-4">
-                {apiMessages.length > 0 &&
-                  apiMessages.map((message: Message) => {
-                    if (message?.role === "user")
-                      return (
-                        <RenderUserMessage
-                          key={message.id}
-                          text={message.content}
-                        />
-                      );
-                    else
-                      return (
-                        <RenderBotMessage
-                          key={message.id}
-                          text={message?.content?.content}
-                          action={message?.content?.action}
-                          items={message?.content?.items}
-                        />
-                      );
-                  })}
-                {cart.length > 0 && !isWaitingForResponse && !showCart && (
-                  <div className="flex justify-end">
-                    <button
-                      onClick={() => setShowCart(true)}
-                      className="w-24 py-0 px-1  bg-[#F08C23] hover:bg-[#d87a1f] text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105"
-                    >
-                      Checkout
-                    </button>
-                  </div>
-                )}
+            ) : (
+              /* Messages Container - Takes full height when cart not shown */
+              <div className="flex-1 p-3 sm:p-4 overflow-y-auto bg-gray-50 min-h-0">
+                <div className="space-y-3 sm:space-y-4">
+                  {apiMessages.length > 0 &&
+                    apiMessages.map((message: Message) => {
+                      if (message?.role === "user")
+                        return (
+                          <RenderUserMessage
+                            key={message.id}
+                            text={message.content}
+                          />
+                        );
+                      else
+                        return (
+                          <RenderBotMessage
+                            key={message.id}
+                            text={message?.content?.content}
+                            action={message?.content?.action}
+                            items={message?.content?.items}
+                          />
+                        );
+                    })}
 
-                {isWaitingForResponse && (
-                  <div className="flex justify-start">
-                    <div className="bg-white text-gray-800 border border-gray-200 rounded-2xl px-4 py-2 shadow-sm">
-                      <div className="flex items-center space-x-2">
-                        <Bot className="w-4 h-4 text-[#3D6B2C]" />
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"
-                            style={{ animationDelay: "0.2s" }}
-                          ></div>
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"
-                            style={{ animationDelay: "0.4s" }}
-                          ></div>
+                  {cart.length > 0 && !isWaitingForResponse && (
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => setShowCart(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F08C23] hover:bg-[#d87a1f] text-white rounded-lg font-medium transition-all duration-300 transform hover:scale-105 text-xs"
+                      >
+                        <ShoppingCart className="w-3 h-3" />
+                        Checkout ({cart.length})
+                      </button>
+                    </div>
+                  )}
+
+                  {isWaitingForResponse && (
+                    <div className="flex justify-start">
+                      <div className="bg-white text-gray-800 border border-gray-200 rounded-2xl px-4 py-2 shadow-sm">
+                        <div className="flex items-center space-x-2">
+                          <Bot className="w-4 h-4 text-[#3D6B2C]" />
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
+                            <div
+                              className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"
+                              style={{ animationDelay: "0.2s" }}
+                            ></div>
+                            <div
+                              className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"
+                              style={{ animationDelay: "0.4s" }}
+                            ></div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
+                <div ref={messagesEndRef} />
               </div>
-              <div ref={messagesEndRef} />
-            </div>
+            )}
 
-            {/* Input Area */}
-            <div className="p-4 bg-white border-t border-gray-200 rounded-b-2xl">
+            {/* Input Area - Fixed at bottom */}
+            <div className="flex-shrink-0 p-3 sm:p-4 bg-white border-t border-gray-200 rounded-b-2xl">
               <div className="flex items-center space-x-2">
                 <input
                   type="text"
@@ -524,14 +596,14 @@ const ChatBot: React.FC = () => {
                   onKeyDown={handleKeyPress}
                   placeholder="Type your message..."
                   disabled={isWaitingForResponse}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D6B2C] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D6B2C] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
                 />
                 <button
                   onClick={handleSendMessage}
                   disabled={!inputValue.trim() || isWaitingForResponse}
-                  className="bg-[#3D6B2C] hover:bg-[#2d5220] disabled:bg-gray-300 disabled:cursor-not-allowed text-white p-2 rounded-xl transition-colors transform hover:scale-105"
+                  className="bg-[#3D6B2C] hover:bg-[#2d5220] disabled:bg-gray-300 disabled:cursor-not-allowed text-white p-2 rounded-xl transition-colors transform hover:scale-105 flex-shrink-0"
                 >
-                  <Send className="w-5 h-5" />
+                  <Send className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
@@ -543,21 +615,21 @@ const ChatBot: React.FC = () => {
       <button
         onClick={toggleChatbot}
         className={`
-          w-14 h-14 bg-gradient-to-r from-[#3D6B2C] to-[#388E3C] text-white rounded-full shadow-lg
+          w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-r from-[#3D6B2C] to-[#388E3C] text-white rounded-full shadow-lg
           flex items-center justify-center transition-all duration-300 hover:scale-110
           ${isOpen ? "rotate-90" : "rotate-0"}
         `}
       >
         {isOpen ? (
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5 sm:w-6 sm:h-6" />
         ) : (
-          <MessageCircle className="w-6 h-6" />
+          <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
         )}
       </button>
 
       {/* Notification Badge */}
       {!isOpen && cart.length > 0 && (
-        <div className="absolute -top-2 -right-2 w-6 h-6 bg-[#F08C23] text-white text-xs rounded-full flex items-center justify-center animate-pulse">
+        <div className="absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 bg-[#F08C23] text-white text-xs rounded-full flex items-center justify-center animate-pulse">
           {cart.length}
         </div>
       )}

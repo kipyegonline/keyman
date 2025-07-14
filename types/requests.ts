@@ -104,11 +104,19 @@ export interface KeymanItem {
   visual_confirmation_required?: boolean | 1 | 0;
   item_id?: string;
 }
-
+export interface KeymanItemRequest {
+  description: string;
+  id: string;
+  name: string;
+  photo?: string[];
+  quantity?: number;
+  item_id?: string;
+  visual_confirmation_required?: boolean | 1 | 0;
+}
 export interface CreateRequestPayload {
   created_from: string;
   delivery_date: string; // Consider using Date type if you plan to parse it
-  items: KeymanItem[];
+  items: KeymanItemRequest[];
   latitude: number;
   longitude: number;
   status: string;
