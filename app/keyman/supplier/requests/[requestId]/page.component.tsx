@@ -13,7 +13,9 @@ export default function RequestItemComponent({
 }: {
   requestId: string;
 }) {
-  const supplierId = localStorage.getItem("supplier_id") as string;
+  const supplierId = globalThis?.window?.localStorage.getItem(
+    "supplier_id"
+  ) as string;
   const {
     data: payload,
     isError,

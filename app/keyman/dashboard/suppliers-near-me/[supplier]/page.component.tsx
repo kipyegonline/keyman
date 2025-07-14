@@ -68,6 +68,7 @@ export default function SupplierClientComponent({
                 {_priceList.map((item, index) => (
                   <PricelistItem
                     item={item}
+                    supplierId={supplierId}
                     index={index}
                     key={item.id}
                     hideControls={true}

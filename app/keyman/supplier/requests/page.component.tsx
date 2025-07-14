@@ -8,7 +8,9 @@ import LoadingComponent from "@/lib/LoadingComponent";
 import SupplierRequestsTable from "@/components/requests/supplierRequests";
 
 export default function RequestClientComponent() {
-  const supplierId = localStorage.getItem("supplier_id") as string;
+  const supplierId = globalThis?.window?.localStorage.getItem(
+    "supplier_id"
+  ) as string;
   const {
     data: requests,
     isLoading,

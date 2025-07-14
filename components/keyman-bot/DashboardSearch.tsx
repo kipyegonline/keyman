@@ -41,9 +41,11 @@ export default function DashboardSearch() {
     }
   };
   const handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    console.log(e);
     if (e.key === "Enter" && searchValue.trim().length > 2) {
       toggleChatMode();
+      setChatMessage(searchValue);
+      setTimeout(() => setSearchValue(""), 1000);
+      e.preventDefault();
     }
   };
   return (
