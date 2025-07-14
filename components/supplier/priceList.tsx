@@ -163,6 +163,7 @@ export default function PricelistDashboard({
     setModalOpened(true);
   };
   const handleDeleteClick = async (item: Pricelist) => {
+    console.log(item, "item");
     if (confirm("Delete " + item.name + "?")) {
       setIsLoading(true);
       const response = await deleteItem(item?.added_by_supplier_id as string);
