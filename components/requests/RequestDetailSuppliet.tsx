@@ -84,7 +84,9 @@ const RequestDetailSuplier: React.FC<{
   const [showModal, setShowModal] = React.useState(false);
   const [transportOpen, setTransportOpen] = React.useState(false);
 
-  const supplierId = localStorage.getItem("supplier_id") as string;
+  const supplierId = globalThis?.window?.localStorage.getItem(
+    "supplier_id"
+  ) as string;
   const [submitting, setSubmitting] = React.useState(false);
   const [success, setSuccess] = React.useState(false);
   const [open, setOpen] = React.useState(false);

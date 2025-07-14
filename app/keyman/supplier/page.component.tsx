@@ -9,7 +9,9 @@ import LoadingComponent from "@/lib/LoadingComponent";
 import { Alert, Text } from "@mantine/core";
 
 export default function SupplierComponentDashboard() {
-  const supplierId = localStorage.getItem("supplier_id") as string;
+  const supplierId = globalThis?.window?.localStorage.getItem(
+    "supplier_id"
+  ) as string;
 
   const {
     data: supplier,

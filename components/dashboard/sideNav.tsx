@@ -81,7 +81,10 @@ const Sidebar: React.FC<{
   const handleHardware = (hardware: HardWare) => {
     navigateTo();
 
-    localStorage.setItem("supplier_id", hardware.supplier_detail_id);
+    globalThis?.window?.localStorage.setItem(
+      "supplier_id",
+      hardware.supplier_detail_id
+    );
     setActiveItem("dashboard");
     router.push(`/keyman/supplier`);
     toggleDashboard();

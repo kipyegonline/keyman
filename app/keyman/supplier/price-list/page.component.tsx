@@ -10,7 +10,9 @@ import { useTransition } from "react";
 export default function PriceListClientcomponent() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isPending, startTransition] = useTransition();
-  const supplierId = localStorage.getItem("supplier_id") as string;
+  const supplierId = globalThis?.window?.localStorage.getItem(
+    "supplier_id"
+  ) as string;
   const { data: prices } = useQuery({
     queryKey: [searchQuery],
     queryFn: async () => await getItems(searchQuery),

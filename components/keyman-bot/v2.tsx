@@ -59,12 +59,12 @@ interface CartItem extends Product {
 }
 const dash = "dashboard";
 const checkDash = () => {
-  const _dash = localStorage.getItem("dashboard");
+  const _dash = globalThis?.window?.localStorage.getItem("dashboard");
   if (_dash === null) return true;
   return _dash === dash;
 };
 const checkAuth = () => {
-  const user = localStorage.getItem("keyman_user");
+  const user = globalThis?.window?.localStorage.getItem("keyman_user");
   return !!user;
 };
 const ChatBot: React.FC = () => {

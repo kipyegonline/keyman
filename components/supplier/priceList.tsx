@@ -147,7 +147,7 @@ export default function PricelistDashboard({
   const [deleting, setDeleting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  const supplierId = localStorage.getItem("supplier_id");
+  const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
   React.useEffect(() => {
     if (deleting) {
       setTimeout(() => {
