@@ -332,7 +332,7 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
 
       {/* Usage Analytics Section */}
       <Grid mb="xl">
-        <Grid.Col span={8}>
+        <Grid.Col span={{ base: 12, md: 8 }}>
           <Card shadow="md" radius="lg" padding="xl" className="h-full">
             <Group justify={"space-between"} mb="lg">
               <div>
@@ -396,7 +396,7 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
           </Card>
         </Grid.Col>
 
-        <Grid.Col span={4}>
+        <Grid.Col span={{ base: 12, md: 4 }}>
           <Card shadow="md" radius="lg" padding="xl" className="h-full">
             <Group justify="center" mb="lg">
               <div className="text-center">

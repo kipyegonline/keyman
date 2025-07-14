@@ -30,6 +30,34 @@ export const getBalance = async (
     }
   }
 };
+export const getCoinUsage = async (
+  supplierId: string,
+  isSupplier: boolean = false
+) => {
+  try {
+    if (isSupplier) {
+      const response = await AxiosClient.get(
+        ENDPOINTS.coin.GET_COIN_USAGE(supplierId)
+      );
+      return response.data;
+    } else {
+      const response = await AxiosClient.get(ENDPOINTS.coin.USER_USAGE);
+      return response.data;
+    }
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while fetching projects",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};
 
 interface PaymentFormData {
   payment_method: string;

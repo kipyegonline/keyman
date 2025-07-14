@@ -72,6 +72,7 @@ export default function SupplierClientComponent({
                     key={item.id}
                     hideControls={true}
                     handleEditClick={() => null}
+                    handleDeleteClick={() => null}
                   />
                 ))}
               </Grid>

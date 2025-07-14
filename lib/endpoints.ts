@@ -47,6 +47,7 @@ export const ENDPOINTS = {
       else return `/api/items?name=${item}&item_category_id=`;
     },
     ADD_SUPPLIER_ITEM: `/api/item`,
+    DELETE_ITEM: (id: string) => `/api/items/${id}/delete`,
   },
   projects: {
     GET_PROJETCS: "/api/projects",
@@ -58,6 +59,7 @@ export const ENDPOINTS = {
     GET_BALANCE: (supplierId: string) =>
       `/api/keyman-coin/balance?supplier_detail_id=${supplierId}`,
     USER_BALANCE: "/api/keyman-coin/balance",
+    USER_USAGE: "/api/keyman-coin/usage",
     MAKE_PAYYMENT: "/api/payments/pay",
     CONFIRM_PAYMENT: "",
   },

@@ -18,12 +18,19 @@ export default function KeyManCoinDashboard() {
     queryFn: async () => getBalance(""),
     refetchOnWindowFocus: false,
   });
-
+  /*
+  const { data: coinUsage } = useQuery({
+    queryKey: ["coin-usage"],
+    queryFn: async () => getCoinUsage(""),
+    refetchOnWindowFocus: false,
+  });
+*/
   const _balance = React.useMemo(() => {
     if (balance?.balance) {
       return balance.balance;
     } else return {};
   }, [balance]);
+
   if (isLoading)
     return <LoadingComponent message="Loading Keyman Coin Dashboard..." />;
   return (

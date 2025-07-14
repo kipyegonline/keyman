@@ -102,6 +102,7 @@ export interface SupplierInfo {
   "categories[1]"?: string;
   name?: string;
   keyman_number?: string;
+  id?: string;
 }
 export interface categories {
   goods: { name: "goods"; categories: { id: string; name: string }[] };

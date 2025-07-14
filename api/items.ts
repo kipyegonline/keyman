@@ -52,11 +52,37 @@ export const getItems = async (itemName: string, categoryId?: string) => {
 };
 
 /**
+ * Deletes an item.
+ * @param itemId The ID of the item to delete.
+ * @returns The status of the deletion.
+ */
+export const deleteItem = async (itemId: string) => {
+  try {
+    const response = await AxiosClient.delete(
+      ENDPOINTS.items.DELETE_ITEM(itemId)
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while deleting the item",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};
+
+/**
  * Create a new item for a supplier.
  * @param payload The data for the new item.
  * @returns The created item data.
  */
-export const createItem = async (payload: CreateItemPayload) => {
+export const createItem = async (payload: FormData) => {
   try {
     const response = await AxiosClient.post(
       ENDPOINTS.items.ADD_SUPPLIER_ITEM,

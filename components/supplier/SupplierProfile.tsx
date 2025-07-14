@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   Avatar,
@@ -32,11 +32,13 @@ import {
   Award,
   CheckCircle,
   Hash,
+  Share2,
 } from "lucide-react";
 import { SupplierInfo } from "@/types";
 
 interface ISupplierInfo {
   phone: string;
+  id: string;
   email: string;
   type: string;
   address: string;
@@ -76,6 +78,7 @@ const supplierData: ISupplierInfo & {
   address: "Industrial Area, Nairobi, Kenya",
   latitude: -1.3194,
   longitude: 36.8507,
+  id: "ffffffsss",
   categories: [
     "Building Materials",
     "Hardware",
@@ -104,9 +107,57 @@ const supplierData: ISupplierInfo & {
 const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
   supplier,
 }) => {
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
+
   const handleViewLocation = () => {
     const googleMapsUrl = `https://www.google.com/maps?q=${supplier?.location?.coordinates[1]},${supplier?.location?.coordinates[0]}`;
     window.open(googleMapsUrl, "_blank");
+  };
+  console.log(supplier, "liar");
+  const handleShare = async () => {
+    setIsSharing(true);
+
+    const shareData = {
+      title: `${supplier?.name} - Quality Supplier on KeymanStores`,
+      text: `Check out ${supplier?.name}, a trusted ${
+        supplier?.type
+      } specializing in ${supplier?.categories
+        ?.map((cat) => cat?.item_category?.name)
+        .join(", ")}. Located in ${supplier?.address} with ${
+        supplierData.rating
+      } star rating!`,
+      url: `https://www.keymanstores.com/keyman/dashboard/suppliers-near-me/${supplier?.id}`,
+    };
+
+    try {
+      if (
+        navigator.share &&
+        navigator.canShare &&
+        navigator.canShare(shareData)
+      ) {
+        await navigator.share(shareData);
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 2000);
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        await navigator.clipboard.writeText(shareData.url);
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 2000);
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+      // Fallback: copy to clipboard
+      try {
+        await navigator.clipboard.writeText(shareData.url);
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 2000);
+      } catch (clipboardError) {
+        console.error("Clipboard error:", clipboardError);
+      }
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   const socialLinks = [
@@ -167,12 +218,66 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="mb-8 border-reds">
-          <div className="flex items-center gap-2 mb-4 ">
-            <div className="w-1 h-12 bg-[#3D6B2C] rounded-full"></div>
-            <Text size="sm" className="text-gray-600 font-medium">
-              Supplier Profile
-            </Text>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-12 bg-[#3D6B2C] rounded-full"></div>
+              <Text size="sm" className="text-gray-600 font-medium">
+                Supplier Profile
+              </Text>
+            </div>
+
+            {/* Share Button */}
+            <Tooltip
+              label={shareSuccess ? "Link copied!" : "Share this profile"}
+              position="bottom"
+              className="transition-all duration-300"
+            >
+              <ActionIcon
+                variant="light"
+                size="lg"
+                onClick={handleShare}
+                disabled={isSharing}
+                className={`
+                  relative overflow-hidden
+                  hover:scale-110 active:scale-95 
+                  transition-all duration-300 ease-out
+                  hover:shadow-lg hover:shadow-[#3D6B2C]/25
+                  ${
+                    shareSuccess
+                      ? "bg-green-100 border-green-300"
+                      : "bg-[#3D6B2C]/10 border-[#3D6B2C]/20"
+                  }
+                  border-2
+                `}
+                style={{
+                  backgroundColor: shareSuccess ? "#dcfce7" : "#3D6B2C15",
+                  borderColor: shareSuccess ? "#22c55e" : "#3D6B2C30",
+                  color: shareSuccess ? "#16a34a" : "#3D6B2C",
+                }}
+              >
+                <div
+                  className={`
+                  transition-all duration-300 ease-out
+                  ${isSharing ? "animate-spin" : ""}
+                  ${shareSuccess ? "scale-110" : "scale-100"}
+                `}
+                >
+                  <Share2
+                    className={`
+                    w-6 h-6 transition-all duration-300
+                    ${shareSuccess ? "text-green-600" : "text-[#3D6B2C]"}
+                  `}
+                  />
+                </div>
+
+                {/* Success animation overlay */}
+                {shareSuccess && (
+                  <div className="absolute inset-0 bg-green-400/20 animate-pulse rounded-full" />
+                )}
+              </ActionIcon>
+            </Tooltip>
           </div>
+
           <div className="flex flex-col md:flex-row gap-x-4 items-center text-center mb-2">
             <Avatar
               size={120}

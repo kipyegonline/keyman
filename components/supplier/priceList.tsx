@@ -24,6 +24,7 @@ import {
   Alert,
   Pagination,
   Textarea,
+  FileInput,
 } from "@mantine/core";
 import {
   Edit3,
@@ -41,10 +42,12 @@ import {
   AlertCircle,
   //Delete,
   Trash2,
+  ImageIcon,
+  Upload,
 } from "lucide-react";
 import { updateSupplierPriceList } from "@/api/supplier";
 import { notify } from "@/lib/notifications";
-import { createItem } from "@/api/items";
+import { createItem, deleteItem } from "@/api/items";
 
 export interface Pricelist {
   id?: string;
@@ -55,6 +58,7 @@ export interface Pricelist {
   transportation_type: "TUKTUK" | "PICKUP" | "LORRY";
   type: "goods" | "services" | "professional_services" | "Select Type";
   weight_in_kgs: number;
+  image?: File | null;
 }
 
 const getItemEmoji = (type: string, name: string): string => {
@@ -133,6 +137,7 @@ export default function PricelistDashboard({
     transportation_type: "TUKTUK",
     type: "Select Type",
     weight_in_kgs: 0,
+    image: null,
   });
   const [addLoading, setAddLoading] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -155,8 +160,20 @@ export default function PricelistDashboard({
     setEditForm({ ...item });
     setModalOpened(true);
   };
-  const handleDeleteClick = (item: Pricelist) => {
+  const handleDeleteClick = async (item: Pricelist) => {
     if (confirm("Delete " + item.name + "?")) {
+      setIsLoading(true);
+      const response = await deleteItem(item?.id as string);
+
+      setIsLoading(false);
+      if (response.status) {
+        setTimeout(() => {
+          setSuccessMessage("");
+          setModalOpened(false);
+        }, 3000);
+        setSuccessMessage(` ${item.name} deleted successfully `);
+        refetchPricelist();
+      } else notify.error(response.message);
     }
   };
 
@@ -217,6 +234,26 @@ export default function PricelistDashboard({
       errors.push("Transportation type is required");
     }
 
+    // Image validation (optional but with size check)
+    if (addForm.image) {
+      const maxSizeInMB = 5;
+      const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+
+      if (addForm.image.size > maxSizeInBytes) {
+        errors.push(`Image size must be less than ${maxSizeInMB}MB`);
+      }
+
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/webp",
+      ];
+      if (!allowedTypes.includes(addForm.image.type)) {
+        errors.push("Image must be in JPEG, PNG, or WebP format");
+      }
+    }
+
     setValidationErrors(errors);
     return errors.length === 0;
   };
@@ -229,10 +266,25 @@ export default function PricelistDashboard({
     setAddLoading(true);
 
     try {
-      const response = await createItem({
-        supplier_detail_id: supplierId as string,
-        ...addForm,
-      });
+      // Create FormData object
+      const formData = new FormData();
+
+      // Append all form fields
+      formData.append("supplier_detail_id", supplierId as string);
+      formData.append("name", addForm.name);
+      formData.append("swahili_name", addForm.swahili_name);
+      formData.append("description", addForm.description);
+      formData.append("type", addForm.type);
+      formData.append("price", addForm.price.toString());
+      formData.append("weight_in_kgs", addForm.weight_in_kgs.toString());
+      formData.append("transportation_type", addForm.transportation_type);
+
+      // Append image if it exists
+      if (addForm.image) {
+        formData.append("image", addForm.image);
+      }
+
+      const response = await createItem(formData);
 
       if (response.status) {
         setSuccessMessage(`New item "${addForm.name}" added successfully`);
@@ -245,20 +297,21 @@ export default function PricelistDashboard({
           transportation_type: "TUKTUK",
           type: "Select Type",
           weight_in_kgs: 0,
+          image: null,
         });
         setValidationErrors([]);
 
         // Optional: Refresh the items list
-        // You might want to call a refresh function here
+        refetchPricelist();
 
         setTimeout(() => {
           setSuccessMessage("");
         }, 3000);
       } else {
-        notify.error("Somethhing went wrong, try againlater");
+        notify.error("Something went wrong, try again later");
       }
     } catch (error) {
-      console.error("Error adding item:-----", error);
+      console.error("Error adding item:", error);
       notify.error("Failed to add item. Please try again.");
     } finally {
       setAddLoading(false);
@@ -276,6 +329,7 @@ export default function PricelistDashboard({
       transportation_type: "TUKTUK",
       type: "Select Type",
       weight_in_kgs: 0,
+      image: null,
     });
   };
 
@@ -691,6 +745,62 @@ export default function PricelistDashboard({
             )}
           />
 
+          {/* Image Upload */}
+          <FileInput
+            label="Item Image (Optional)"
+            description="Upload an image of the item (Max 5MB, JPEG/PNG/WebP)"
+            placeholder="Choose image file"
+            value={addForm.image}
+            onChange={(file) => setAddForm({ ...addForm, image: file })}
+            leftSection={<ImageIcon size={16} />}
+            accept="image/jpeg,image/jpg,image/png,image/webp"
+            size="lg"
+            radius="md"
+            clearable
+            error={validationErrors.some(
+              (error) => error.includes("Image") || error.includes("format")
+            )}
+            styles={{
+              input: {
+                cursor: "pointer",
+                "&::placeholder": {
+                  color: "#868e96",
+                },
+              },
+            }}
+          />
+
+          {/* Image Preview */}
+          {addForm.image && (
+            <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
+              <Group>
+                <Avatar
+                  size="lg"
+                  radius="md"
+                  src={URL.createObjectURL(addForm.image)}
+                  alt="Item preview"
+                >
+                  <ImageIcon size={24} />
+                </Avatar>
+                <Box style={{ flex: 1 }}>
+                  <Text size="sm" fw={500}>
+                    {addForm.image.name}
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    {(addForm.image.size / 1024 / 1024).toFixed(2)} MB
+                  </Text>
+                </Box>
+                <ActionIcon
+                  variant="light"
+                  color="red"
+                  onClick={() => setAddForm({ ...addForm, image: null })}
+                >
+                  <X size={16} />
+                </ActionIcon>
+              </Group>
+            </Paper>
+          )}
+
           <Group justify="flex-end" mt="xl">
             <Button
               variant="light"
@@ -703,7 +813,7 @@ export default function PricelistDashboard({
             </Button>
             <Button
               color="#3D6B2C"
-              leftSection={<Plus size={16} />}
+              leftSection={<Upload size={16} />}
               onClick={handleAddItem}
               loading={addLoading}
               radius="xl"
