@@ -47,7 +47,7 @@ export const ENDPOINTS = {
       else return `/api/items?name=${item}&item_category_id=`;
     },
     ADD_SUPPLIER_ITEM: `/api/item`,
-    DELETE_ITEM: (id: string) => `/api/items/${id}/delete`,
+    DELETE_ITEM: (id: string) => `/api/supplier/price_list/${id}`,
   },
   projects: {
     GET_PROJETCS: "/api/projects",

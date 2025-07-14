@@ -25,7 +25,9 @@ import {
   Pagination,
   Textarea,
   FileInput,
+  Loader,
 } from "@mantine/core";
+//import { toDataUrlFromFile, DataURIToBlob } from "@/lib/FileHandlers";
 import {
   Edit3,
   Weight,
@@ -142,9 +144,18 @@ export default function PricelistDashboard({
     image: null,
   });
   const [addLoading, setAddLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   const supplierId = localStorage.getItem("supplier_id");
+  React.useEffect(() => {
+    if (deleting) {
+      setTimeout(() => {
+        const loader = document.getElementById("header");
+        if (loader) loader.scrollIntoView({ behavior: "smooth" });
+      }, 1000);
+    }
+  }, [deleting]);
 
   const handleSearchQuery = (value: string) => {
     if (searchTerm.length > 2) {
@@ -163,16 +174,14 @@ export default function PricelistDashboard({
     setModalOpened(true);
   };
   const handleDeleteClick = async (item: Pricelist) => {
-    console.log(item, "item");
     if (confirm("Delete " + item.name + "?")) {
-      setIsLoading(true);
-      const response = await deleteItem(item?.added_by_supplier_id as string);
+      setDeleting(true);
+      const response = await deleteItem(item?.id as string);
 
-      setIsLoading(false);
+      setDeleting(false);
       if (response.status) {
         setTimeout(() => {
           setSuccessMessage("");
-          setModalOpened(false);
         }, 3000);
         setSuccessMessage(` ${item.name} deleted successfully `);
         refetchPricelist();
@@ -284,7 +293,10 @@ export default function PricelistDashboard({
 
       // Append image if it exists
       if (addForm.image) {
-        formData.append("image", addForm.image);
+        // const file64 = await toDataUrlFromFile(addForm.image);
+
+        //const file_ = DataURIToBlob(file64 as string);
+        formData.append("images[]", addForm?.image, addForm?.image?.name);
       }
 
       const response = await createItem(formData);
@@ -358,7 +370,7 @@ export default function PricelistDashboard({
           wrap="wrap"
           gap="md"
         >
-          <Box>
+          <Box id="header">
             <Title order={1} c="white" mb="xs">
               <Flex
                 align="center"
@@ -406,6 +418,10 @@ export default function PricelistDashboard({
           </Group>
         </Flex>
       </Paper>
+      {/* Deleting loader */}
+      <Transition mounted={deleting} transition="slide-down">
+        {(styles) => <Loader mb="xl" style={styles} id="loader" />}
+      </Transition>
 
       {/* Success Alert */}
       <Transition mounted={!!successMessage} transition="slide-down">
@@ -464,6 +480,7 @@ export default function PricelistDashboard({
               key={item.id}
               item={item}
               index={index}
+              supplierId={supplierId ?? ""}
               handleDeleteClick={() => handleDeleteClick(item)}
               handleEditClick={() => handleEditClick(item)}
             />
@@ -836,7 +853,15 @@ export const PricelistItem: React.FC<{
   handleEditClick: () => void;
   handleDeleteClick: () => void;
   hideControls?: boolean;
-}> = ({ item, index, handleEditClick, hideControls, handleDeleteClick }) => {
+  supplierId: string;
+}> = ({
+  item,
+  index,
+  handleEditClick,
+  hideControls,
+  handleDeleteClick,
+  supplierId,
+}) => {
   return (
     <Grid.Col key={item.id} span={{ base: 12, sm: 6, lg: 4 }}>
       <Transition
@@ -899,17 +924,19 @@ export const PricelistItem: React.FC<{
                         <Edit3 size={18} />
                       </ActionIcon>
                     </Tooltip>
-                    <Tooltip label="Delete Item">
-                      <ActionIcon
-                        variant="light"
-                        color="red"
-                        size="lg"
-                        radius="xl"
-                        onClick={handleDeleteClick}
-                      >
-                        <Trash2 size={18} />
-                      </ActionIcon>
-                    </Tooltip>
+                    {supplierId === item.added_by_supplier_id && (
+                      <Tooltip label="Delete Item">
+                        <ActionIcon
+                          variant="light"
+                          color="red"
+                          size="lg"
+                          radius="xl"
+                          onClick={handleDeleteClick}
+                        >
+                          <Trash2 size={18} />
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
                   </div>
                 )}
               </Flex>
@@ -917,25 +944,31 @@ export const PricelistItem: React.FC<{
               <Divider />
 
               {/* Price Section */}
-              <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
-                <Flex align="center" justify="space-between">
-                  <Box>
-                    <Text size="xs" c="dimmed" mb={2}>
-                      Current Price
-                    </Text>
-                    <Text size="xl" fw={700} c="#3D6B2C">
-                      KES {Number(item.price).toLocaleString()}
-                    </Text>
-                  </Box>
-                  <Avatar
-                    size="md"
-                    radius="xl"
-                    style={{ backgroundColor: "#3D6B2C" }}
-                  >
-                    <Coins size={20} color="white" />
-                  </Avatar>
-                </Flex>
-              </Paper>
+              {item.price && (
+                <Paper
+                  p="md"
+                  radius="lg"
+                  style={{ backgroundColor: "#f8f9fa" }}
+                >
+                  <Flex align="center" justify="space-between">
+                    <Box>
+                      <Text size="xs" c="dimmed" mb={2}>
+                        Current Price
+                      </Text>
+                      <Text size="xl" fw={700} c="#3D6B2C">
+                        KES {Number(item.price).toLocaleString()}
+                      </Text>
+                    </Box>
+                    <Avatar
+                      size="md"
+                      radius="xl"
+                      style={{ backgroundColor: "#3D6B2C" }}
+                    >
+                      <Coins size={20} color="white" />
+                    </Avatar>
+                  </Flex>
+                </Paper>
+              )}
 
               {/* Item Details */}
               <Group justify="space-between">
