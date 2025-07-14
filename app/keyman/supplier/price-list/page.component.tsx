@@ -17,7 +17,7 @@ export default function PriceListClientcomponent() {
     enabled: !!searchQuery,
   });
 
-  const { data: priceList } = useQuery({
+  const { data: priceList, refetch: refresh } = useQuery({
     queryKey: ["pricelist", supplierId],
     queryFn: async () => getSupplierPriceList(supplierId),
     enabled: !!supplierId,
@@ -46,6 +46,7 @@ export default function PriceListClientcomponent() {
         handleSearch={handleSearch}
         isPending={isPending}
         prices={[..._priceList, ...items]}
+        refetchPricelist={() => refresh()}
       />
     </div>
   );

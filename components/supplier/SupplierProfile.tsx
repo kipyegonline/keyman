@@ -166,8 +166,8 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="mb-8 border-reds">
+          <div className="flex items-center gap-2 mb-4 ">
             <div className="w-1 h-12 bg-[#3D6B2C] rounded-full"></div>
             <Text size="sm" className="text-gray-600 font-medium">
               Supplier Profile
@@ -334,7 +334,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
                 About Us
               </Title>
               <Text className="text-gray-700 leading-relaxed">
-                {supplier?.comments ?? supplierData.comments}
+                {supplier?.comments ?? "Description coming soon..."}
               </Text>
             </Card>
 

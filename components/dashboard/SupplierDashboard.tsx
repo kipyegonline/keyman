@@ -43,7 +43,7 @@ const Sidebar: React.FC<{
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "requests", label: "Requests near me", icon: ClipboardList },
     { id: "orders", label: "Orders", icon: ShoppingCart },
-    { id: "price", label: "Price List", icon: DiamondPercent },
+    { id: "price", label: "Manage store prices", icon: DiamondPercent },
     { id: "update", label: "Update profile", icon: Settings },
     { id: "customer", label: "Customer Profile", icon: User },
     //{ id: 'materials', label: 'Materials', icon: Package },

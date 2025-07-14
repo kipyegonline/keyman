@@ -39,6 +39,8 @@ import {
   Coins,
   Package,
   AlertCircle,
+  //Delete,
+  Trash2,
 } from "lucide-react";
 import { updateSupplierPriceList } from "@/api/supplier";
 import { notify } from "@/lib/notifications";
@@ -105,10 +107,12 @@ export default function PricelistDashboard({
   handleSearch,
   isPending,
   prices: items,
+  refetchPricelist,
 }: {
   handleSearch: (val: string) => void;
   isPending: boolean;
   prices: Pricelist[];
+  refetchPricelist: () => void;
 }) {
   const [selectedItem, setSelectedItem] = useState<Pricelist | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
@@ -151,6 +155,10 @@ export default function PricelistDashboard({
     setEditForm({ ...item });
     setModalOpened(true);
   };
+  const handleDeleteClick = (item: Pricelist) => {
+    if (confirm("Delete " + item.name + "?")) {
+    }
+  };
 
   const handleSavePrice = async () => {
     if (!editForm || !selectedItem) return;
@@ -172,6 +180,7 @@ export default function PricelistDashboard({
           setModalOpened(false);
         }, 3000);
         setSuccessMessage(`Price updated for ${editForm.name}`);
+        refetchPricelist();
       } else notify.error(response.message);
     }
   };
@@ -306,7 +315,7 @@ export default function PricelistDashboard({
                 >
                   💰
                 </Avatar>
-                Price Management Dashboard
+                Store Management Dashboard
               </Flex>
             </Title>
             <Text c="rgba(255,255,255,0.8)" size="lg">
@@ -398,6 +407,7 @@ export default function PricelistDashboard({
               key={item.id}
               item={item}
               index={index}
+              handleDeleteClick={() => handleDeleteClick(item)}
               handleEditClick={() => handleEditClick(item)}
             />
           ))}
@@ -711,8 +721,9 @@ export const PricelistItem: React.FC<{
   item: Pricelist;
   index: number;
   handleEditClick: () => void;
+  handleDeleteClick: () => void;
   hideControls?: boolean;
-}> = ({ item, index, handleEditClick, hideControls }) => {
+}> = ({ item, index, handleEditClick, hideControls, handleDeleteClick }) => {
   return (
     <Grid.Col key={item.id} span={{ base: 12, sm: 6, lg: 4 }}>
       <Transition
@@ -763,17 +774,30 @@ export const PricelistItem: React.FC<{
                 </Box>
 
                 {hideControls ? null : (
-                  <Tooltip label="Edit Price">
-                    <ActionIcon
-                      variant="light"
-                      color="#3D6B2C"
-                      size="lg"
-                      radius="xl"
-                      onClick={handleEditClick}
-                    >
-                      <Edit3 size={18} />
-                    </ActionIcon>
-                  </Tooltip>
+                  <div className="flex gap-x-2 items-center">
+                    <Tooltip label="Edit Price">
+                      <ActionIcon
+                        variant="light"
+                        color="#3D6B2C"
+                        size="lg"
+                        radius="xl"
+                        onClick={handleEditClick}
+                      >
+                        <Edit3 size={18} />
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label="Delete Item">
+                      <ActionIcon
+                        variant="light"
+                        color="red"
+                        size="lg"
+                        radius="xl"
+                        onClick={handleDeleteClick}
+                      >
+                        <Trash2 size={18} />
+                      </ActionIcon>
+                    </Tooltip>
+                  </div>
                 )}
               </Flex>
 
