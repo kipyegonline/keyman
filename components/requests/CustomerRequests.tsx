@@ -13,6 +13,7 @@ import {
   Container,
   Flex,
   Button,
+  ScrollArea,
 } from "@mantine/core";
 import {
   Calendar,
@@ -307,7 +308,11 @@ const RequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
   );
 
   return (
-    <Container size="xl" py="xl">
+    <Container
+      size="xl"
+      py={{ base: "xs", md: "xl" }}
+      px={{ base: "xs", md: "xl" }}
+    >
       <Box mb="xl">
         <Group gap="md" mb="md">
           <Box
@@ -350,39 +355,40 @@ const RequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
             background: "linear-gradient(to right, #3D6B2C, #388E3C, #F08C23)",
           }}
         />
-
-        <Table highlightOnHover className="table-auto">
-          <Table.Thead>
-            <Table.Tr className="bg-gradient-to-r from-gray-50 to-gray-100">
-              <Table.Th className="font-semibold text-gray-700">#</Table.Th>
-              <Table.Th className="font-semibold text-gray-700">
-                Request Code
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700">
-                Created
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700">
-                Delivery Date
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700">
-                Created From
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700 text-center">
-                Quotes
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700 text-center">
-                Items
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700">
-                Status
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700 text-center">
-                Actions
-              </Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>{rows}</Table.Tbody>
-        </Table>
+        <ScrollArea>
+          <Table highlightOnHover className="table-auto">
+            <Table.Thead>
+              <Table.Tr className="bg-gradient-to-r from-gray-50 to-gray-100">
+                <Table.Th className="font-semibold text-gray-700">#</Table.Th>
+                <Table.Th className="font-semibold text-gray-700">
+                  Request Code
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700">
+                  Created
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700">
+                  Delivery Date
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700">
+                  Created From
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700 text-center">
+                  Quotes
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700 text-center">
+                  Items
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700">
+                  Status
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700 text-center">
+                  Actions
+                </Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>{rows}</Table.Tbody>
+          </Table>
+        </ScrollArea>
       </Paper>
 
       {RequestIndicators}

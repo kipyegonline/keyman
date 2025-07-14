@@ -184,7 +184,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
       setPaymentStep("processing");
       const result = await makePayments(payload);
 
-      console.log(result.original.status, result);
+      // console.log(result.original.status, result);
       if (result.original.status) {
         const { CustomerMessage } = result.original;
         const steps = CustomerMessage.split(/\d+\.\s*/).filter(

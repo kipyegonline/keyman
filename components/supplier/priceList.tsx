@@ -59,6 +59,8 @@ export interface Pricelist {
   type: "goods" | "services" | "professional_services" | "Select Type";
   weight_in_kgs: number;
   image?: File | null;
+
+  added_by_supplier_id?: string;
 }
 
 const getItemEmoji = (type: string, name: string): string => {
@@ -163,7 +165,7 @@ export default function PricelistDashboard({
   const handleDeleteClick = async (item: Pricelist) => {
     if (confirm("Delete " + item.name + "?")) {
       setIsLoading(true);
-      const response = await deleteItem(item?.id as string);
+      const response = await deleteItem(item?.added_by_supplier_id as string);
 
       setIsLoading(false);
       if (response.status) {

@@ -287,10 +287,11 @@ const OrdersTable: React.FC<Props> = ({ orders: _orders, isSupplier }) => {
   ));
 
   return (
-    <Container size="xl" py="md">
+    <Container py={{ base: "xs", md: "md" }}>
       <Card
         shadow="sm"
-        padding="lg"
+        p={{ base: "xs", md: "lg" }}
+        //p="lg"
         radius="md"
         style={{
           background: "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",

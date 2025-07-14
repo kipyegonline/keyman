@@ -21,7 +21,7 @@ export default function OrdersClientcomponent() {
   if (isLoading) return <LoadingComponent message="Loading your orders..." />;
 
   return (
-    <div className="px-4 md:px-14">
+    <div className="px-0 md:px-14 ">
       {ordersList.length > 0 ? (
         <OrdersTable orders={ordersList} isSupplier={false} />
       ) : (

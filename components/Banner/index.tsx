@@ -1,10 +1,12 @@
 import { Carousel } from "@mantine/carousel";
 import { Image } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import Autoplay from "embla-carousel-autoplay";
 import React from "react";
 
 function KeymanBanner() {
-  const height = 240;
+  const matches = useMediaQuery("(max-width: 480px)");
+  const height = matches ? "auto" : 240;
   const autoplay = React.useRef(
     Autoplay({
       delay: 4000, // 4 seconds between slides

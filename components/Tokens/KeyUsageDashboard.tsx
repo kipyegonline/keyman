@@ -524,7 +524,8 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
       <Card
         shadow="lg"
         radius="lg"
-        padding="xl"
+        //padding="xl"
+        p={{ base: "sm", md: "xl" }}
         className="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-100"
       >
         <Group justify={"space-between"} align="center">
