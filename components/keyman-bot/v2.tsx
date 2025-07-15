@@ -587,8 +587,8 @@ const ChatBot: React.FC = () => {
             )}
 
             {/* Input Area - Fixed at bottom */}
-            <div className="flex-shrink-1 sm:flex-shrink-0 p-3  sm:p-4 bg-white border-t border-gray-200 rounded-b-2xl">
-              <div className="flex items-center space-x-2">
+            <div className="flex-shrink-0 p-3  sm:p-4 bg-white border-t border-gray-200 rounded-b-2xl">
+              <div className="flex items-center space-x-2 w-full min-w-0">
                 <input
                   type="text"
                   value={inputValue}
@@ -596,7 +596,7 @@ const ChatBot: React.FC = () => {
                   onKeyDown={handleKeyPress}
                   placeholder="Type your message..."
                   disabled={isWaitingForResponse}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D6B2C] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
+                  className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#3D6B2C] focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed text-sm"
                 />
                 <button
                   onClick={handleSendMessage}
