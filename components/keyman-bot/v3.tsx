@@ -11,7 +11,7 @@ import {
   Key,
   Edit3,
 } from "lucide-react";
-import { Badge, Card, Checkbox, Text, TextInput } from "@mantine/core";
+import { Alert, Badge, Card, Checkbox, Text, TextInput } from "@mantine/core";
 
 import { DeliveryDate, DeliveryLocation } from "./DeliveryLocation";
 import { Project } from "@/types";
@@ -98,14 +98,18 @@ const ItemCard: React.FC<{
         <Box className="mr-2 inline-block w-3 h-3 sm:w-4 sm:h-4" />
         {item.name}
       </h4>
-      <Checkbox
-        label="With image"
-        color="green"
-        variant="filled"
-        mb="sm"
-        onChange={(event) => setAttachImage(event.currentTarget.checked)}
-        checked={attachImage}
-      />
+      <Alert variant="light">
+        <Checkbox
+          label="I want supplier item image"
+          color="green"
+          variant="filled"
+          size="sm"
+          className="!text-xs"
+          mb="sm"
+          onChange={(event) => setAttachImage(event.currentTarget.checked)}
+          checked={attachImage}
+        />{" "}
+      </Alert>
 
       {/* Conditional rendering based on cart status and edit mode */}
       {!isInCart ? (

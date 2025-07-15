@@ -419,11 +419,11 @@ const ChatBot: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4  " style={{ zIndex: 999 }}>
       {/* Chat Window */}
       <div
         className={`
-          absolute bottom-16 right-0 
+          absolute bottom-16 right-0  
           w-80 sm:w-96 md:w-[420px] lg:w-[480px] xl:w-[520px]
           max-w-[calc(100vw-2rem)]
           max-h-[85vh] sm:max-h-[80vh] md:max-h-[75vh] lg:max-h-[70vh]
@@ -587,7 +587,7 @@ const ChatBot: React.FC = () => {
             )}
 
             {/* Input Area - Fixed at bottom */}
-            <div className="flex-shrink-0 p-3 sm:p-4 bg-white border-t border-gray-200 rounded-b-2xl">
+            <div className="flex-shrink-1 sm:flex-shrink-0 p-3  sm:p-4 bg-white border-t border-gray-200 rounded-b-2xl">
               <div className="flex items-center space-x-2">
                 <input
                   type="text"
