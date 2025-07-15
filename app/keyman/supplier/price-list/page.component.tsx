@@ -2,7 +2,7 @@
 import { getItems } from "@/api/items";
 import { getSupplierPriceList } from "@/api/supplier";
 
-import PricelistDashboard from "@/components/supplier/priceList";
+import PricelistDashboard, { Pricelist } from "@/components/supplier/priceList";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import { useTransition } from "react";
@@ -34,7 +34,10 @@ export default function PriceListClientcomponent() {
 
   const items = React.useMemo(() => {
     if (prices?.items) {
-      return prices?.items;
+      return prices?.items.map((item: Pricelist) => ({
+        ...item,
+        isUserOwned: false,
+      }));
     } else return [];
   }, [prices]);
   const _priceList = React.useMemo(() => {

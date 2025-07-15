@@ -1,7 +1,7 @@
 "use client";
 
 import { getSupplierDetails, getSupplierPriceList } from "@/api/supplier";
-import { Pricelist, PricelistItem } from "@/components/supplier/priceList";
+import { PricelistItem, WholePriceList } from "@/components/supplier/priceList";
 import SupplierProfile from "@/components/supplier/SupplierProfile";
 import LoadingComponent from "@/lib/LoadingComponent";
 import { Breadcrumbs, Grid, Box, Pagination } from "@mantine/core";
@@ -33,7 +33,7 @@ export default function SupplierClientComponent({
   }, [supplier]);
   const _priceList = React.useMemo(() => {
     if (priceList?.price_list) {
-      return priceList.price_list as Pricelist[];
+      return priceList.price_list as WholePriceList[];
     } else return [];
   }, [priceList]);
 
@@ -68,7 +68,6 @@ export default function SupplierClientComponent({
                 {_priceList.map((item, index) => (
                   <PricelistItem
                     item={item}
-                    supplierId={supplierId}
                     index={index}
                     key={item.id}
                     hideControls={true}

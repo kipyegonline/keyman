@@ -26,6 +26,7 @@ import {
   Textarea,
   FileInput,
   Loader,
+  Image,
 } from "@mantine/core";
 //import { toDataUrlFromFile, DataURIToBlob } from "@/lib/FileHandlers";
 import {
@@ -61,9 +62,20 @@ export interface Pricelist {
   type: "goods" | "services" | "professional_services" | "Select Type";
   weight_in_kgs: number;
   image?: File | null;
+  item_id?: string;
 
   added_by_supplier_id?: string;
 }
+interface Photo {
+  photo: [string];
+  isUserOwned: boolean;
+}
+interface PhotoArray {
+  item: { photo: [string] };
+}
+
+type Picha = Photo | PhotoArray;
+export type WholePriceList = Pricelist & Picha;
 
 const getItemEmoji = (type: string, name: string): string => {
   if (name.toLowerCase().includes("tile")) return "🏺";
@@ -119,7 +131,7 @@ export default function PricelistDashboard({
 }: {
   handleSearch: (val: string) => void;
   isPending: boolean;
-  prices: Pricelist[];
+  prices: WholePriceList[];
   refetchPricelist: () => void;
 }) {
   const [selectedItem, setSelectedItem] = useState<Pricelist | null>(null);
@@ -193,7 +205,10 @@ export default function PricelistDashboard({
     if (!editForm || !selectedItem) return;
 
     const payload: [{ item_id: string; price: number }] = [
-      { item_id: editForm?.id as string, price: +editForm?.price as number },
+      {
+        item_id: editForm?.item_id as string,
+        price: +editForm?.price as number,
+      },
     ];
     if (payload.length === 1) {
       setIsLoading(true);
@@ -480,7 +495,6 @@ export default function PricelistDashboard({
               key={item.id}
               item={item}
               index={index}
-              supplierId={supplierId ?? ""}
               handleDeleteClick={() => handleDeleteClick(item)}
               handleEditClick={() => handleEditClick(item)}
             />
@@ -848,20 +862,13 @@ export default function PricelistDashboard({
 }
 
 export const PricelistItem: React.FC<{
-  item: Pricelist;
+  item: WholePriceList;
   index: number;
   handleEditClick: () => void;
   handleDeleteClick: () => void;
   hideControls?: boolean;
-  supplierId: string;
-}> = ({
-  item,
-  index,
-  handleEditClick,
-  hideControls,
-  handleDeleteClick,
-  supplierId,
-}) => {
+}> = ({ item, index, handleEditClick, hideControls, handleDeleteClick }) => {
+  const isuserOwned = "isUserOwned" in item;
   return (
     <Grid.Col key={item.id} span={{ base: 12, sm: 6, lg: 4 }}>
       <Transition
@@ -896,49 +903,68 @@ export const PricelistItem: React.FC<{
               e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
             }}
           >
+            <Flex justify={"flex-end"}>
+              {hideControls ? null : (
+                <div className="flex gap-x-2 items-center">
+                  <Tooltip label="Edit Price">
+                    <ActionIcon
+                      variant="light"
+                      color="#3D6B2C"
+                      size="lg"
+                      radius="xl"
+                      onClick={handleEditClick}
+                    >
+                      <Edit3 size={18} />
+                    </ActionIcon>
+                  </Tooltip>
+                  {isuserOwned ? null : (
+                    <Tooltip label="Delete Item">
+                      <ActionIcon
+                        variant="light"
+                        color="red"
+                        size="lg"
+                        radius="xl"
+                        onClick={handleDeleteClick}
+                      >
+                        <Trash2 size={18} />
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
+                </div>
+              )}
+            </Flex>
             <Stack gap="md">
               {/* Item Header */}
               <Flex justify="space-between" align="flex-start">
-                <Box style={{ flexGrow: 1 }}>
-                  <Text size="xl" mb="xs">
-                    {getItemEmoji(item.type, item.name)}
-                  </Text>
-                  <Text fw={600} size="md" lineClamp={2} mb="xs">
-                    {item.name}
-                  </Text>
-                  <Text size="sm" c="dimmed" lineClamp={1}>
-                    {item.swahili_name}
-                  </Text>
-                </Box>
+                <Box
+                  style={{ flexGrow: 1 }}
+                  className="flex flex-col md:flex-row justify-between items-center"
+                >
+                  <Box>
+                    {" "}
+                    <Text size="xl" mb="xs">
+                      {getItemEmoji(item.type, item.name)}
+                    </Text>
+                    <Text fw={600} size="md" lineClamp={2} mb="xs">
+                      {item.name}
+                    </Text>
+                    <Text size="sm" c="dimmed" lineClamp={1}>
+                      {item.swahili_name}
+                    </Text>
+                  </Box>
 
-                {hideControls ? null : (
-                  <div className="flex gap-x-2 items-center">
-                    <Tooltip label="Edit Price">
-                      <ActionIcon
-                        variant="light"
-                        color="#3D6B2C"
-                        size="lg"
-                        radius="xl"
-                        onClick={handleEditClick}
-                      >
-                        <Edit3 size={18} />
-                      </ActionIcon>
-                    </Tooltip>
-                    {supplierId === item.added_by_supplier_id && (
-                      <Tooltip label="Delete Item">
-                        <ActionIcon
-                          variant="light"
-                          color="red"
-                          size="lg"
-                          radius="xl"
-                          onClick={handleDeleteClick}
-                        >
-                          <Trash2 size={18} />
-                        </ActionIcon>
-                      </Tooltip>
-                    )}
-                  </div>
-                )}
+                  <Box className="w-full md:w-24 h-auto md:h-24 mt-2">
+                    <Image
+                      src={
+                        isuserOwned ? item?.photo?.[0] : item?.item?.photo?.[0]
+                      }
+                      alt={""}
+                      height={100}
+                      width={100}
+                      className="h-full w-full"
+                    />
+                  </Box>
+                </Box>
               </Flex>
 
               <Divider />
