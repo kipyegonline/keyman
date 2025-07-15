@@ -5,7 +5,9 @@ import Link from "next/link";
 import { Image } from "@mantine/core";
 import { usePathname } from "next/navigation";
 import { useAppContext } from "@/providers/AppContext";
-export const NavigationComponent: React.FC = () => {
+export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
+  isFixed = true,
+}) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { darkMode, toggleDarkMode } = useAppContext();
   const pathname = usePathname();
@@ -18,7 +20,9 @@ export const NavigationComponent: React.FC = () => {
   const isAccountPage = paths.includes(pathname);
   return (
     <nav
-      className={`fixed   w-full z-50 transition-all duration-300 px-4  md:px-8 ${
+      className={` ${
+        isFixed ? "fixed" : ""
+      }  w-full z-50 transition-all duration-300 px-4  md:px-8 ${
         darkMode ? "bg-gray-900/95" : "bg-white/95"
       } backdrop-blur-md border-b ${
         darkMode ? "border-gray-800" : "border-gray-200"

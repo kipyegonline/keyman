@@ -14,6 +14,7 @@ import {
   Tooltip,
   Paper,
   ThemeIcon,
+  Box,
 } from "@mantine/core";
 import {
   MapPin,
@@ -35,6 +36,7 @@ import {
   Share2,
 } from "lucide-react";
 import { SupplierInfo } from "@/types";
+import SocialShare from "@/lib/SocilalShareComponent";
 
 interface ISupplierInfo {
   phone: string;
@@ -86,10 +88,10 @@ const supplierData: ISupplierInfo & {
     "Plumbing",
     "Safety Equipment",
   ],
-  facebook_link: "https://facebook.com/buildmart",
-  twitter_link: "https://twitter.com/buildmart",
-  Instagram_link: "https://instagram.com/buildmart",
-  youtube_link: "https://youtube.com/buildmart",
+  facebook_link: "https://facebook.com/",
+  twitter_link: "https://twitter.com/",
+  Instagram_link: "https://instagram.com/",
+  youtube_link: "https://youtube.com/",
   offers_transport: true,
   internet_access: true,
   has_pos: true,
@@ -227,17 +229,18 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
             </div>
 
             {/* Share Button */}
-            <Tooltip
-              label={shareSuccess ? "Link copied!" : "Share this profile"}
-              position="bottom"
-              className="transition-all duration-300"
-            >
-              <ActionIcon
-                variant="light"
-                size="lg"
-                onClick={handleShare}
-                disabled={isSharing}
-                className={`
+            <Box>
+              <Tooltip
+                label={shareSuccess ? "Link copied!" : "Share this profile"}
+                position="bottom"
+                className="transition-all duration-300"
+              >
+                <ActionIcon
+                  variant="light"
+                  size="lg"
+                  onClick={handleShare}
+                  disabled={isSharing}
+                  className={`
                   relative overflow-hidden
                   hover:scale-110 active:scale-95 
                   transition-all duration-300 ease-out
@@ -249,33 +252,34 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
                   }
                   border-2
                 `}
-                style={{
-                  backgroundColor: shareSuccess ? "#dcfce7" : "#3D6B2C15",
-                  borderColor: shareSuccess ? "#22c55e" : "#3D6B2C30",
-                  color: shareSuccess ? "#16a34a" : "#3D6B2C",
-                }}
-              >
-                <div
-                  className={`
+                  style={{
+                    backgroundColor: shareSuccess ? "#dcfce7" : "#3D6B2C15",
+                    borderColor: shareSuccess ? "#22c55e" : "#3D6B2C30",
+                    color: shareSuccess ? "#16a34a" : "#3D6B2C",
+                  }}
+                >
+                  <div
+                    className={`
                   transition-all duration-300 ease-out
                   ${isSharing ? "animate-spin" : ""}
                   ${shareSuccess ? "scale-110" : "scale-100"}
                 `}
-                >
-                  <Share2
-                    className={`
+                  >
+                    <Share2
+                      className={`
                     w-6 h-6 transition-all duration-300
                     ${shareSuccess ? "text-green-600" : "text-[#3D6B2C]"}
                   `}
-                  />
-                </div>
+                    />
+                  </div>
 
-                {/* Success animation overlay */}
-                {shareSuccess && (
-                  <div className="absolute inset-0 bg-green-400/20 animate-pulse rounded-full" />
-                )}
-              </ActionIcon>
-            </Tooltip>
+                  {/* Success animation overlay */}
+                  {shareSuccess && (
+                    <div className="absolute inset-0 bg-green-400/20 animate-pulse rounded-full" />
+                  )}
+                </ActionIcon>
+              </Tooltip>
+            </Box>
           </div>
 
           <div className="flex flex-col md:flex-row gap-x-4 items-center text-center mb-2">
@@ -442,6 +446,10 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
                 {supplier?.comments ?? "Description coming soon..."}
               </Text>
             </Card>
+            <SocialShare
+              url={`https://www.keymanstores.com/supplier/${supplier?.id}`}
+              title={supplier?.name ?? "Supplier"}
+            />
 
             {/* Certifications */}
             <Card

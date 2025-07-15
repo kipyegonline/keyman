@@ -1,22 +1,25 @@
-"use client"
-import { NavigationComponent } from '@/components/ui/Navigation';
+"use client";
+import { NavigationComponent } from "@/components/ui/Navigation";
 //import { CheckAuthenticated } from '@/lib/helperComponents';
-import { getUser, } from '@/providers/AppContext';
-import React from 'react'
+import { getUser } from "@/providers/AppContext";
+import React from "react";
 type Props = {
-  children: React.ReactNode;    }
+  children: React.ReactNode;
+};
 
-export default function AccountLayout({children}:Props) {
-  const user=getUser()   
-   React.useLayoutEffect(()=>{
-       
-        if(user){window.location.href="/keyman/dashboard"}
+export default function AccountLayout({ children }: Props) {
+  const user = getUser();
+  React.useLayoutEffect(() => {
+    if (user) {
+      window.location.href = "/keyman/dashboard";
+    }
+  }, []);
+  return (
+    <main>
+      <NavigationComponent isFixed />
+      <div className="pt-18" />
 
-    },[])
-  return <main>
-    <NavigationComponent/>
-    <div className='pt-18'/>
-    
-    {children}</main>
+      {children}
+    </main>
+  );
 }
-
