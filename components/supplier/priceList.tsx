@@ -53,6 +53,7 @@ import {
 import { updateSupplierPriceList } from "@/api/supplier";
 import { notify } from "@/lib/notifications";
 import { createItem, deleteItem } from "@/api/items";
+import { ICartItem, useCart } from "@/providers/CartContext";
 
 export interface Pricelist {
   id?: string;
@@ -155,11 +156,7 @@ export default function PricelistDashboard({
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [current, setCurrent] = useState(0);
-  const [cart, setCart] = useState<CartState>({
-    items: [],
-    total: 0,
-    itemCount: 0,
-  });
+
   const [cartModalOpened, setCartModalOpened] = useState(false);
 
   // Add Item Modal States
@@ -180,108 +177,11 @@ export default function PricelistDashboard({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
-  // Helper functions for cart management
-  const calculateCartTotal = (items: CartItem[]) => {
-    return items.reduce((total, item) => total + item.price * item.quantity, 0);
-  };
-
-  const calculateItemCount = (items: CartItem[]) => {
-    return items.reduce((count, item) => count + item.quantity, 0);
-  };
-
-  const updateCartState = (items: CartItem[]) => {
-    setCart({
-      items,
-      total: calculateCartTotal(items),
-      itemCount: calculateItemCount(items),
-    });
-  };
-  /*
-  // Check if item is in cart
-  const isItemInCart = (itemId: string) => {
-    return cart.items.some((cartItem) => cartItem.id === itemId);
-  };
-
-  // Get item quantity in cart
-  const getItemQuantity = (itemId: string) => {
-    const cartItem = cart.items.find((item) => item.id === itemId);
-    return cartItem ? cartItem.quantity : 0;
-  };*/
-
-  // Add item to cart
-  const addToCart = (item: WholePriceList) => {
-    const existingItem = cart.items.find((cartItem) => cartItem.id === item.id);
-
-    let updatedItems: CartItem[];
-
-    if (existingItem) {
-      // If item exists, increase quantity
-      updatedItems = cart.items.map((cartItem) =>
-        cartItem.id === item.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      );
-    } else {
-      // If item doesn't exist, add new item
-      const newCartItem: CartItem = {
-        ...item,
-        quantity: 1,
-        addedAt: new Date(),
-      };
-      updatedItems = [...cart.items, newCartItem];
-    }
-
-    updateCartState(updatedItems);
-    notify.success(`${item.name} added to cart!`);
-  };
-
-  // Remove item from cart
-  const removeFromCart = (itemId: string) => {
-    const updatedItems = cart.items.filter((item) => item.id !== itemId);
-    updateCartState(updatedItems);
-  };
-
-  // Update item quantity in cart
-  const updateQuantity = (itemId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(itemId);
-      return;
-    }
-
-    const updatedItems = cart.items.map((item) =>
-      item.id === itemId ? { ...item, quantity } : item
-    );
-
-    updateCartState(updatedItems);
-  };
-
-  // Clear entire cart
-  const clearCart = () => {
-    setCart({
-      items: [],
-      total: 0,
-      itemCount: 0,
-    });
-  };
-
-  // Handle checkout
-  const handleCheckout = () => {
-    if (cart.items.length === 0) {
-      notify.error("Your cart is empty!");
-      return;
-    }
-
-    // Here you would typically send the cart data to your backend
-    console.log("Checkout data:", cart);
-
-    // For now, we'll just show a success message and clear the cart
-    notify.success("Order placed successfully!");
-    clearCart();
-    setCartModalOpened(false);
-  };
+  const { addToCart, cart, removeFromCart, updateQuantity, clearCart } =
+    useCart();
 
   // Update the handleAddCart function
-  const handleAddCart = async (item: WholePriceList) => {
+  const handleAddCart = async (item: ICartItem) => {
     addToCart(item);
   };
   React.useEffect(() => {
@@ -325,36 +225,6 @@ export default function PricelistDashboard({
     }
   };
 
-  /*
-  const saveItem = async (fileInput: File) => {
-    const token = localStorage.getItem("auth_token") as string;
-    const myHeaders = new Headers();
-    myHeaders.append("Authorization", token);
-
-    const formdata = new FormData();
-    formdata.append("name", "Check Items");
-    formdata.append("swahili_name", "Check Items");
-    formdata.append("description", "This is a test");
-    formdata.append("type", "goods");
-    formdata.append(
-      "supplier_detail_id",
-      "01979ca1-f4bf-7173-a894-cd8de3345175"
-    );
-    formdata.append("price", "120");
-    formdata.append("image", fileInput, "[PROXY]");
-
-    const requestOptions = {
-      method: "POST",
-      headers: myHeaders,
-      body: formdata,
-      redirect: "follow",
-    };
-
-    fetch("https://backend.keymanstores.com/api/item", requestOptions)
-      .then((response) => response.text())
-      .then((result) => console.log(result))
-      .catch((error) => console.error(error));
-  }; */
   const handleSavePrice = async () => {
     if (!editForm || !selectedItem) return;
 
@@ -524,43 +394,7 @@ export default function PricelistDashboard({
   const perPage = 25;
   const filteredItems = items;
   const total = Math.ceil(filteredItems?.length / perPage);
-  // Add this cart button component to your header section
-  const CartButton = () => (
-    <Button
-      leftSection={<ShoppingCart size={18} />}
-      variant="filled"
-      color="rgba(255,255,255,0.2)"
-      c="white"
-      size="lg"
-      radius="xl"
-      onClick={() => setCartModalOpened(true)}
-      style={{ position: "relative" }}
-    >
-      Cart
-      {cart.itemCount > 0 && (
-        <Badge
-          size="sm"
-          variant="filled"
-          color="red"
-          style={{
-            position: "absolute",
-            top: -8,
-            right: -8,
-            minWidth: 20,
-            height: 20,
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "11px",
-            fontWeight: "bold",
-          }}
-        >
-          {cart.itemCount}
-        </Badge>
-      )}
-    </Button>
-  );
+  const handleCheckout = () => {};
   // Cart Modal Component
 
   const CartModal = () => (
@@ -735,10 +569,9 @@ export default function PricelistDashboard({
       </Stack>
     </Modal>
   );
-
+  console.log(cart, "carti");
   return (
     <section>
-      <CartButton />
       <CartModal />
       {/* Header Section */}
       <Paper
@@ -1452,3 +1285,44 @@ export const PricelistItem: React.FC<{
     </Grid.Col>
   );
 };
+// Add this cart button component to your header section
+type CartButtonProps = {
+  cart: CartState;
+  setCartModalOpened: (a: boolean) => void;
+};
+export const CartButton = ({ setCartModalOpened, cart }: CartButtonProps) => (
+  <Button
+    leftSection={<ShoppingCart size={18} />}
+    variant="filled"
+    color="rgba(255,255,255,0.2)"
+    c="white"
+    size="lg"
+    radius="xl"
+    onClick={() => setCartModalOpened(true)}
+    style={{ position: "relative" }}
+  >
+    Cart
+    {cart.itemCount > 0 && (
+      <Badge
+        size="sm"
+        variant="filled"
+        color="red"
+        style={{
+          position: "absolute",
+          top: -8,
+          right: -8,
+          minWidth: 20,
+          height: 20,
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "11px",
+          fontWeight: "bold",
+        }}
+      >
+        {cart.itemCount}
+      </Badge>
+    )}
+  </Button>
+);
