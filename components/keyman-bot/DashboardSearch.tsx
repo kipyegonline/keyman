@@ -82,7 +82,7 @@ export default function DashboardSearch() {
               onChange={handleSearchChange}
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
-              placeholder="Ask Keyman AI about materials, prices, or construction tips..."
+              placeholder="Ask Keyman about materials, prices, or construction tips..."
               className={`w-full pl-14 pr-32 py-4 rounded-2xl border-2 transition-all duration-300 text-lg ${
                 isSearchFocused
                   ? "border-green-400 shadow-lg shadow-green-100"
@@ -101,7 +101,7 @@ export default function DashboardSearch() {
                 className="absolute right-16 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-green-500 to-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-green-600 hover:to-orange-600 transition-all duration-200 flex items-center gap-2 animate-pulse"
               >
                 <Sparkles className="w-4 h-4" onClick={activateAIMode} />
-                Ask AI
+                Ask Keyman
               </button>
             )}
 
@@ -125,10 +125,10 @@ export default function DashboardSearch() {
         </div>
 
         {/* AI hint text */}
-        {showAITransition && (
+        {showAITransition && false && (
           <div className="absolute top-full left-0 right-0 mt-2 text-center">
             <p className="text-sm text-gray-600 bg-white px-4 py-2 rounded-lg shadow-sm border inline-block">
-              💡 This looks like a question - let Keyman AI help you!
+              💡 This looks like a question - let Keyman help you!
             </p>
           </div>
         )}

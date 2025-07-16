@@ -371,7 +371,7 @@ const SupplierDashboard: React.FC<Props> = ({
       </ActionIcon>
     </Tooltip>
   );
-  console.log(_supplierInfo);
+
   return (
     <div className=" p-2 md:p-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Enhanced Header Section */}
@@ -665,7 +665,7 @@ const SupplierDashboard: React.FC<Props> = ({
 
       {/* Supplier Details Accordion */}
       <Grid>
-        <Grid.Col span={{ base: 12, md: 8 }}>
+        <Grid.Col span={{ base: 12, md: 7 }}>
           <div className="mb-8">
             <Transition
               mounted={animateCards}
@@ -961,10 +961,10 @@ const SupplierDashboard: React.FC<Props> = ({
             </Transition>
           </div>
         </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 4 }}>
+        <Grid.Col span={{ base: 12, md: 5 }}>
           <SocialShare
             url={`https://www.keymanstores.com/supplier/${_supplierInfo?.id}`}
-            title={_supplierInfo?.name ?? "Supplier"}
+            title={"my store"}
           />
         </Grid.Col>
       </Grid>

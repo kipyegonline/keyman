@@ -116,7 +116,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
     const googleMapsUrl = `https://www.google.com/maps?q=${supplier?.location?.coordinates[1]},${supplier?.location?.coordinates[0]}`;
     window.open(googleMapsUrl, "_blank");
   };
-  console.log(supplier, "liar");
+
   const handleShare = async () => {
     setIsSharing(true);
 

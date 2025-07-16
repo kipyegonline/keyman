@@ -105,7 +105,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
           background: rgba(255, 255, 255, 0.95);
           backdrop-filter: blur(20px);
           border-radius: 24px;
-          padding: 28px;
+          padding: 24px;
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
           border: 1px solid rgba(255, 255, 255, 0.3);
           max-width: 500px;
@@ -424,7 +424,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
         }
       `}</style>
 
-      <div className="share-title hidden">Share {title}</div>
+      <div className="share-title ">Share {title}</div>
 
       <div className="social-grid">
         {socialPlatforms.map((platform) => {
