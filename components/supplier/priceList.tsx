@@ -28,7 +28,7 @@ import {
   Loader,
   Image,
 } from "@mantine/core";
-//import { toDataUrlFromFile, DataURIToBlob } from "@/lib/FileHandlers";
+import { toDataUrlFromFile, DataURIToBlob } from "@/lib/FileHandlers";
 import {
   Edit3,
   Weight,
@@ -47,6 +47,8 @@ import {
   Trash2,
   ImageIcon,
   Upload,
+  ShoppingCart,
+  Minus,
 } from "lucide-react";
 import { updateSupplierPriceList } from "@/api/supplier";
 import { notify } from "@/lib/notifications";
@@ -76,6 +78,17 @@ interface PhotoArray {
 
 type Picha = Photo | PhotoArray;
 export type WholePriceList = Pricelist & Picha;
+type CartItem = WholePriceList & {
+  quantity: number;
+  addedAt: Date;
+};
+
+interface CartState {
+  items: CartItem[];
+  total: number;
+  itemCount: number;
+}
+/* disable-eslint */
 
 const getItemEmoji = (type: string, name: string): string => {
   if (name.toLowerCase().includes("tile")) return "🏺";
@@ -142,9 +155,16 @@ export default function PricelistDashboard({
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [current, setCurrent] = useState(0);
+  const [cart, setCart] = useState<CartState>({
+    items: [],
+    total: 0,
+    itemCount: 0,
+  });
+  const [cartModalOpened, setCartModalOpened] = useState(false);
 
   // Add Item Modal States
   const [addModalOpened, setAddModalOpened] = useState(false);
+  const [file, setfile] = useState<File | null>(null);
   const [addForm, setAddForm] = useState<Pricelist>({
     description: "",
     name: "",
@@ -160,6 +180,110 @@ export default function PricelistDashboard({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
+  // Helper functions for cart management
+  const calculateCartTotal = (items: CartItem[]) => {
+    return items.reduce((total, item) => total + item.price * item.quantity, 0);
+  };
+
+  const calculateItemCount = (items: CartItem[]) => {
+    return items.reduce((count, item) => count + item.quantity, 0);
+  };
+
+  const updateCartState = (items: CartItem[]) => {
+    setCart({
+      items,
+      total: calculateCartTotal(items),
+      itemCount: calculateItemCount(items),
+    });
+  };
+  /*
+  // Check if item is in cart
+  const isItemInCart = (itemId: string) => {
+    return cart.items.some((cartItem) => cartItem.id === itemId);
+  };
+
+  // Get item quantity in cart
+  const getItemQuantity = (itemId: string) => {
+    const cartItem = cart.items.find((item) => item.id === itemId);
+    return cartItem ? cartItem.quantity : 0;
+  };*/
+
+  // Add item to cart
+  const addToCart = (item: WholePriceList) => {
+    const existingItem = cart.items.find((cartItem) => cartItem.id === item.id);
+
+    let updatedItems: CartItem[];
+
+    if (existingItem) {
+      // If item exists, increase quantity
+      updatedItems = cart.items.map((cartItem) =>
+        cartItem.id === item.id
+          ? { ...cartItem, quantity: cartItem.quantity + 1 }
+          : cartItem
+      );
+    } else {
+      // If item doesn't exist, add new item
+      const newCartItem: CartItem = {
+        ...item,
+        quantity: 1,
+        addedAt: new Date(),
+      };
+      updatedItems = [...cart.items, newCartItem];
+    }
+
+    updateCartState(updatedItems);
+    notify.success(`${item.name} added to cart!`);
+  };
+
+  // Remove item from cart
+  const removeFromCart = (itemId: string) => {
+    const updatedItems = cart.items.filter((item) => item.id !== itemId);
+    updateCartState(updatedItems);
+  };
+
+  // Update item quantity in cart
+  const updateQuantity = (itemId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeFromCart(itemId);
+      return;
+    }
+
+    const updatedItems = cart.items.map((item) =>
+      item.id === itemId ? { ...item, quantity } : item
+    );
+
+    updateCartState(updatedItems);
+  };
+
+  // Clear entire cart
+  const clearCart = () => {
+    setCart({
+      items: [],
+      total: 0,
+      itemCount: 0,
+    });
+  };
+
+  // Handle checkout
+  const handleCheckout = () => {
+    if (cart.items.length === 0) {
+      notify.error("Your cart is empty!");
+      return;
+    }
+
+    // Here you would typically send the cart data to your backend
+    console.log("Checkout data:", cart);
+
+    // For now, we'll just show a success message and clear the cart
+    notify.success("Order placed successfully!");
+    clearCart();
+    setCartModalOpened(false);
+  };
+
+  // Update the handleAddCart function
+  const handleAddCart = async (item: WholePriceList) => {
+    addToCart(item);
+  };
   React.useEffect(() => {
     if (deleting) {
       setTimeout(() => {
@@ -201,6 +325,36 @@ export default function PricelistDashboard({
     }
   };
 
+  /*
+  const saveItem = async (fileInput: File) => {
+    const token = localStorage.getItem("auth_token") as string;
+    const myHeaders = new Headers();
+    myHeaders.append("Authorization", token);
+
+    const formdata = new FormData();
+    formdata.append("name", "Check Items");
+    formdata.append("swahili_name", "Check Items");
+    formdata.append("description", "This is a test");
+    formdata.append("type", "goods");
+    formdata.append(
+      "supplier_detail_id",
+      "01979ca1-f4bf-7173-a894-cd8de3345175"
+    );
+    formdata.append("price", "120");
+    formdata.append("image", fileInput, "[PROXY]");
+
+    const requestOptions = {
+      method: "POST",
+      headers: myHeaders,
+      body: formdata,
+      redirect: "follow",
+    };
+
+    fetch("https://backend.keymanstores.com/api/item", requestOptions)
+      .then((response) => response.text())
+      .then((result) => console.log(result))
+      .catch((error) => console.error(error));
+  }; */
   const handleSavePrice = async () => {
     if (!editForm || !selectedItem) return;
 
@@ -212,6 +366,7 @@ export default function PricelistDashboard({
     ];
     if (payload.length === 1) {
       setIsLoading(true);
+
       const response = await updateSupplierPriceList(
         supplierId as string,
         payload
@@ -219,10 +374,11 @@ export default function PricelistDashboard({
 
       setIsLoading(false);
       if (response.status) {
+        notify.success(`Price updated for ${editForm.name}`);
         setTimeout(() => {
           setSuccessMessage("");
           setModalOpened(false);
-        }, 3000);
+        }, 2000);
         setSuccessMessage(`Price updated for ${editForm.name}`);
         refetchPricelist();
       } else notify.error(response.message);
@@ -307,13 +463,15 @@ export default function PricelistDashboard({
       formData.append("transportation_type", addForm.transportation_type);
 
       // Append image if it exists
-      if (addForm.image) {
-        // const file64 = await toDataUrlFromFile(addForm.image);
+      if (file) {
+        const file64 = await toDataUrlFromFile(file);
 
-        //const file_ = DataURIToBlob(file64 as string);
-        formData.append("images[]", addForm?.image, addForm?.image?.name);
+        const file_ = DataURIToBlob(file64 as string);
+
+        formData.append("image", file_, file.name);
       }
 
+      // Send the request
       const response = await createItem(formData);
 
       if (response.status) {
@@ -366,9 +524,222 @@ export default function PricelistDashboard({
   const perPage = 25;
   const filteredItems = items;
   const total = Math.ceil(filteredItems?.length / perPage);
+  // Add this cart button component to your header section
+  const CartButton = () => (
+    <Button
+      leftSection={<ShoppingCart size={18} />}
+      variant="filled"
+      color="rgba(255,255,255,0.2)"
+      c="white"
+      size="lg"
+      radius="xl"
+      onClick={() => setCartModalOpened(true)}
+      style={{ position: "relative" }}
+    >
+      Cart
+      {cart.itemCount > 0 && (
+        <Badge
+          size="sm"
+          variant="filled"
+          color="red"
+          style={{
+            position: "absolute",
+            top: -8,
+            right: -8,
+            minWidth: 20,
+            height: 20,
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "11px",
+            fontWeight: "bold",
+          }}
+        >
+          {cart.itemCount}
+        </Badge>
+      )}
+    </Button>
+  );
+  // Cart Modal Component
+
+  const CartModal = () => (
+    <Modal
+      opened={cartModalOpened}
+      onClose={() => setCartModalOpened(false)}
+      title={
+        <Group>
+          <Avatar size="sm" radius="xl" style={{ backgroundColor: "#3D6B2C" }}>
+            <ShoppingCart size={16} color="white" />
+          </Avatar>
+          <Text fw={600}>Shopping Cart ({cart.itemCount} items)</Text>
+        </Group>
+      }
+      size="lg"
+      radius="lg"
+      centered
+    >
+      <Stack gap="md">
+        {cart.items.length === 0 ? (
+          <Paper
+            p="xl"
+            radius="lg"
+            style={{ backgroundColor: "#f8f9fa", textAlign: "center" }}
+          >
+            <ShoppingCart
+              size={48}
+              style={{ margin: "0 auto 16px", opacity: 0.3 }}
+            />
+            <Text size="lg" c="dimmed" fw={500}>
+              Your cart is empty
+            </Text>
+            <Text size="sm" c="dimmed">
+              Add some items to get started!
+            </Text>
+          </Paper>
+        ) : (
+          <>
+            {/* Cart Items */}
+            <Stack gap="sm" style={{ maxHeight: "400px", overflowY: "auto" }}>
+              {cart.items.map((item) => (
+                <Paper
+                  key={item.id}
+                  p="md"
+                  radius="lg"
+                  style={{ border: "1px solid #e9ecef" }}
+                >
+                  <Flex align="center" justify="space-between" gap="md">
+                    <Flex align="center" gap="md" style={{ flex: 1 }}>
+                      <Avatar
+                        size="lg"
+                        radius="md"
+                        style={{ backgroundColor: "#f8f9fa" }}
+                      >
+                        {getItemEmoji(item.type, item.name)}
+                      </Avatar>
+                      <Box style={{ flex: 1 }}>
+                        <Text fw={600} size="sm" lineClamp={1}>
+                          {item.name}
+                        </Text>
+                        <Text size="xs" c="dimmed" lineClamp={1}>
+                          {item.swahili_name}
+                        </Text>
+                        <Text size="sm" fw={500} c="#3D6B2C" mt="xs">
+                          KES {Number(item.price).toLocaleString()}
+                        </Text>
+                      </Box>
+                    </Flex>
+
+                    <Group gap="xs">
+                      {/* Quantity Controls */}
+                      <Group
+                        gap="xs"
+                        style={{
+                          border: "1px solid #e9ecef",
+                          borderRadius: "8px",
+                          padding: "4px",
+                        }}
+                      >
+                        <ActionIcon
+                          variant="light"
+                          color="gray"
+                          size="sm"
+                          onClick={() =>
+                            updateQuantity(item.id!, item.quantity - 1)
+                          }
+                        >
+                          <Minus size={14} />
+                        </ActionIcon>
+
+                        <Text
+                          size="sm"
+                          fw={600}
+                          style={{ minWidth: "20px", textAlign: "center" }}
+                        >
+                          {item.quantity}
+                        </Text>
+
+                        <ActionIcon
+                          variant="light"
+                          color="#3D6B2C"
+                          size="sm"
+                          onClick={() =>
+                            updateQuantity(item.id!, item.quantity + 1)
+                          }
+                        >
+                          <Plus size={14} />
+                        </ActionIcon>
+                      </Group>
+
+                      {/* Remove Button */}
+                      <ActionIcon
+                        variant="light"
+                        color="red"
+                        size="sm"
+                        onClick={() => removeFromCart(item.id!)}
+                      >
+                        <Trash2 size={14} />
+                      </ActionIcon>
+                    </Group>
+                  </Flex>
+
+                  {/* Item Total */}
+                  <Flex justify="flex-end" mt="xs">
+                    <Text size="sm" fw={600} c="#3D6B2C">
+                      Subtotal: KES{" "}
+                      {(item.price * item.quantity).toLocaleString()}
+                    </Text>
+                  </Flex>
+                </Paper>
+              ))}
+            </Stack>
+
+            <Divider />
+
+            {/* Cart Summary */}
+            <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
+              <Flex justify="space-between" align="center">
+                <Text size="lg" fw={600}>
+                  Total Amount:
+                </Text>
+                <Text size="xl" fw={700} c="#3D6B2C">
+                  KES {cart.total.toLocaleString()}
+                </Text>
+              </Flex>
+            </Paper>
+
+            {/* Action Buttons */}
+            <Group justify="space-between" mt="md">
+              <Button
+                variant="light"
+                color="red"
+                leftSection={<Trash2 size={16} />}
+                onClick={clearCart}
+                radius="xl"
+              >
+                Clear Cart
+              </Button>
+
+              <Button
+                color="#3D6B2C"
+                leftSection={<CheckCircle2 size={16} />}
+                onClick={handleCheckout}
+                radius="xl"
+                size="lg"
+              >
+                Checkout
+              </Button>
+            </Group>
+          </>
+        )}
+      </Stack>
+    </Modal>
+  );
 
   return (
     <section>
+      <CartButton />
+      <CartModal />
       {/* Header Section */}
       <Paper
         p={{ base: "sm", md: "xl" }}
@@ -497,6 +868,7 @@ export default function PricelistDashboard({
               index={index}
               handleDeleteClick={() => handleDeleteClick(item)}
               handleEditClick={() => handleEditClick(item)}
+              handleAddCart={() => handleAddCart(item)}
             />
           ))}
       </Grid>
@@ -784,8 +1156,8 @@ export default function PricelistDashboard({
             label="Item Image (Optional)"
             description="Upload an image of the item (Max 5MB, JPEG/PNG/WebP)"
             placeholder="Choose image file"
-            value={addForm.image}
-            onChange={(file) => setAddForm({ ...addForm, image: file })}
+            value={file}
+            onChange={setfile}
             leftSection={<ImageIcon size={16} />}
             accept="image/jpeg,image/jpg,image/png,image/webp"
             size="lg"
@@ -805,29 +1177,29 @@ export default function PricelistDashboard({
           />
 
           {/* Image Preview */}
-          {addForm.image && (
+          {file && (
             <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
               <Group>
                 <Avatar
                   size="lg"
                   radius="md"
-                  src={URL.createObjectURL(addForm.image)}
+                  src={URL.createObjectURL(file)}
                   alt="Item preview"
                 >
                   <ImageIcon size={24} />
                 </Avatar>
                 <Box style={{ flex: 1 }}>
                   <Text size="sm" fw={500}>
-                    {addForm.image.name}
+                    {file.name}
                   </Text>
                   <Text size="xs" c="dimmed">
-                    {(addForm.image.size / 1024 / 1024).toFixed(2)} MB
+                    {(file.size / 1024 / 1024).toFixed(2)} MB
                   </Text>
                 </Box>
                 <ActionIcon
                   variant="light"
                   color="red"
-                  onClick={() => setAddForm({ ...addForm, image: null })}
+                  onClick={() => setfile(null)}
                 >
                   <X size={16} />
                 </ActionIcon>
@@ -866,8 +1238,20 @@ export const PricelistItem: React.FC<{
   index: number;
   handleEditClick: () => void;
   handleDeleteClick: () => void;
+  handleAddCart: () => void;
   hideControls?: boolean;
-}> = ({ item, index, handleEditClick, hideControls, handleDeleteClick }) => {
+  isInCart?: boolean;
+  cartQuantity?: number;
+}> = ({
+  item,
+  index,
+  handleEditClick,
+  hideControls,
+  handleDeleteClick,
+  handleAddCart,
+  isInCart = false,
+  cartQuantity = 0,
+}) => {
   const isuserOwned = "isUserOwned" in item;
   return (
     <Grid.Col key={item.id} span={{ base: 12, sm: 6, lg: 4 }}>
@@ -903,9 +1287,24 @@ export const PricelistItem: React.FC<{
               e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
             }}
           >
+            {isInCart && (
+              <Badge
+                variant="filled"
+                color="#3D6B2C"
+                size="sm"
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  left: 10,
+                  zIndex: 1,
+                }}
+              >
+                In Cart ({cartQuantity})
+              </Badge>
+            )}
             <Flex justify={"flex-end"}>
               {hideControls ? null : (
-                <div className="flex gap-x-2 items-center">
+                <div className="flex gap-x-4 items-center">
                   <Tooltip label="Edit Price">
                     <ActionIcon
                       variant="light"
@@ -927,6 +1326,23 @@ export const PricelistItem: React.FC<{
                         onClick={handleDeleteClick}
                       >
                         <Trash2 size={18} />
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
+                  {isuserOwned ? null : (
+                    <Tooltip label="Add to cart">
+                      <ActionIcon
+                        variant="light"
+                        color="orange"
+                        size="lg"
+                        radius="xl"
+                        onClick={handleAddCart}
+                      >
+                        {isInCart ? (
+                          <CheckCircle2 size={18} />
+                        ) : (
+                          <ShoppingCart size={18} />
+                        )}
                       </ActionIcon>
                     </Tooltip>
                   )}

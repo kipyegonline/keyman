@@ -1,11 +1,10 @@
-"use client"
-import React, { useState, useCallback, useEffect } from 'react';
-import { useForm } from '@mantine/form';
+"use client";
+import React, { useState, useCallback, useEffect } from "react";
+import { useForm } from "@mantine/form";
 import {
   TextInput,
   Select,
   Button,
-
   Paper,
   Title,
   Text,
@@ -17,8 +16,9 @@ import {
   Notification,
   Group,
   Loader,
-  Box
-} from '@mantine/core';
+  Box,
+  Textarea,
+} from "@mantine/core";
 import {
   User,
   Phone,
@@ -32,11 +32,9 @@ import {
   Save,
   RefreshCw,
   ArrowLeft,
-
-} from 'lucide-react';
-import { updateSupplierDetails } from '@/api/supplier';
-import Link from 'next/link';
-
+} from "lucide-react";
+import { updateSupplierDetails } from "@/api/supplier";
+import Link from "next/link";
 
 // Types and Interfaces
 export interface SupplierUpdateInfo {
@@ -49,16 +47,16 @@ export interface SupplierUpdateInfo {
   longitude: number;
   //categories: string[];
   is_escrow_only: boolean;
-  id?:string
-  
+  id?: string;
+  comments: string;
 }
 export interface Location {
-   location: {
+  location: {
     type: string;
     coordinates: [number, number];
   };
-  };
-  
+}
+
 interface CategoryStructure {
   goods: {
     name: string;
@@ -82,24 +80,24 @@ const LocationSelector: React.FC<{
   error?: string;
 }> = ({ latitude, longitude, onLocationChange, error }) => {
   const [loading, setLoading] = useState(false);
-  const [locationStatus, setLocationStatus] = useState<string>('');
+  const [locationStatus, setLocationStatus] = useState<string>("");
 
   const getCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
-      setLocationStatus('Geolocation is not supported by this browser.');
+      setLocationStatus("Geolocation is not supported by this browser.");
       return;
     }
 
     setLoading(true);
-    setLocationStatus('Getting your location...');
+    setLocationStatus("Getting your location...");
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude: lat, longitude: lng } = position.coords;
         onLocationChange(lat, lng);
-        setLocationStatus('Location updated successfully!');
+        setLocationStatus("Location updated successfully!");
         setLoading(false);
-        setTimeout(() => setLocationStatus(''), 3000);
+        setTimeout(() => setLocationStatus(""), 3000);
       },
       (error) => {
         setLocationStatus(`Error: ${error.message}`);
@@ -108,7 +106,7 @@ const LocationSelector: React.FC<{
       {
         enableHighAccuracy: true,
         timeout: 10000,
-        maximumAge: 0
+        maximumAge: 0,
       }
     );
   }, [onLocationChange]);
@@ -117,14 +115,16 @@ const LocationSelector: React.FC<{
     <Card className="p-4 border border-gray-200 rounded-lg bg-gradient-to-r from-green-50 to-orange-50">
       <Group className="mb-3">
         <MapPin className="text-[#3D6B2C]" size={20} />
-        <Text size="sm" className="font-medium text-gray-700">Current Location</Text>
+        <Text size="sm" className="font-medium text-gray-700">
+          Current Location
+        </Text>
       </Group>
-      
+
       <Grid>
         <Grid.Col span={6}>
           <TextInput
             label="Latitude"
-            value={latitude || ''}
+            value={latitude || ""}
             readOnly
             placeholder="Auto-filled"
             size="sm"
@@ -133,7 +133,7 @@ const LocationSelector: React.FC<{
         <Grid.Col span={6}>
           <TextInput
             label="Longitude"
-            value={longitude || ''}
+            value={longitude || ""}
             readOnly
             placeholder="Auto-filled"
             size="sm"
@@ -149,13 +149,26 @@ const LocationSelector: React.FC<{
         size="sm"
         variant="light"
       >
-        {loading ? 'Updating...' : 'Update Location'}
+        {loading ? "Updating..." : "Update Location"}
       </Button>
 
       {locationStatus && (
-        <Transition mounted={!!locationStatus} transition="slide-up" duration={300} timingFunction="ease">
+        <Transition
+          mounted={!!locationStatus}
+          transition="slide-up"
+          duration={300}
+          timingFunction="ease"
+        >
           {(styles) => (
-            <Text size="xs" className={`mt-2 ${locationStatus.includes('Error') ? 'text-red-500' : 'text-green-600'}`} style={styles}>
+            <Text
+              size="xs"
+              className={`mt-2 ${
+                locationStatus.includes("Error")
+                  ? "text-red-500"
+                  : "text-green-600"
+              }`}
+              style={styles}
+            >
               {locationStatus}
             </Text>
           )}
@@ -179,46 +192,55 @@ const CategorySelector: React.FC<{
   onMainCategoryChange: (category: string) => void;
   onSubCategoryChange: (category: string[]) => void;
   error?: string;
-}> = ({ supplierTypes, mainCategory, subCategory, onMainCategoryChange, onSubCategoryChange, error }) => {
-  
-    const mainCategories =React.useMemo(() => {
-        if(supplierTypes){
-            return   Object.keys(supplierTypes).map(value => ({
-    value,
-    label: value.replace("_", " ").toUpperCase()
-  }));
-        }
-        else return []
-            
-    }, [supplierTypes]);
-
-   
+}> = ({
+  supplierTypes,
+  mainCategory,
+  subCategory,
+  onMainCategoryChange,
+  onSubCategoryChange,
+  error,
+}) => {
+  const mainCategories = React.useMemo(() => {
+    if (supplierTypes) {
+      return Object.keys(supplierTypes).map((value) => ({
+        value,
+        label: value.replace("_", " ").toUpperCase(),
+      }));
+    } else return [];
+  }, [supplierTypes]);
 
   const getSubCategories = () => {
     if (!mainCategory || !(mainCategory in supplierTypes)) return [];
-    return supplierTypes[mainCategory as keyof CategoryStructure].categories.map(cat => ({
+    return supplierTypes[
+      mainCategory as keyof CategoryStructure
+    ].categories.map((cat) => ({
       value: cat.id,
-      label: cat.name
+      label: cat.name,
     }));
   };
 
   return (
     <div className="space-y-4">
-     {mainCategories.length > 0 && <Select
-        label="Business Category"
-        placeholder="Select your business category"
-        data={mainCategories}
-        value={mainCategory}
-        onChange={(value) => {
-          onMainCategoryChange(value || '');
-          onSubCategoryChange([]); // Reset subcategory when main category changes
-        }}
-        leftSection={<Building2 size={16} className="text-[#3D6B2C]" />}
-        className="transition-all duration-300 hover:scale-[1.01]"
-        error={error}
-      />
-    }
-      <Transition mounted={!!mainCategory} transition="slide-down" duration={300}>
+      {mainCategories.length > 0 && (
+        <Select
+          label="Business Category"
+          placeholder="Select your business category"
+          data={mainCategories}
+          value={mainCategory}
+          onChange={(value) => {
+            onMainCategoryChange(value || "");
+            onSubCategoryChange([]); // Reset subcategory when main category changes
+          }}
+          leftSection={<Building2 size={16} className="text-[#3D6B2C]" />}
+          className="transition-all duration-300 hover:scale-[1.01]"
+          error={error}
+        />
+      )}
+      <Transition
+        mounted={!!mainCategory}
+        transition="slide-down"
+        duration={300}
+      >
         {(styles) => (
           <MultiSelect
             style={styles}
@@ -241,10 +263,9 @@ const CategorySelector: React.FC<{
 const SupplierUpdateForm: React.FC<{
   supplierTypes: CategoryStructure;
   initialData?: Partial<SupplierUpdateInfo>;
-
-}> = ({ supplierTypes, initialData = {},  }) => {
+}> = ({ supplierTypes, initialData = {} }) => {
   const [mainCategory, setMainCategory] = useState("");
-  const [subCategory, setSubCategory] = useState<string[]>( []);
+  const [subCategory, setSubCategory] = useState<string[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
@@ -255,60 +276,62 @@ const SupplierUpdateForm: React.FC<{
 
   const form = useForm<SupplierUpdateInfo>({
     initialValues: {
-      name:  '',
-      phone: '',
-      email: '',
-      type: '',
-      address:  '',
-      latitude:  0,
-      longitude:  0,
-     // categories:  [],
-      is_escrow_only:  false,
+      name: "",
+      phone: "",
+      email: "",
+      type: "",
+      address: "",
+      latitude: 0,
+      longitude: 0,
+      // categories:  [],
+      is_escrow_only: false,
+      comments: "",
     },
     validate: {
-      name: (value) => (value.length < 2 ? 'Name must have at least 2 characters' : null),
-      phone: (value) => (/^\+?[0-9]\d{1,14}$/.test(value) ? null : 'Invalid phone number'),
-      email: (value) => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
-      type: (value) => (value.length < 1 ? 'Business type is required' : null),
-      address: (value) => (value.length < 5 ? 'Address must be at least 5 characters' : null),
-      latitude: (value) => (value === 0 ? 'Please set your location' : null),
-      longitude: (value) => (value === 0 ? 'Please set your location' : null),
+      name: (value) =>
+        value.length < 2 ? "Name must have at least 2 characters" : null,
+      phone: (value) =>
+        /^\+?[0-9]\d{1,14}$/.test(value) ? null : "Invalid phone number",
+      email: (value) => (/^\S+@\S+$/.test(value) ? null : "Invalid email"),
+      type: (value) => (value.length < 1 ? "Business type is required" : null),
+      address: (value) =>
+        value.length < 5 ? "Address must be at least 5 characters" : null,
+      latitude: (value) => (value === 0 ? "Please set your location" : null),
+      longitude: (value) => (value === 0 ? "Please set your location" : null),
+      comments: (value) =>
+        value.trim().length < 10 ? "Kindly add profile description" : null,
     },
   });
-  
-  const getCoords=(data:SupplierUpdateInfo & Location) =>{
-    
-    if("location" in data && "coordinates" in data.location)
-         return data?.location?.coordinates as [number,number]
-        else return [0,0]
-    ;
-  }
+
+  const getCoords = (data: SupplierUpdateInfo & Location) => {
+    if ("location" in data && "coordinates" in data.location)
+      return data?.location?.coordinates as [number, number];
+    else return [0, 0];
+  };
   useEffect(() => {
-    
-    if (initialData){
-      
-       form.setValues({name:initialData.
-        name,phone:initialData.phone,
-        email:initialData.email,
-       // type:initialData.type,
-        address:initialData.address,
+    if (initialData) {
+      form.setValues({
+        name: initialData.name,
+        phone: initialData.phone,
+        email: initialData.email,
+        // type:initialData.type,
+        address: initialData.address,
         //categories:initialData.categories,
-       
-        is_escrow_only:initialData.is_escrow_only,
-    })
-    //setMainCategory({label:initialData.type,value:initialData.type})
-    //setSubCategory(initialData.categories || [])
-    const [lat,long]=getCoords(initialData as SupplierUpdateInfo & Location)
-    form.setFieldValue('latitude',long)
-    form.setFieldValue('longitude',lat)
-    setMainCategory(initialData.type || '')
-    //setSubCategory(initialData.categories. || [])
 
-       
+        is_escrow_only: initialData.is_escrow_only,
+      });
+      //setMainCategory({label:initialData.type,value:initialData.type})
+      //setSubCategory(initialData.categories || [])
+      const [lat, long] = getCoords(
+        initialData as SupplierUpdateInfo & Location
+      );
+      form.setFieldValue("latitude", long);
+      form.setFieldValue("longitude", lat);
+      setMainCategory(initialData.type || "");
+      //setSubCategory(initialData.categories. || [])
     }
-
-  },[initialData?.name])
-/*
+  }, [initialData?.name]);
+  /*
   const validateCategories = () => {
     if (subCategory.length < 1) {
       return "Please select at least one category";
@@ -320,28 +343,27 @@ const SupplierUpdateForm: React.FC<{
 
   const handleSubCategory = (value: string[]) => {
     setSubCategory(value);
-    form.setFieldValue('categories', value);
+    form.setFieldValue("categories", value);
   };
 
   const handleSubmit = async (values: SupplierUpdateInfo) => {
-   /* const categoryError = validateCategories();
+    /* const categoryError = validateCategories();
     if (categoryError) {
       form.setErrors({ categories: categoryError });
       return;
     }*/
 
-
     if (!confirm("Are you sure you want to update your information?")) return;
 
     setLoading(true);
     try {
-     const id=initialData?.id as string
-       await updateSupplierDetails(id ,values);
-     
+      const id = initialData?.id as string;
+      await updateSupplierDetails(id, values);
+
       setShowSuccess(true);
       //setTimeout(() => setShowSuccess(false), 5000);
     } catch (error) {
-      console.error('Update failed:', error);
+      console.error("Update failed:", error);
     } finally {
       setLoading(false);
     }
@@ -352,33 +374,49 @@ const SupplierUpdateForm: React.FC<{
     //setMainCategory(initialData.type || '');
     //setSubCategory(initialData.categories || []);
   };
-  
 
   return (
-    <section className="py-0 md:py-6  w-full  px-4 md:px-20" >
+    <section className="py-0 md:py-6  w-full  px-4 md:px-20">
       <Transition mounted={isVisible} transition="fade" duration={500}>
         {(styles) => (
-          <Paper style={styles} className="!p-0 md:p-6   shadow-xl rounded-2xl bg-gradient-to-br from-white to-gray-50 border border-gray-100">
-           {showSuccess ? <div className="text-center mb-6">
-              <Title order={2} className="text-2xl font-bold text-[#3D6B2C] mb-2 flex items-center justify-center gap-2">
-                <CheckCircle className='animate-pulse' size={24} />
-                 Business Information Updated
-              </Title>
-              <Text className="text-gray-600">
-               Your Keyman supplier profile is up to date
-              </Text>
-            </div>:<div className="text-center mb-6">
-              <Title order={2} className="text-2xl font-bold text-[#3D6B2C] mb-2 flex items-center justify-center gap-2">
-                <RefreshCw size={24} />
-                Update Business Information
-              </Title>
-              <Text className="text-gray-600">
-                Keep your Keyman supplier profile up to date
-              </Text>
-            </div>}
+          <Paper
+            style={styles}
+            className="!p-0 md:p-6   shadow-xl rounded-2xl bg-gradient-to-br from-white to-gray-50 border border-gray-100"
+          >
+            {showSuccess ? (
+              <div className="text-center mb-6">
+                <Title
+                  order={2}
+                  className="text-2xl font-bold text-[#3D6B2C] mb-2 flex items-center justify-center gap-2"
+                >
+                  <CheckCircle className="animate-pulse" size={24} />
+                  Business Information Updated
+                </Title>
+                <Text className="text-gray-600">
+                  Your Keyman supplier profile is up to date
+                </Text>
+              </div>
+            ) : (
+              <div className="text-center mb-6">
+                <Title
+                  order={2}
+                  className="text-2xl font-bold text-[#3D6B2C] mb-2 flex items-center justify-center gap-2"
+                >
+                  <RefreshCw size={24} />
+                  Update Business Information
+                </Title>
+                <Text className="text-gray-600">
+                  Keep your Keyman supplier profile up to date
+                </Text>
+              </div>
+            )}
 
             <form onSubmit={form.onSubmit(handleSubmit)} className="space-y-5">
-              <Transition mounted={!showSuccess} transition="slide-right" duration={400}>
+              <Transition
+                mounted={!showSuccess}
+                transition="slide-right"
+                duration={400}
+              >
                 {(styles) => (
                   <div style={styles} className="space-y-5">
                     {/* Basic Information Section */}
@@ -392,31 +430,37 @@ const SupplierUpdateForm: React.FC<{
                           <TextInput
                             label="Business Name"
                             placeholder="Enter your business name"
-                            leftSection={<Building2 size={16} className="text-[#3D6B2C]" />}
+                            leftSection={
+                              <Building2 size={16} className="text-[#3D6B2C]" />
+                            }
                             className="transition-all duration-300 hover:scale-[1.01] focus-within:scale-[1.01]"
-                            {...form.getInputProps('name')}
+                            {...form.getInputProps("name")}
                             required
                           />
                         </Grid.Col>
-                        
-                        <Grid.Col span={{base:12,md:6}}>
+
+                        <Grid.Col span={{ base: 12, md: 6 }}>
                           <TextInput
                             label="Phone Number"
                             placeholder="+1234567890"
-                            leftSection={<Phone size={16} className="text-[#3D6B2C]" />}
+                            leftSection={
+                              <Phone size={16} className="text-[#3D6B2C]" />
+                            }
                             className="transition-all duration-300 hover:scale-[1.01] focus-within:scale-[1.01]"
-                            {...form.getInputProps('phone')}
+                            {...form.getInputProps("phone")}
                             required
                           />
                         </Grid.Col>
-                        
-                        <Grid.Col span={{base:12,md:6}}>
+
+                        <Grid.Col span={{ base: 12, md: 6 }}>
                           <TextInput
                             label="Email Address"
                             placeholder="business@example.com"
-                            leftSection={<Mail size={16} className="text-[#3D6B2C]" />}
+                            leftSection={
+                              <Mail size={16} className="text-[#3D6B2C]" />
+                            }
                             className="transition-all duration-300 hover:scale-[1.01] focus-within:scale-[1.01]"
-                            {...form.getInputProps('email')}
+                            {...form.getInputProps("email")}
                             required
                           />
                         </Grid.Col>
@@ -430,42 +474,52 @@ const SupplierUpdateForm: React.FC<{
                         Business Type & Categories
                       </Text>
                       {/**hide this for now */}
-                     <Grid>
+                      <Grid>
                         <Grid.Col span={12}>
-                          {supplierTypes && <Select
-                            label="Supplier Type"
-                            placeholder="Select your business type"
-                            data={Object.keys(supplierTypes).map(value => ({
-                              value,
-                              label: value.replace("_", " ").toUpperCase()
-                            }))}
-                            leftSection={<Building2 size={16} className="text-[#3D6B2C]" />}
-                            className="transition-all duration-300 hover:scale-[1.01]"
-                            {...form.getInputProps('type')}
-                            onChange={(value) => {
-                              form.setFieldValue('type', value || '');
-                              setMainCategory(value || '');
-                              setSubCategory([]);
-                            }}
-                            required
-                          />}
-                        </Grid.Col>
-                        {false && 
-                        <Grid.Col span={12}>
-                         {form.values.type && <CategorySelector
-                            supplierTypes={supplierTypes}
-                            mainCategory={mainCategory}
-                            subCategory={subCategory}
-                            onMainCategoryChange={setMainCategory}
-                            onSubCategoryChange={handleSubCategory}
-                            error={form.errors.categories as string}
-                          />}
-                          {form.errors.categories && (
-                            <Text size="xs" className="text-red-500 mt-1">
-                              {form.errors.categories}
-                            </Text>
+                          {supplierTypes && (
+                            <Select
+                              label="Supplier Type"
+                              placeholder="Select your business type"
+                              data={Object.keys(supplierTypes).map((value) => ({
+                                value,
+                                label: value.replace("_", " ").toUpperCase(),
+                              }))}
+                              leftSection={
+                                <Building2
+                                  size={16}
+                                  className="text-[#3D6B2C]"
+                                />
+                              }
+                              className="transition-all duration-300 hover:scale-[1.01]"
+                              {...form.getInputProps("type")}
+                              onChange={(value) => {
+                                form.setFieldValue("type", value || "");
+                                setMainCategory(value || "");
+                                setSubCategory([]);
+                              }}
+                              required
+                            />
                           )}
-                        </Grid.Col>}
+                        </Grid.Col>
+                        {true && (
+                          <Grid.Col span={12}>
+                            {form.values.type && (
+                              <CategorySelector
+                                supplierTypes={supplierTypes}
+                                mainCategory={mainCategory}
+                                subCategory={subCategory}
+                                onMainCategoryChange={setMainCategory}
+                                onSubCategoryChange={handleSubCategory}
+                                error={form.errors.categories as string}
+                              />
+                            )}
+                            {form.errors.categories && (
+                              <Text size="xs" className="text-red-500 mt-1">
+                                {form.errors.categories}
+                              </Text>
+                            )}
+                          </Grid.Col>
+                        )}
                       </Grid>
                     </Card>
 
@@ -480,22 +534,38 @@ const SupplierUpdateForm: React.FC<{
                           <TextInput
                             label="Business Address"
                             placeholder="Enter your full business address"
-                            leftSection={<MapPin size={16} className="text-[#3D6B2C]" />}
+                            leftSection={
+                              <MapPin size={16} className="text-[#3D6B2C]" />
+                            }
                             className="transition-all duration-300 hover:scale-[1.01] focus-within:scale-[1.01] mb-4"
-                            {...form.getInputProps('address')}
+                            {...form.getInputProps("address")}
                             required
                           />
                         </Grid.Col>
-                        
+
                         <Grid.Col span={12}>
                           <LocationSelector
                             latitude={form.values.latitude}
                             longitude={form.values.longitude}
                             onLocationChange={(lat, lng) => {
-                              form.setFieldValue('latitude', lat);
-                              form.setFieldValue('longitude', lng);
+                              form.setFieldValue("latitude", lat);
+                              form.setFieldValue("longitude", lng);
                             }}
                             error={form.errors.latitude as string}
+                          />
+                        </Grid.Col>
+                      </Grid>
+                    </Card>
+                    <Card>
+                      <Grid>
+                        <Grid.Col span={12}>
+                          <Textarea
+                            label="Profile description"
+                            placeholder="Enter your profile description"
+                            leftSection={null}
+                            className="transition-all duration-300 hover:scale-[1.01] focus-within:scale-[1.01] mb-4"
+                            {...form.getInputProps("comments")}
+                            required
                           />
                         </Grid.Col>
                       </Grid>
@@ -503,17 +573,22 @@ const SupplierUpdateForm: React.FC<{
 
                     {/* Payment Settings */}
                     <Card className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 rounded-lg">
-                      <Text mb="sm" className="font-semibold  text-[#3D6B2C] mb-3 flex items-center gap-2">
+                      <Text
+                        mb="sm"
+                        className="font-semibold  text-[#3D6B2C] mb-3 flex items-center gap-2"
+                      >
                         <Shield size={18} />
                         Payment Settings
                       </Text>
                       <Checkbox
                         label="Escrow Only"
                         description="Only accept payments through secure escrow service"
-                       // icon={() => <Shield size={16} />}
+                        // icon={() => <Shield size={16} />}
                         color="#3D6B2C"
                         className="transition-all duration-300 hover:scale-[1.01]"
-                        {...form.getInputProps('is_escrow_only', { type: 'checkbox' })}
+                        {...form.getInputProps("is_escrow_only", {
+                          type: "checkbox",
+                        })}
                       />
                     </Card>
                   </div>
@@ -522,9 +597,17 @@ const SupplierUpdateForm: React.FC<{
 
               {/* Action Buttons */}
               {!showSuccess && (
-                <Transition mounted={!showSuccess} transition="slide-up" duration={400}>
+                <Transition
+                  mounted={!showSuccess}
+                  transition="slide-up"
+                  duration={400}
+                >
                   {(styles) => (
-                    <Group justify="space-between" className="mt-6" style={styles}>
+                    <Group
+                      justify="space-between"
+                      className="mt-6"
+                      style={styles}
+                    >
                       <Button
                         variant="outline"
                         onClick={resetForm}
@@ -539,9 +622,11 @@ const SupplierUpdateForm: React.FC<{
                         className="bg-[#3D6B2C] hover:bg-[#2A4B1F] transition-all duration-300 transform hover:scale-105"
                         size="md"
                         loading={loading}
-                        leftSection={loading ? <Loader size={16} /> : <Save size={16} />}
+                        leftSection={
+                          loading ? <Loader size={16} /> : <Save size={16} />
+                        }
                       >
-                        {loading ? 'Updating...' : 'Update Information'}
+                        {loading ? "Updating..." : "Update Information"}
                       </Button>
                     </Group>
                   )}
@@ -551,7 +636,11 @@ const SupplierUpdateForm: React.FC<{
 
             {/* Success Notification */}
             {showSuccess && (
-              <Transition mounted={showSuccess} transition="slide-up" duration={500}>
+              <Transition
+                mounted={showSuccess}
+                transition="slide-up"
+                duration={500}
+              >
                 {(styles) => (
                   <Box style={styles} className="mt-6">
                     <Notification
@@ -559,15 +648,20 @@ const SupplierUpdateForm: React.FC<{
                       withCloseButton={false}
                       color="green"
                       icon={<CheckCircle size={18} />}
-                     // onClose={() => setShowSuccess(false)}
+                      // onClose={() => setShowSuccess(false)}
                       className="animate-pulse"
                     >
                       Your business information has been updated successfully!
                     </Notification>
-                    <Box className='py-4 flex justify-center'>
-                       <Link href="/keyman/supplier" className='text-keyman-green my-2'><ArrowLeft size={14} className='inline-block mr-2'/> Return to dashboard</Link>
+                    <Box className="py-4 flex justify-center">
+                      <Link
+                        href="/keyman/supplier"
+                        className="text-keyman-green my-2"
+                      >
+                        <ArrowLeft size={14} className="inline-block mr-2" />{" "}
+                        Return to dashboard
+                      </Link>
                     </Box>
-                   
                   </Box>
                 )}
               </Transition>

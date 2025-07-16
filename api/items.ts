@@ -83,10 +83,15 @@ export const deleteItem = async (itemId: string) => {
  * @returns The created item data.
  */
 export const createItem = async (payload: FormData) => {
+  const hasImage = payload.getAll("image").length > 0;
+  const headers = {
+    "Content-Type": hasImage ? "multipart/form-data" : "application/json",
+  };
   try {
     const response = await AxiosClient.post(
       ENDPOINTS.items.ADD_SUPPLIER_ITEM,
-      payload
+      payload,
+      { headers }
     );
     return response.data;
   } catch (error) {

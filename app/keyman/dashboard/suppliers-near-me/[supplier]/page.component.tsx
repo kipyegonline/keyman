@@ -67,12 +67,15 @@ export default function SupplierClientComponent({
               <Grid>
                 {_priceList.map((item, index) => (
                   <PricelistItem
+                    handleAddCart={() => null}
                     item={item}
                     index={index}
                     key={item.id}
                     hideControls={true}
                     handleEditClick={() => null}
                     handleDeleteClick={() => null}
+                    isInCart={false}
+                    cartQuantity={0}
                   />
                 ))}
               </Grid>
