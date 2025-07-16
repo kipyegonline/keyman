@@ -5,8 +5,7 @@ import Link from "next/link";
 import { Image } from "@mantine/core";
 import { usePathname } from "next/navigation";
 import { useAppContext } from "@/providers/AppContext";
-import { CartButton } from "../supplier/priceList";
-import { useCart } from "@/providers/CartContext";
+
 export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
   isFixed = true,
 }) => {
@@ -19,7 +18,7 @@ export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
     "/account/forgot-password",
     "/account/reset-password",
   ];
-  const { cart } = useCart();
+
   const isAccountPage = paths.includes(pathname);
   return (
     <nav
@@ -57,7 +56,6 @@ export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
           </Link>
 
           <div className="hidden md:flex items-center space-x-4">
-            <CartButton cart={cart} />
             <button
               onClick={toggleDarkMode}
               className={`p-2 rounded-lg  hidden transition-colors ${

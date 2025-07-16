@@ -38,6 +38,8 @@ export interface ICartState {
 export interface CartContextType {
   // State
   cart: ICartState;
+  modalOpen: boolean;
+  setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 
   // Actions
   addToCart: (item: ICartItem) => void;
@@ -79,7 +81,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     itemCount: 0,
     isLoading: false,
   });
-
+  const [modalOpen, setModalOpen] = useState(false);
   // Helper functions
   const calculateCartTotal = (items: ICartItem[]): number => {
     return items.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -288,6 +290,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     getCartTotal,
     getItemCount,
     checkout,
+    modalOpen,
+    setModalOpen,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

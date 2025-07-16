@@ -27,6 +27,8 @@ import { navigateTo } from "@/lib/helpers";
 import { useRouter } from "next/navigation";
 import { logOutKeymanUser } from "@/api/registration";
 import Link from "next/link";
+import { CartButton } from "../supplier/priceList";
+import { useCart } from "@/providers/CartContext";
 
 // Navigation Component
 const TopNavigation: React.FC = () => {
@@ -38,6 +40,7 @@ const TopNavigation: React.FC = () => {
     mainDashboard,
   } = useAppContext();
   const router = useRouter();
+  const { cart, setModalOpen } = useCart();
   const profileMenuItems = [
     // { label: "Edit Profile", icon: Edit, key: "profile" },
     //{ label: "Hardware/Service Profile", icon: Wrench, key: "hardware" },
@@ -155,6 +158,12 @@ const TopNavigation: React.FC = () => {
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </ActionIcon>
+          {cart.itemCount > 0 && (
+            <CartButton
+              cart={cart}
+              setCartModalOpened={() => setModalOpen(true)}
+            />
+          )}
 
           {/* Notifications */}
           <Indicator inline label={null} size={16}>

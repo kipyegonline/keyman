@@ -53,7 +53,13 @@ import {
 import { updateSupplierPriceList } from "@/api/supplier";
 import { notify } from "@/lib/notifications";
 import { createItem, deleteItem } from "@/api/items";
-import { ICartItem, useCart } from "@/providers/CartContext";
+import { ICartItem, ICartState, useCart } from "@/providers/CartContext";
+import { DeliveryDate, DeliveryLocation } from "../keyman-bot/DeliveryLocation";
+import { getProjects } from "@/api/projects";
+import { useQuery } from "@tanstack/react-query";
+import { Project } from "@/types";
+import { CreateRequestPayload } from "@/types/requests";
+import { createRequest } from "@/api/requests";
 
 export interface Pricelist {
   id?: string;
@@ -79,16 +85,7 @@ interface PhotoArray {
 
 type Picha = Photo | PhotoArray;
 export type WholePriceList = Pricelist & Picha;
-type CartItem = WholePriceList & {
-  quantity: number;
-  addedAt: Date;
-};
 
-interface CartState {
-  items: CartItem[];
-  total: number;
-  itemCount: number;
-}
 /* disable-eslint */
 
 const getItemEmoji = (type: string, name: string): string => {
@@ -157,8 +154,6 @@ export default function PricelistDashboard({
   const [successMessage, setSuccessMessage] = useState("");
   const [current, setCurrent] = useState(0);
 
-  const [cartModalOpened, setCartModalOpened] = useState(false);
-
   // Add Item Modal States
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [file, setfile] = useState<File | null>(null);
@@ -175,10 +170,27 @@ export default function PricelistDashboard({
   const [addLoading, setAddLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [location, setLocation] = useState("");
+  const [date, setDate] = useState("");
+  const [KSNumber, setKSNumber] = useState("");
+  const [cartSpinner, setCartSpinner] = useState(false);
+
+  const { data: locations, refetch: refreshLocation } = useQuery({
+    queryKey: ["locations"],
+    queryFn: async () => await getProjects(),
+  });
 
   const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
-  const { addToCart, cart, removeFromCart, updateQuantity, clearCart } =
-    useCart();
+  const {
+    addToCart,
+    cart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    isItemInCart,
+    modalOpen: cartModalOpened,
+    setModalOpen: setCartModalOpened,
+  } = useCart();
 
   // Update the handleAddCart function
   const handleAddCart = async (item: ICartItem) => {
@@ -394,7 +406,71 @@ export default function PricelistDashboard({
   const perPage = 25;
   const filteredItems = items;
   const total = Math.ceil(filteredItems?.length / perPage);
-  const handleCheckout = () => {};
+  const resetState = () => {
+    setLocation("");
+    setDate("");
+    clearCart();
+  };
+  const handleCheckout = async () => {
+    const selectedLocation = locations?.projects?.find(
+      (loc: Project) => loc.id === location
+    );
+    const items = cart.items.map((cartItem) => ({
+      ...cartItem,
+      item_id: cartItem.id,
+      description: "",
+      visual_confirmation_required: 0,
+    }));
+
+    if (!selectedLocation) {
+      notify.error("Looks like you did not add a delivery location ");
+      return;
+    }
+    if (!date) {
+      notify.error("Looks like you did not add a delivery date ");
+      return;
+    }
+
+    const [lng, ltd] = selectedLocation?.location?.coordinates;
+
+    for (const item of items) {
+      if ("photo" in item) {
+        //@ts-expect-error
+        delete item?.["photo"];
+      }
+    }
+    const payload: CreateRequestPayload = {
+      status: "SUBMITTED",
+      delivery_date: date ?? "",
+      latitude: ltd,
+      longitude: lng,
+      ks_number: KSNumber,
+      created_from: "items",
+      //@ts-expect-error
+      items,
+    };
+
+    setCartSpinner(true);
+    try {
+      const response = await createRequest(payload);
+
+      if (response.status) {
+        notify.success("Request created successfully");
+        resetState();
+        setTimeout(() => {
+          setCartModalOpened(false);
+        }, 3000);
+        setSuccessMessage(`Request created successfully`);
+      } else {
+        notify.error("Something went wrong. Try again later.");
+      }
+    } catch (err) {
+      notify.error("Failed to submit request. Please try again.");
+      console.log(err);
+    } finally {
+      setCartSpinner(!true);
+    }
+  };
   // Cart Modal Component
 
   const CartModal = () => (
@@ -530,8 +606,35 @@ export default function PricelistDashboard({
 
             <Divider />
 
+            <Paper>
+              <div className="py-2 mb-2">
+                <DeliveryDate date={date} sendDate={(date) => setDate(date)} />
+              </div>
+              <div>
+                <DeliveryLocation
+                  locations={locations?.projects ?? []}
+                  sendLocation={setLocation}
+                  config={{ refresh: () => refreshLocation(), location }}
+                />
+              </div>
+              <div>
+                {" "}
+                <TextInput
+                  label={"Enter KS Number (optional)"}
+                  value={KSNumber}
+                  onChange={(e) => setKSNumber(e.target.value)}
+                />
+              </div>
+
+              <Divider />
+            </Paper>
             {/* Cart Summary */}
-            <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
+            <Paper
+              p="md"
+              radius="lg"
+              style={{ backgroundColor: "#f8f9fa" }}
+              display="none"
+            >
               <Flex justify="space-between" align="center">
                 <Text size="lg" fw={600}>
                   Total Amount:
@@ -548,7 +651,9 @@ export default function PricelistDashboard({
                 variant="light"
                 color="red"
                 leftSection={<Trash2 size={16} />}
-                onClick={clearCart}
+                onClick={() => {
+                  if (confirm("Clear cark")) clearCart();
+                }}
                 radius="xl"
               >
                 Clear Cart
@@ -569,7 +674,7 @@ export default function PricelistDashboard({
       </Stack>
     </Modal>
   );
-  console.log(cart, "carti");
+
   return (
     <section>
       <CartModal />
@@ -699,9 +804,13 @@ export default function PricelistDashboard({
               key={item.id}
               item={item}
               index={index}
+              cartQuantity={cart.itemCount}
+              isInCart={isItemInCart(item?.id as string)}
               handleDeleteClick={() => handleDeleteClick(item)}
               handleEditClick={() => handleEditClick(item)}
-              handleAddCart={() => handleAddCart(item)}
+              handleAddCart={() =>
+                handleAddCart(item as ICartItem & WholePriceList)
+              }
             />
           ))}
       </Grid>
@@ -1287,21 +1396,20 @@ export const PricelistItem: React.FC<{
 };
 // Add this cart button component to your header section
 type CartButtonProps = {
-  cart: CartState;
+  cart: ICartState;
   setCartModalOpened: (a: boolean) => void;
 };
 export const CartButton = ({ setCartModalOpened, cart }: CartButtonProps) => (
   <Button
     leftSection={<ShoppingCart size={18} />}
     variant="filled"
-    color="rgba(255,255,255,0.2)"
+    //color="rgba(255,255,255,0.2)"
     c="white"
-    size="lg"
+    size="xs"
     radius="xl"
     onClick={() => setCartModalOpened(true)}
     style={{ position: "relative" }}
   >
-    Cart
     {cart.itemCount > 0 && (
       <Badge
         size="sm"
@@ -1309,8 +1417,8 @@ export const CartButton = ({ setCartModalOpened, cart }: CartButtonProps) => (
         color="red"
         style={{
           position: "absolute",
-          top: -8,
-          right: -8,
+          top: 0,
+          right: 0,
           minWidth: 20,
           height: 20,
           borderRadius: "50%",
