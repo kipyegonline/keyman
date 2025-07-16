@@ -424,7 +424,7 @@ const SocialShare: React.FC<SocialShareProps> = ({
         }
       `}</style>
 
-      <div className="share-title">Share {title}</div>
+      <div className="share-title hidden">Share {title}</div>
 
       <div className="social-grid">
         {socialPlatforms.map((platform) => {

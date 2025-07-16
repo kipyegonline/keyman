@@ -60,6 +60,7 @@ import {
 import { SupplierDetails } from "@/types";
 import { notify } from "@/lib/notifications";
 import { inviteUserToSupplier } from "@/api/supplier";
+import SocialShare from "@/lib/SocilalShareComponent";
 
 type Props = { supplierDetails: SupplierDetails };
 type Stafftype = "staff" | "service_provider";
@@ -370,7 +371,7 @@ const SupplierDashboard: React.FC<Props> = ({
       </ActionIcon>
     </Tooltip>
   );
-
+  console.log(_supplierInfo);
   return (
     <div className=" p-2 md:p-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       {/* Enhanced Header Section */}
@@ -663,274 +664,310 @@ const SupplierDashboard: React.FC<Props> = ({
       </div>
 
       {/* Supplier Details Accordion */}
-      <div className="mb-8">
-        <Transition mounted={animateCards} transition="slide-up" duration={600}>
-          {(styles) => (
-            <Card style={styles} shadow="sm" padding="lg" radius="md">
-              <Text
-                size="lg"
-                fw={600}
-                mb="md"
-                className="text-gray-800 flex items-center gap-2"
-              >
-                <User size={20} color="#3D6B2C" />
-                Supplier Profile Details
-              </Text>
-
-              <Accordion variant="contained" radius="md">
-                {/* Basic Information */}
-                <Accordion.Item value="basic-info">
-                  <Accordion.Control icon={<User size={16} color="#3D6B2C" />}>
-                    Basic Information
-                  </Accordion.Control>
-                  <Accordion.Panel>
-                    <Grid>
-                      <Grid.Col span={{ base: 12, sm: 6 }}>
-                        <Group gap="xs" mb="sm">
-                          <MapPin size={16} color="#666" />
-                          <Text size="sm" fw={500}>
-                            Address:
-                          </Text>
-                        </Group>
-                        <Text size="sm" c="dimmed" mb="md">
-                          {_supplierInfo?.address}
-                        </Text>
-                      </Grid.Col>
-                      <Grid.Col span={{ base: 12, sm: 6 }}>
-                        <Group gap="xs" mb="sm">
-                          <Tag size={16} color="#666" />
-                          <Text size="sm" fw={500}>
-                            Categories:
-                          </Text>
-                        </Group>
-                        <Group gap="xs">
-                          {_supplierInfo?.categories?.map((category, index) => (
-                            <Badge
-                              key={index}
-                              variant="light"
-                              color="green"
-                              size="sm"
-                            >
-                              {category?.item_category?.name}
-                            </Badge>
-                          ))}
-                        </Group>
-                      </Grid.Col>
-                    </Grid>
-                  </Accordion.Panel>
-                </Accordion.Item>
-
-                {/* Business Capabilities */}
-                <Accordion.Item value="capabilities">
-                  <Accordion.Control icon={<Store size={16} color="#F08C23" />}>
-                    Business Capabilities
-                  </Accordion.Control>
-                  <Accordion.Panel>
-                    <Grid>
-                      <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-                        <Paper
-                          p="md"
-                          radius="md"
-                          className="bg-gray-50 text-center"
-                        >
-                          <ThemeIcon
-                            size="xl"
-                            radius="xl"
-                            variant={
-                              _supplierInfo?.offers_transport
-                                ? "filled"
-                                : "light"
-                            }
-                            color={
-                              _supplierInfo?.offers_transport ? "green" : "gray"
-                            }
-                            mb="sm"
-                          >
-                            <Truck size={24} />
-                          </ThemeIcon>
-                          <Text size="sm" fw={500}>
-                            Transport
-                          </Text>
-                          <Text
-                            size="xs"
-                            c={
-                              _supplierInfo?.offers_transport
-                                ? "green"
-                                : "dimmed"
-                            }
-                          >
-                            {_supplierInfo?.offers_transport
-                              ? "Available"
-                              : "Not Available"}
-                          </Text>
-                        </Paper>
-                      </Grid.Col>
-
-                      <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-                        <Paper
-                          p="md"
-                          radius="md"
-                          className="bg-gray-50 text-center"
-                        >
-                          <ThemeIcon
-                            size="xl"
-                            radius="xl"
-                            variant={
-                              _supplierInfo?.internet_access
-                                ? "filled"
-                                : "light"
-                            }
-                            color={
-                              _supplierInfo?.internet_access ? "blue" : "gray"
-                            }
-                            mb="sm"
-                          >
-                            <Wifi size={24} />
-                          </ThemeIcon>
-                          <Text size="sm" fw={500}>
-                            Internet
-                          </Text>
-                          <Text
-                            size="xs"
-                            c={
-                              _supplierInfo?.internet_access ? "blue" : "dimmed"
-                            }
-                          >
-                            {_supplierInfo?.internet_access
-                              ? "Available"
-                              : "Not Available"}
-                          </Text>
-                        </Paper>
-                      </Grid.Col>
-
-                      <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-                        <Paper
-                          p="md"
-                          radius="md"
-                          className="bg-gray-50 text-center"
-                        >
-                          <ThemeIcon
-                            size="xl"
-                            radius="xl"
-                            variant={
-                              _supplierInfo?.has_pos ? "filled" : "light"
-                            }
-                            color={_supplierInfo?.has_pos ? "orange" : "gray"}
-                            mb="sm"
-                          >
-                            <CreditCard size={24} />
-                          </ThemeIcon>
-                          <Text size="sm" fw={500}>
-                            POS System
-                          </Text>
-                          <Text
-                            size="xs"
-                            c={_supplierInfo?.has_pos ? "orange" : "dimmed"}
-                          >
-                            {_supplierInfo?.has_pos
-                              ? "Available"
-                              : "Not Available"}
-                          </Text>
-                        </Paper>
-                      </Grid.Col>
-
-                      <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
-                        <Paper
-                          p="md"
-                          radius="md"
-                          className="bg-gray-50 text-center"
-                        >
-                          <ThemeIcon
-                            size="xl"
-                            radius="xl"
-                            variant={
-                              _supplierInfo?.has_inventory ? "filled" : "light"
-                            }
-                            color={
-                              _supplierInfo?.has_inventory ? "teal" : "gray"
-                            }
-                            mb="sm"
-                          >
-                            <Archive size={24} />
-                          </ThemeIcon>
-                          <Text size="sm" fw={500}>
-                            Inventory
-                          </Text>
-                          <Text
-                            size="xs"
-                            c={_supplierInfo?.has_inventory ? "teal" : "dimmed"}
-                          >
-                            {_supplierInfo?.has_inventory
-                              ? "Managed"
-                              : "Not Managed"}
-                          </Text>
-                        </Paper>
-                      </Grid.Col>
-                    </Grid>
-                  </Accordion.Panel>
-                </Accordion.Item>
-
-                {/* Payment & Security */}
-                <Accordion.Item value="payment">
-                  <Accordion.Control
-                    icon={<Shield size={16} color="#388E3C" />}
+      <Grid>
+        <Grid.Col span={{ base: 12, md: 8 }}>
+          <div className="mb-8">
+            <Transition
+              mounted={animateCards}
+              transition="slide-up"
+              duration={600}
+            >
+              {(styles) => (
+                <Card style={styles} shadow="sm" padding="lg" radius="md">
+                  <Text
+                    size="lg"
+                    fw={600}
+                    mb="md"
+                    className="text-gray-800 flex items-center gap-2"
                   >
-                    Payment & Security
-                  </Accordion.Control>
-                  <Accordion.Panel>
-                    <Group gap="md">
-                      <ThemeIcon
-                        size="xl"
-                        radius="xl"
-                        variant={
-                          _supplierInfo?.is_escrow_only ? "filled" : "light"
-                        }
-                        color={_supplierInfo?.is_escrow_only ? "red" : "green"}
-                      >
-                        <Shield size={24} />
-                      </ThemeIcon>
-                      <div>
-                        <Text size="sm" fw={500}>
-                          {_supplierInfo?.is_escrow_only
-                            ? "Escrow Only"
-                            : "Multiple Payment Options"}
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          {_supplierInfo?.is_escrow_only
-                            ? "This supplier only accepts escrow payments for security"
-                            : "This supplier accepts various payment methods including direct payments"}
-                        </Text>
-                      </div>
-                    </Group>
-                  </Accordion.Panel>
-                </Accordion.Item>
+                    <User size={20} color="#3D6B2C" />
+                    Supplier Profile Details
+                  </Text>
 
-                {/* Additional Comments */}
-                {_supplierInfo?.comments && (
-                  <Accordion.Item value="comments">
-                    <Accordion.Control
-                      icon={<MessageSquare size={16} color="#666" />}
-                    >
-                      Additional Information
-                    </Accordion.Control>
-                    <Accordion.Panel>
-                      <Paper
-                        p="md"
-                        radius="md"
-                        className="bg-blue-50 border border-blue-200"
+                  <Accordion variant="contained" radius="md">
+                    {/* Basic Information */}
+                    <Accordion.Item value="basic-info">
+                      <Accordion.Control
+                        icon={<User size={16} color="#3D6B2C" />}
                       >
-                        <Text size="sm" style={{ lineHeight: 1.6 }}>
-                          {_supplierInfo?.comments}
-                        </Text>
-                      </Paper>
-                    </Accordion.Panel>
-                  </Accordion.Item>
-                )}
-              </Accordion>
-            </Card>
-          )}
-        </Transition>
-      </div>
+                        Basic Information
+                      </Accordion.Control>
+                      <Accordion.Panel>
+                        <Grid>
+                          <Grid.Col span={{ base: 12, sm: 6 }}>
+                            <Group gap="xs" mb="sm">
+                              <MapPin size={16} color="#666" />
+                              <Text size="sm" fw={500}>
+                                Address:
+                              </Text>
+                            </Group>
+                            <Text size="sm" c="dimmed" mb="md">
+                              {_supplierInfo?.address}
+                            </Text>
+                          </Grid.Col>
+                          <Grid.Col span={{ base: 12, sm: 6 }}>
+                            <Group gap="xs" mb="sm">
+                              <Tag size={16} color="#666" />
+                              <Text size="sm" fw={500}>
+                                Categories:
+                              </Text>
+                            </Group>
+                            <Group gap="xs">
+                              {_supplierInfo?.categories?.map(
+                                (category, index) => (
+                                  <Badge
+                                    key={index}
+                                    variant="light"
+                                    color="green"
+                                    size="sm"
+                                  >
+                                    {category?.item_category?.name}
+                                  </Badge>
+                                )
+                              )}
+                            </Group>
+                          </Grid.Col>
+                        </Grid>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+
+                    {/* Business Capabilities */}
+                    <Accordion.Item value="capabilities">
+                      <Accordion.Control
+                        icon={<Store size={16} color="#F08C23" />}
+                      >
+                        Business Capabilities
+                      </Accordion.Control>
+                      <Accordion.Panel>
+                        <Grid>
+                          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+                            <Paper
+                              p="md"
+                              radius="md"
+                              className="bg-gray-50 text-center"
+                            >
+                              <ThemeIcon
+                                size="xl"
+                                radius="xl"
+                                variant={
+                                  _supplierInfo?.offers_transport
+                                    ? "filled"
+                                    : "light"
+                                }
+                                color={
+                                  _supplierInfo?.offers_transport
+                                    ? "green"
+                                    : "gray"
+                                }
+                                mb="sm"
+                              >
+                                <Truck size={24} />
+                              </ThemeIcon>
+                              <Text size="sm" fw={500}>
+                                Transport
+                              </Text>
+                              <Text
+                                size="xs"
+                                c={
+                                  _supplierInfo?.offers_transport
+                                    ? "green"
+                                    : "dimmed"
+                                }
+                              >
+                                {_supplierInfo?.offers_transport
+                                  ? "Available"
+                                  : "Not Available"}
+                              </Text>
+                            </Paper>
+                          </Grid.Col>
+
+                          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+                            <Paper
+                              p="md"
+                              radius="md"
+                              className="bg-gray-50 text-center"
+                            >
+                              <ThemeIcon
+                                size="xl"
+                                radius="xl"
+                                variant={
+                                  _supplierInfo?.internet_access
+                                    ? "filled"
+                                    : "light"
+                                }
+                                color={
+                                  _supplierInfo?.internet_access
+                                    ? "blue"
+                                    : "gray"
+                                }
+                                mb="sm"
+                              >
+                                <Wifi size={24} />
+                              </ThemeIcon>
+                              <Text size="sm" fw={500}>
+                                Internet
+                              </Text>
+                              <Text
+                                size="xs"
+                                c={
+                                  _supplierInfo?.internet_access
+                                    ? "blue"
+                                    : "dimmed"
+                                }
+                              >
+                                {_supplierInfo?.internet_access
+                                  ? "Available"
+                                  : "Not Available"}
+                              </Text>
+                            </Paper>
+                          </Grid.Col>
+
+                          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+                            <Paper
+                              p="md"
+                              radius="md"
+                              className="bg-gray-50 text-center"
+                            >
+                              <ThemeIcon
+                                size="xl"
+                                radius="xl"
+                                variant={
+                                  _supplierInfo?.has_pos ? "filled" : "light"
+                                }
+                                color={
+                                  _supplierInfo?.has_pos ? "orange" : "gray"
+                                }
+                                mb="sm"
+                              >
+                                <CreditCard size={24} />
+                              </ThemeIcon>
+                              <Text size="sm" fw={500}>
+                                POS System
+                              </Text>
+                              <Text
+                                size="xs"
+                                c={_supplierInfo?.has_pos ? "orange" : "dimmed"}
+                              >
+                                {_supplierInfo?.has_pos
+                                  ? "Available"
+                                  : "Not Available"}
+                              </Text>
+                            </Paper>
+                          </Grid.Col>
+
+                          <Grid.Col span={{ base: 12, sm: 6, md: 3 }}>
+                            <Paper
+                              p="md"
+                              radius="md"
+                              className="bg-gray-50 text-center"
+                            >
+                              <ThemeIcon
+                                size="xl"
+                                radius="xl"
+                                variant={
+                                  _supplierInfo?.has_inventory
+                                    ? "filled"
+                                    : "light"
+                                }
+                                color={
+                                  _supplierInfo?.has_inventory ? "teal" : "gray"
+                                }
+                                mb="sm"
+                              >
+                                <Archive size={24} />
+                              </ThemeIcon>
+                              <Text size="sm" fw={500}>
+                                Inventory
+                              </Text>
+                              <Text
+                                size="xs"
+                                c={
+                                  _supplierInfo?.has_inventory
+                                    ? "teal"
+                                    : "dimmed"
+                                }
+                              >
+                                {_supplierInfo?.has_inventory
+                                  ? "Managed"
+                                  : "Not Managed"}
+                              </Text>
+                            </Paper>
+                          </Grid.Col>
+                        </Grid>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+
+                    {/* Payment & Security */}
+                    <Accordion.Item value="payment">
+                      <Accordion.Control
+                        icon={<Shield size={16} color="#388E3C" />}
+                      >
+                        Payment & Security
+                      </Accordion.Control>
+                      <Accordion.Panel>
+                        <Group gap="md">
+                          <ThemeIcon
+                            size="xl"
+                            radius="xl"
+                            variant={
+                              _supplierInfo?.is_escrow_only ? "filled" : "light"
+                            }
+                            color={
+                              _supplierInfo?.is_escrow_only ? "red" : "green"
+                            }
+                          >
+                            <Shield size={24} />
+                          </ThemeIcon>
+                          <div>
+                            <Text size="sm" fw={500}>
+                              {_supplierInfo?.is_escrow_only
+                                ? "Escrow Only"
+                                : "Multiple Payment Options"}
+                            </Text>
+                            <Text size="xs" c="dimmed">
+                              {_supplierInfo?.is_escrow_only
+                                ? "This supplier only accepts escrow payments for security"
+                                : "This supplier accepts various payment methods including direct payments"}
+                            </Text>
+                          </div>
+                        </Group>
+                      </Accordion.Panel>
+                    </Accordion.Item>
+
+                    {/* Additional Comments */}
+                    {_supplierInfo?.comments && (
+                      <Accordion.Item value="comments">
+                        <Accordion.Control
+                          icon={<MessageSquare size={16} color="#666" />}
+                        >
+                          Additional Information
+                        </Accordion.Control>
+                        <Accordion.Panel>
+                          <Paper
+                            p="md"
+                            radius="md"
+                            className="bg-blue-50 border border-blue-200"
+                          >
+                            <Text size="sm" style={{ lineHeight: 1.6 }}>
+                              {_supplierInfo?.comments}
+                            </Text>
+                          </Paper>
+                        </Accordion.Panel>
+                      </Accordion.Item>
+                    )}
+                  </Accordion>
+                </Card>
+              )}
+            </Transition>
+          </div>
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, md: 4 }}>
+          <SocialShare
+            url={`https://www.keymanstores.com/supplier/${_supplierInfo?.id}`}
+            title={_supplierInfo?.name ?? "Supplier"}
+          />
+        </Grid.Col>
+      </Grid>
 
       {/* Staff Management Section */}
       <Grid>
