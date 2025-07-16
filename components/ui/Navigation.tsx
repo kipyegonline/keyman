@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Image } from "@mantine/core";
 import { usePathname } from "next/navigation";
 import { useAppContext } from "@/providers/AppContext";
+
 export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
   isFixed = true,
 }) => {
@@ -17,6 +18,7 @@ export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
     "/account/forgot-password",
     "/account/reset-password",
   ];
+
   const isAccountPage = paths.includes(pathname);
   return (
     <nav
@@ -97,6 +99,7 @@ export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
                 <Moon className="w-5 h-5 text-gray-600" />
               )}
             </button>
+
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className={`p-2 rounded-lg ${

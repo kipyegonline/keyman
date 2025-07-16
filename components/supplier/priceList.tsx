@@ -53,6 +53,13 @@ import {
 import { updateSupplierPriceList } from "@/api/supplier";
 import { notify } from "@/lib/notifications";
 import { createItem, deleteItem } from "@/api/items";
+import { ICartItem, ICartState, useCart } from "@/providers/CartContext";
+import { DeliveryDate, DeliveryLocation } from "../keyman-bot/DeliveryLocation";
+import { getProjects } from "@/api/projects";
+import { useQuery } from "@tanstack/react-query";
+import { Project } from "@/types";
+import { CreateRequestPayload } from "@/types/requests";
+import { createRequest } from "@/api/requests";
 
 export interface Pricelist {
   id?: string;
@@ -78,16 +85,7 @@ interface PhotoArray {
 
 type Picha = Photo | PhotoArray;
 export type WholePriceList = Pricelist & Picha;
-type CartItem = WholePriceList & {
-  quantity: number;
-  addedAt: Date;
-};
 
-interface CartState {
-  items: CartItem[];
-  total: number;
-  itemCount: number;
-}
 /* disable-eslint */
 
 const getItemEmoji = (type: string, name: string): string => {
@@ -147,6 +145,7 @@ export default function PricelistDashboard({
   prices: WholePriceList[];
   refetchPricelist: () => void;
 }) {
+  /*eslint-disable*/
   const [selectedItem, setSelectedItem] = useState<Pricelist | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [editForm, setEditForm] = useState<Pricelist | null>(null);
@@ -155,12 +154,8 @@ export default function PricelistDashboard({
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [current, setCurrent] = useState(0);
-  const [cart, setCart] = useState<CartState>({
-    items: [],
-    total: 0,
-    itemCount: 0,
-  });
-  const [cartModalOpened, setCartModalOpened] = useState(false);
+
+  // Edit Modal States
 
   // Add Item Modal States
   const [addModalOpened, setAddModalOpened] = useState(false);
@@ -178,110 +173,30 @@ export default function PricelistDashboard({
   const [addLoading, setAddLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [location, setLocation] = useState("");
+  const [date, setDate] = useState("");
+
+  const [cartSpinner, setCartSpinner] = useState(false);
+
+  const { data: locations, refetch: refreshLocation } = useQuery({
+    queryKey: ["locations"],
+    queryFn: async () => await getProjects(),
+  });
 
   const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
-  // Helper functions for cart management
-  const calculateCartTotal = (items: CartItem[]) => {
-    return items.reduce((total, item) => total + item.price * item.quantity, 0);
-  };
-
-  const calculateItemCount = (items: CartItem[]) => {
-    return items.reduce((count, item) => count + item.quantity, 0);
-  };
-
-  const updateCartState = (items: CartItem[]) => {
-    setCart({
-      items,
-      total: calculateCartTotal(items),
-      itemCount: calculateItemCount(items),
-    });
-  };
-  /*
-  // Check if item is in cart
-  const isItemInCart = (itemId: string) => {
-    return cart.items.some((cartItem) => cartItem.id === itemId);
-  };
-
-  // Get item quantity in cart
-  const getItemQuantity = (itemId: string) => {
-    const cartItem = cart.items.find((item) => item.id === itemId);
-    return cartItem ? cartItem.quantity : 0;
-  };*/
-
-  // Add item to cart
-  const addToCart = (item: WholePriceList) => {
-    const existingItem = cart.items.find((cartItem) => cartItem.id === item.id);
-
-    let updatedItems: CartItem[];
-
-    if (existingItem) {
-      // If item exists, increase quantity
-      updatedItems = cart.items.map((cartItem) =>
-        cartItem.id === item.id
-          ? { ...cartItem, quantity: cartItem.quantity + 1 }
-          : cartItem
-      );
-    } else {
-      // If item doesn't exist, add new item
-      const newCartItem: CartItem = {
-        ...item,
-        quantity: 1,
-        addedAt: new Date(),
-      };
-      updatedItems = [...cart.items, newCartItem];
-    }
-
-    updateCartState(updatedItems);
-    notify.success(`${item.name} added to cart!`);
-  };
-
-  // Remove item from cart
-  const removeFromCart = (itemId: string) => {
-    const updatedItems = cart.items.filter((item) => item.id !== itemId);
-    updateCartState(updatedItems);
-  };
-
-  // Update item quantity in cart
-  const updateQuantity = (itemId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(itemId);
-      return;
-    }
-
-    const updatedItems = cart.items.map((item) =>
-      item.id === itemId ? { ...item, quantity } : item
-    );
-
-    updateCartState(updatedItems);
-  };
-
-  // Clear entire cart
-  const clearCart = () => {
-    setCart({
-      items: [],
-      total: 0,
-      itemCount: 0,
-    });
-  };
-
-  // Handle checkout
-  const handleCheckout = () => {
-    if (cart.items.length === 0) {
-      notify.error("Your cart is empty!");
-      return;
-    }
-
-    // Here you would typically send the cart data to your backend
-    console.log("Checkout data:", cart);
-
-    // For now, we'll just show a success message and clear the cart
-    notify.success("Order placed successfully!");
-    clearCart();
-    setCartModalOpened(false);
-  };
+  const {
+    addToCart,
+    cart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    isItemInCart,
+    modalOpen: cartModalOpened,
+    setModalOpen: setCartModalOpened,
+  } = useCart();
 
   // Update the handleAddCart function
-  const handleAddCart = async (item: WholePriceList) => {
+  const handleAddCart = async (item: ICartItem) => {
     addToCart(item);
   };
   React.useEffect(() => {
@@ -325,36 +240,6 @@ export default function PricelistDashboard({
     }
   };
 
-  /*
-  const saveItem = async (fileInput: File) => {
-    const token = localStorage.getItem("auth_token") as string;
-    const myHeaders = new Headers();
-    myHeaders.append("Authorization", token);
-
-    const formdata = new FormData();
-    formdata.append("name", "Check Items");
-    formdata.append("swahili_name", "Check Items");
-    formdata.append("description", "This is a test");
-    formdata.append("type", "goods");
-    formdata.append(
-      "supplier_detail_id",
-      "01979ca1-f4bf-7173-a894-cd8de3345175"
-    );
-    formdata.append("price", "120");
-    formdata.append("image", fileInput, "[PROXY]");
-
-    const requestOptions = {
-      method: "POST",
-      headers: myHeaders,
-      body: formdata,
-      redirect: "follow",
-    };
-
-    fetch("https://backend.keymanstores.com/api/item", requestOptions)
-      .then((response) => response.text())
-      .then((result) => console.log(result))
-      .catch((error) => console.error(error));
-  }; */
   const handleSavePrice = async () => {
     if (!editForm || !selectedItem) return;
 
@@ -524,43 +409,72 @@ export default function PricelistDashboard({
   const perPage = 25;
   const filteredItems = items;
   const total = Math.ceil(filteredItems?.length / perPage);
-  // Add this cart button component to your header section
-  const CartButton = () => (
-    <Button
-      leftSection={<ShoppingCart size={18} />}
-      variant="filled"
-      color="rgba(255,255,255,0.2)"
-      c="white"
-      size="lg"
-      radius="xl"
-      onClick={() => setCartModalOpened(true)}
-      style={{ position: "relative" }}
-    >
-      Cart
-      {cart.itemCount > 0 && (
-        <Badge
-          size="sm"
-          variant="filled"
-          color="red"
-          style={{
-            position: "absolute",
-            top: -8,
-            right: -8,
-            minWidth: 20,
-            height: 20,
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "11px",
-            fontWeight: "bold",
-          }}
-        >
-          {cart.itemCount}
-        </Badge>
-      )}
-    </Button>
-  );
+  const resetState = () => {
+    setLocation("");
+    setDate("");
+    clearCart();
+  };
+  const handleCheckout = async () => {
+    const selectedLocation = locations?.projects?.find(
+      (loc: Project) => loc.id === location
+    );
+    const items = cart.items.map((cartItem) => ({
+      ...cartItem,
+      item_id: cartItem.item_id,
+      description: "",
+      visual_confirmation_required: 0,
+    }));
+
+    if (!selectedLocation) {
+      notify.error("Looks like you did not add a delivery location ");
+      return;
+    }
+    if (!date) {
+      notify.error("Looks like you did not add a delivery date ");
+      return;
+    }
+
+    const [lng, ltd] = selectedLocation?.location?.coordinates;
+
+    for (const item of items) {
+      if ("photo" in item) {
+        //@ts-ignore
+        delete item?.["photo"];
+      }
+    }
+    const payload: CreateRequestPayload = {
+      status: "SUBMITTED",
+      delivery_date: date ?? "",
+      latitude: ltd,
+      longitude: lng,
+      ks_number: "",
+      created_from: "items",
+      //@ts-expect-error
+      items,
+    };
+
+    setCartSpinner(true);
+    try {
+      const response = await createRequest(payload);
+
+      if (response.status) {
+        notify.success("Request created successfully");
+        resetState();
+        setTimeout(() => {
+          setCartModalOpened(false);
+        }, 3000);
+        setSuccessMessage(`Request created successfully`);
+        setTimeout(() => setSuccessMessage(""), 3000);
+      } else {
+        notify.error("Something went wrong. Try again later.");
+      }
+    } catch (err) {
+      notify.error("Failed to submit request. Please try again.");
+      console.log(err);
+    } finally {
+      setCartSpinner(!true);
+    }
+  };
   // Cart Modal Component
 
   const CartModal = () => (
@@ -696,8 +610,27 @@ export default function PricelistDashboard({
 
             <Divider />
 
+            <Paper>
+              <div className="py-2 mb-2">
+                <DeliveryDate date={date} sendDate={(date) => setDate(date)} />
+              </div>
+              <div>
+                <DeliveryLocation
+                  locations={locations?.projects ?? []}
+                  sendLocation={(location) => setLocation(location)}
+                  config={{ refresh: () => refreshLocation(), location }}
+                />
+              </div>
+
+              <Divider />
+            </Paper>
             {/* Cart Summary */}
-            <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
+            <Paper
+              p="md"
+              radius="lg"
+              style={{ backgroundColor: "#f8f9fa" }}
+              display="none"
+            >
               <Flex justify="space-between" align="center">
                 <Text size="lg" fw={600}>
                   Total Amount:
@@ -714,7 +647,9 @@ export default function PricelistDashboard({
                 variant="light"
                 color="red"
                 leftSection={<Trash2 size={16} />}
-                onClick={clearCart}
+                onClick={() => {
+                  if (confirm("Clear cark")) clearCart();
+                }}
                 radius="xl"
               >
                 Clear Cart
@@ -726,6 +661,7 @@ export default function PricelistDashboard({
                 onClick={handleCheckout}
                 radius="xl"
                 size="lg"
+                loading={cartSpinner}
               >
                 Checkout
               </Button>
@@ -738,7 +674,6 @@ export default function PricelistDashboard({
 
   return (
     <section>
-      <CartButton />
       <CartModal />
       {/* Header Section */}
       <Paper
@@ -866,9 +801,13 @@ export default function PricelistDashboard({
               key={item.id}
               item={item}
               index={index}
+              cartQuantity={cart.itemCount}
+              isInCart={isItemInCart(item?.id as string)}
               handleDeleteClick={() => handleDeleteClick(item)}
               handleEditClick={() => handleEditClick(item)}
-              handleAddCart={() => handleAddCart(item)}
+              handleAddCart={() =>
+                handleAddCart(item as ICartItem & WholePriceList)
+              }
             />
           ))}
       </Grid>
@@ -1452,3 +1391,43 @@ export const PricelistItem: React.FC<{
     </Grid.Col>
   );
 };
+// Add this cart button component to your header section
+type CartButtonProps = {
+  cart: ICartState;
+  setCartModalOpened: (a: boolean) => void;
+};
+export const CartButton = ({ setCartModalOpened, cart }: CartButtonProps) => (
+  <Button
+    leftSection={<ShoppingCart size={18} />}
+    variant="filled"
+    //color="rgba(255,255,255,0.2)"
+    c="white"
+    size="xs"
+    radius="xl"
+    onClick={() => setCartModalOpened(true)}
+    style={{ position: "relative" }}
+  >
+    {cart.itemCount > 0 && (
+      <Badge
+        size="sm"
+        variant="filled"
+        color="red"
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          minWidth: 20,
+          height: 20,
+          borderRadius: "50%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "11px",
+          fontWeight: "bold",
+        }}
+      >
+        {cart.itemCount}
+      </Badge>
+    )}
+  </Button>
+);
