@@ -24,12 +24,27 @@ import {
 import { Bell, ChevronDown, Sun, Moon } from "lucide-react";
 import { useAppContext } from "@/providers/AppContext";
 import { navigateTo } from "@/lib/helpers";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { logOutKeymanUser } from "@/api/registration";
 import Link from "next/link";
 import { CartButton } from "../supplier/priceList";
 import { useCart } from "@/providers/CartContext";
 
+const checkDash = () => {
+  const dashboard = globalThis?.window?.localStorage.getItem("dashboard");
+  if (dashboard === null) return true;
+  return dashboard === "dashboard";
+};
+const checkAuth = () => {
+  return globalThis?.window?.localStorage.getItem("supplier_id");
+};
+const getLocalCart = () => {
+  const cart = JSON.parse(
+    globalThis?.window?.localStorage.getItem("cart") as string
+  );
+  console.log(cart, "cak");
+  return cart;
+};
 // Navigation Component
 const TopNavigation: React.FC = () => {
   const {
@@ -41,6 +56,16 @@ const TopNavigation: React.FC = () => {
   } = useAppContext();
   const router = useRouter();
   const { cart, setModalOpen } = useCart();
+  const isSupplierSide = checkDash();
+  const pathname = usePathname();
+  const [ownsCart, setOwnsCart] = React.useState(false);
+  React.useEffect(() => {
+    const ownsCart = checkAuth() === getLocalCart()?.supplierId;
+    setOwnsCart(ownsCart);
+  }, []);
+
+  const hasAccess =
+    !isSupplierSide && pathname.includes("price-list") && ownsCart;
   const profileMenuItems = [
     // { label: "Edit Profile", icon: Edit, key: "profile" },
     //{ label: "Hardware/Service Profile", icon: Wrench, key: "hardware" },
@@ -158,7 +183,7 @@ const TopNavigation: React.FC = () => {
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </ActionIcon>
-          {cart.itemCount > 0 && (
+          {cart.itemCount > 0 && hasAccess && (
             <CartButton
               cart={cart}
               setCartModalOpened={() => setModalOpen(true)}

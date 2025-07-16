@@ -145,6 +145,7 @@ export default function PricelistDashboard({
   prices: WholePriceList[];
   refetchPricelist: () => void;
 }) {
+  /*eslint-disable*/
   const [selectedItem, setSelectedItem] = useState<Pricelist | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [editForm, setEditForm] = useState<Pricelist | null>(null);
@@ -153,6 +154,8 @@ export default function PricelistDashboard({
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [current, setCurrent] = useState(0);
+
+  // Edit Modal States
 
   // Add Item Modal States
   const [addModalOpened, setAddModalOpened] = useState(false);
@@ -172,7 +175,7 @@ export default function PricelistDashboard({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
-  const [KSNumber, setKSNumber] = useState("");
+
   const [cartSpinner, setCartSpinner] = useState(false);
 
   const { data: locations, refetch: refreshLocation } = useQuery({
@@ -417,7 +420,7 @@ export default function PricelistDashboard({
     );
     const items = cart.items.map((cartItem) => ({
       ...cartItem,
-      item_id: cartItem.id,
+      item_id: cartItem.item_id,
       description: "",
       visual_confirmation_required: 0,
     }));
@@ -435,7 +438,7 @@ export default function PricelistDashboard({
 
     for (const item of items) {
       if ("photo" in item) {
-        //@ts-expect-error
+        //@ts-ignore
         delete item?.["photo"];
       }
     }
@@ -444,7 +447,7 @@ export default function PricelistDashboard({
       delivery_date: date ?? "",
       latitude: ltd,
       longitude: lng,
-      ks_number: KSNumber,
+      ks_number: "",
       created_from: "items",
       //@ts-expect-error
       items,
@@ -461,6 +464,7 @@ export default function PricelistDashboard({
           setCartModalOpened(false);
         }, 3000);
         setSuccessMessage(`Request created successfully`);
+        setTimeout(() => setSuccessMessage(""), 3000);
       } else {
         notify.error("Something went wrong. Try again later.");
       }
@@ -613,16 +617,8 @@ export default function PricelistDashboard({
               <div>
                 <DeliveryLocation
                   locations={locations?.projects ?? []}
-                  sendLocation={setLocation}
+                  sendLocation={(location) => setLocation(location)}
                   config={{ refresh: () => refreshLocation(), location }}
-                />
-              </div>
-              <div>
-                {" "}
-                <TextInput
-                  label={"Enter KS Number (optional)"}
-                  value={KSNumber}
-                  onChange={(e) => setKSNumber(e.target.value)}
                 />
               </div>
 
@@ -665,6 +661,7 @@ export default function PricelistDashboard({
                 onClick={handleCheckout}
                 radius="xl"
                 size="lg"
+                loading={cartSpinner}
               >
                 Checkout
               </Button>

@@ -14,17 +14,6 @@ export const DeliveryLocation = ({
   sendLocation,
   config,
 }: Props) => {
-  const [location, setLocation] = React.useState<string | null>(null);
-  React.useEffect(() => {
-    if (location) {
-      sendLocation(location);
-    }
-  }, [location]);
-  React.useEffect(() => {
-    if (config.location) {
-      sendLocation(config.location);
-    }
-  }, [config]);
   if (locations.length === 0) {
     return (
       <Card className=" bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200 py-2 mb-2">
@@ -51,6 +40,7 @@ export const DeliveryLocation = ({
       </Card>
     );
   }
+
   return (
     <div className="space-y-2">
       <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
@@ -65,8 +55,8 @@ export const DeliveryLocation = ({
           label: loc.name,
         }))}
         className="transition-all duration-200 hover:scale-[1.02]"
-        onChange={setLocation}
-        value={location}
+        onChange={(e) => (e ? sendLocation(e) : null)}
+        value={config.location}
       />
     </div>
   );

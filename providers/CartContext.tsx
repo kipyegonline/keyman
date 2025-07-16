@@ -33,6 +33,7 @@ export interface ICartState {
   total: number;
   itemCount: number;
   isLoading: boolean;
+  supplierId: string;
 }
 
 export interface CartContextType {
@@ -80,6 +81,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     total: 0,
     itemCount: 0,
     isLoading: false,
+    supplierId: "",
   });
   const [modalOpen, setModalOpen] = useState(false);
   // Helper functions
@@ -128,6 +130,8 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
           items: cart.items,
           total: cart.total,
           itemCount: cart.itemCount,
+          supplierId:
+            globalThis?.window?.localStorage.getItem("supplier_id") ?? "",
         })
       );
     } else {
@@ -207,6 +211,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
       total: 0,
       itemCount: 0,
       isLoading: false,
+      supplierId: "",
     });
     notify.success("Cart cleared!");
   };
@@ -270,6 +275,7 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
         total: 0,
         itemCount: 0,
         isLoading: false,
+        supplierId: "",
       });
     } catch (error) {
       console.error("Checkout error:", error);
