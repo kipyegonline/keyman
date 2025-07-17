@@ -252,7 +252,11 @@ const ChatBot: React.FC = () => {
       );
     });
   };
-
+  const deleteCartItem = (item: Product) => {
+    setCart((prevCart) =>
+      prevCart.filter((cartItem) => cartItem.id !== item.id)
+    );
+  };
   const handleSendMessage = async () => {
     if (inputValue.trim() && !isWaitingForResponse) {
       const messageToSend = inputValue.trim();
@@ -411,6 +415,7 @@ const ChatBot: React.FC = () => {
               onAddToCart={addToCart}
               cartItems={cart}
               onUpdateCart={updateCart}
+              deleteItem={deleteCartItem}
             />
           )}
         </div>
@@ -529,6 +534,7 @@ const ChatBot: React.FC = () => {
                   KSNumber={KSNumber}
                   setKSNumber={setKSNumber}
                   onCreateRequest={handleCreateRequest}
+                  deleteItem={deleteCartItem}
                 />
               </div>
             ) : (

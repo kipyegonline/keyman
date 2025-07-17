@@ -10,6 +10,7 @@ import {
   ArrowLeftRight,
   Key,
   Edit3,
+  Trash2,
 } from "lucide-react";
 import { Alert, Badge, Card, Checkbox, Text, TextInput } from "@mantine/core";
 
@@ -43,7 +44,8 @@ const ItemCard: React.FC<{
     newQuantity: number,
     attachImage: boolean
   ) => void;
-}> = ({ item, onAddToCart, cartItems, onUpdateCart }) => {
+  deleteItem: () => void;
+}> = ({ item, onAddToCart, cartItems, onUpdateCart, deleteItem }) => {
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -86,10 +88,23 @@ const ItemCard: React.FC<{
   const handleEditToggle = () => {
     setIsEditing(!isEditing);
   };
-
+  const handleDelete = () => {
+    if (confirm("Delete " + item.name + "?")) {
+      deleteItem();
+    }
+  };
+  const DeleteComponent = (
+    <Trash2
+      onClick={handleDelete}
+      className="absolute right-2 top-2"
+      size={18}
+      color={"red"}
+    />
+  );
   return (
-    <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-3 sm:p-4 w-36 sm:w-40 md:w-44 lg:w-48 flex-shrink-0 transform hover:scale-105">
+    <div className="bg-white rounded-xl relative shadow-md hover:shadow-xl transition-all duration-300 p-3 sm:p-4 w-36 sm:w-40 md:w-44 lg:w-48 flex-shrink-0 transform hover:scale-105">
       <div className="relative h-16 sm:h-20 mb-3 hidden overflow-hidden rounded-lg bg-gray-100"></div>
+      {isInCart && DeleteComponent}
 
       {/* Item name with title attribute */}
       <h4
@@ -225,7 +240,8 @@ export const ItemSlider: React.FC<{
     newQuantity: number,
     attachImage: boolean
   ) => void;
-}> = ({ items, onAddToCart, cartItems = [], onUpdateCart }) => {
+  deleteItem: (item: Product) => void;
+}> = ({ items, onAddToCart, cartItems = [], onUpdateCart, deleteItem }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -341,6 +357,7 @@ export const ItemSlider: React.FC<{
               onAddToCart={onAddToCart}
               cartItems={cartItems}
               onUpdateCart={onUpdateCart}
+              deleteItem={() => deleteItem(item)}
             />
           </div>
         ))}
@@ -396,6 +413,7 @@ export const CartView: React.FC<{
   KSNumber: string;
   setKSNumber: React.Dispatch<React.SetStateAction<string>>;
   locationConfig: { refresh: () => void; location: string };
+  deleteItem: (item: Product) => void;
 }> = ({
   cart,
   onCheckout,
@@ -408,13 +426,20 @@ export const CartView: React.FC<{
   KSNumber,
   setKSNumber,
   locationConfig,
+  deleteItem,
 }) => {
   const [isCustomer, setCustomer] = React.useState(authInfo.isMainDashboard);
   const { toggleDashboard } = useAppContext();
-  console.log(locations, "locs");
+
   const handleToggle = () => {
     setCustomer(true);
     toggleDashboard();
+  };
+
+  const handleDelete = (item: Product) => {
+    if (confirm("Delete " + item.name + "?")) {
+      deleteItem(item);
+    }
   };
   const checkoutSection = (
     <div>
@@ -493,12 +518,22 @@ export const CartView: React.FC<{
                 <span className="text-gray-700 font-medium text-sm">
                   {item.name}
                 </span>
+
                 <p className="text-xs text-gray-500 mt-1">
                   Quantity: {item.cartQuantity}
                 </p>
               </div>
               <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium ml-2">
-                {item.cartQuantity}
+                {item.cartQuantity}{" "}
+              </span>
+              <span>
+                {" "}
+                <Trash2
+                  size={16}
+                  className="inline-block ml-2"
+                  onClick={() => handleDelete(item)}
+                  color="red"
+                />
               </span>
             </div>
           ))}
