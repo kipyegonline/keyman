@@ -17,6 +17,7 @@ import { DeliveryDate, DeliveryLocation } from "./DeliveryLocation";
 import { Project } from "@/types";
 import LoadingComponent from "@/lib/LoadingComponent";
 import Link from "next/link";
+import { useAppContext } from "@/providers/AppContext";
 
 // Interfaces
 interface Product {
@@ -408,6 +409,13 @@ export const CartView: React.FC<{
   setKSNumber,
   locationConfig,
 }) => {
+  const [isCustomer, setCustomer] = React.useState(authInfo.isMainDashboard);
+  const { toggleDashboard } = useAppContext();
+  console.log(locations, "locs");
+  const handleToggle = () => {
+    setCustomer(true);
+    toggleDashboard();
+  };
   const checkoutSection = (
     <div>
       <div className="py-2">
@@ -434,6 +442,7 @@ export const CartView: React.FC<{
           You need to create this request from customer dashboard
         </Text>
         <Link
+          onClick={handleToggle}
           href="/keyman/dashboard/"
           className="inline-flex items-center gap-2 text-xs text-[#3D6B2C] hover:text-[#388E3C] font-medium"
         >
@@ -515,7 +524,7 @@ export const CartView: React.FC<{
             />
           ) : !authInfo.isLoggedIn ? (
             UnloggedSection
-          ) : authInfo.isMainDashboard ? (
+          ) : isCustomer ? (
             checkoutSection
           ) : (
             supplierSection

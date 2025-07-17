@@ -419,7 +419,10 @@ const ChatBot: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-4 right-4  " style={{ zIndex: 999 }}>
+    <div
+      className="fixed bottom-4 right-4  "
+      style={{ zIndex: showCart ? 1 : 999 }}
+    >
       {/* Chat Window */}
       <div
         className={`
@@ -501,7 +504,10 @@ const ChatBot: React.FC = () => {
           <>
             {showCart && cart.length > 0 ? (
               /* Cart View - Takes full height when shown */
-              <div className="flex-1 overflow-y-auto min-h-0">
+              <div
+                className="flex-1 overflow-y-auto min-h-0"
+                style={{ zIndex: 999 }}
+              >
                 <CartView
                   cart={cart}
                   onClose={() => setShowCart(false)}

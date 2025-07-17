@@ -183,7 +183,7 @@ interface Category {
   };
 }
 
-interface CoinBalance {
+export interface CoinBalance {
   breakdown: { free: string; paid: number };
   total: number;
 }

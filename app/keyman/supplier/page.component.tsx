@@ -7,6 +7,7 @@ import { getSupplierDetails } from "@/api/supplier";
 import { SupplierDetails } from "@/types";
 import LoadingComponent from "@/lib/LoadingComponent";
 import { Alert, Text } from "@mantine/core";
+import { getBalance } from "@/api/coin";
 
 export default function SupplierComponentDashboard() {
   const supplierId = globalThis?.window?.localStorage.getItem(
@@ -21,6 +22,11 @@ export default function SupplierComponentDashboard() {
   } = useQuery({
     queryKey: [supplierId],
     queryFn: async () => await getSupplierDetails(supplierId),
+  });
+
+  const { data: balance } = useQuery({
+    queryKey: ["balance", supplierId],
+    queryFn: async () => await getBalance(supplierId, true),
   });
 
   const supplierDetails = React.useMemo(() => {
@@ -45,7 +51,10 @@ export default function SupplierComponentDashboard() {
         </Alert>
       )}
       {supplierDetails ? (
-        <SupplierDashboard supplierDetails={supplierDetails} />
+        <SupplierDashboard
+          supplierDetails={supplierDetails}
+          balance={balance?.balance}
+        />
       ) : null}
     </div>
   );

@@ -42,7 +42,7 @@ const getLocalCart = () => {
   const cart = JSON.parse(
     globalThis?.window?.localStorage.getItem("cart") as string
   );
-  console.log(cart, "cak");
+
   return cart;
 };
 // Navigation Component

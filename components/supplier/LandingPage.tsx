@@ -57,16 +57,17 @@ import {
   LoaderCircle,
 } from "lucide-react";
 
-import { SupplierDetails } from "@/types";
+import { CoinBalance, SupplierDetails } from "@/types";
 import { notify } from "@/lib/notifications";
 import { inviteUserToSupplier } from "@/api/supplier";
 import SocialShare from "@/lib/SocilalShareComponent";
 
-type Props = { supplierDetails: SupplierDetails };
+type Props = { supplierDetails: SupplierDetails; balance: CoinBalance };
 type Stafftype = "staff" | "service_provider";
 type Role = "normal" | "advanced";
 const SupplierDashboard: React.FC<Props> = ({
   supplierDetails: _supplierInfo,
+  balance,
 }) => {
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
@@ -551,7 +552,7 @@ const SupplierDashboard: React.FC<Props> = ({
                   </Text>
                   <Group align="baseline" gap="xs">
                     <Text size="3xl" fw={900}>
-                      KES {_supplierInfo?.coin_balance?.total?.toLocaleString()}
+                      {balance?.total?.toLocaleString()} keys
                     </Text>
                   </Group>
                   <Text size="sm" className="text-green-100 mt-2">
@@ -566,7 +567,7 @@ const SupplierDashboard: React.FC<Props> = ({
                     <Text>
                       Free:{" "}
                       <Badge size="md" variant="filled" color="keymanOrange">
-                        {_supplierInfo?.coin_balance?.breakdown?.free}
+                        {balance?.breakdown?.free}
                       </Badge>
                     </Text>
                     <Text>
@@ -579,7 +580,7 @@ const SupplierDashboard: React.FC<Props> = ({
                         color="keymanOrange"
                       >
                         {" "}
-                        {_supplierInfo?.coin_balance?.breakdown?.paid}
+                        {balance?.breakdown?.paid}
                       </Badge>
                     </Text>
                   </Group>
