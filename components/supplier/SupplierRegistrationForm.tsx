@@ -44,6 +44,7 @@ import {
   Shield,
   CheckCircle,
   Navigation,
+  Globe,
 } from "lucide-react";
 import { becomeSupplier } from "@/api/supplier";
 import Link from "next/link";
@@ -55,6 +56,7 @@ export interface SupplierInfo {
   email: string;
   type: string;
   address: string;
+  country: string;
   latitude: number;
   longitude: number;
   categories: string[];
@@ -317,6 +319,7 @@ const SupplierRegistrationForm: React.FC<{
       email: "",
       type: "",
       address: "",
+      country: "",
       latitude: 0,
       longitude: 0,
       categories: [],
@@ -344,6 +347,8 @@ const SupplierRegistrationForm: React.FC<{
         value.length < 5 ? "Address must be at least 5 characters" : null,
       latitude: (value) => (value === 0 ? "Please set your location" : null),
       longitude: (value) => (value === 0 ? "Please set your location" : null),
+      country: (value) =>
+        value.length === 0 ? "Please select your country" : null,
       //categories: (value) => (value.length < 1 ? 'Please select a category'  : value.length>2? "Please select 2 categories":null),
     },
   });
@@ -503,6 +508,23 @@ const SupplierRegistrationForm: React.FC<{
                         }
                         className="transition-all duration-300 hover:scale-[1.02]"
                         {...form.getInputProps("email")}
+                        required
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={12}>
+                      <Select
+                        label="Country"
+                        placeholder="Select country"
+                        data={["Kenya", "China"].map((value) => ({
+                          value,
+                          label: value.toUpperCase(),
+                        }))}
+                        value={form.values.country}
+                        leftSection={
+                          <Globe size={16} className="text-[#3D6B2C]" />
+                        }
+                        className="transition-all duration-300 hover:scale-[1.02]"
+                        {...form.getInputProps("country")}
                         required
                       />
                     </Grid.Col>

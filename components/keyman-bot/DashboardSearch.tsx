@@ -49,7 +49,7 @@ export default function DashboardSearch() {
     }
   };
   return (
-    <div className="max-w-6xl mx-auto mb-8">
+    <div className="max-w-6xl mx-auto mb-8 pt-8 mt:pt-4 ">
       <div className="relative">
         {/* Main search bar with AI integration */}
         <div
@@ -57,8 +57,8 @@ export default function DashboardSearch() {
             isSearchFocused ? "transform scale-105" : ""
           }`}
         >
-          <div className="relative">
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center">
+          <div className="relative ">
+            <div className=" hidden md:flex absolute left-4 top-1/2 transform -translate-y-1/2  items-center">
               <div
                 className={`w-6 h-6 rounded-full flex items-center justify-center transition-all duration-300 ${
                   showAITransition
@@ -83,7 +83,7 @@ export default function DashboardSearch() {
               onFocus={() => setIsSearchFocused(true)}
               onBlur={() => setIsSearchFocused(false)}
               placeholder="Ask Keyman about materials, prices, or construction tips..."
-              className={`w-full pl-14 pr-32 py-4 rounded-2xl border-2 transition-all duration-300 text-lg ${
+              className={`w-full  pl-4 md:pl-14 pr-4 md:pr-32 py-2 md:py-4  rounded-xl md:rounded-2xl border-2 transition-all duration-300 text-lg ${
                 isSearchFocused
                   ? "border-green-400 shadow-lg shadow-green-100"
                   : "border-gray-200 hover:border-gray-300"
@@ -98,7 +98,7 @@ export default function DashboardSearch() {
             {showAITransition && (
               <button
                 onClick={activateAIMode}
-                className="absolute right-16 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-green-500 to-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-green-600 hover:to-orange-600 transition-all duration-200 flex items-center gap-2 animate-pulse"
+                className="absolute  top-20 right-0 md:right-16 md:top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-green-500 to-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-green-600 hover:to-orange-600 transition-all duration-200 flex items-center gap-2 animate-pulse"
               >
                 <Sparkles className="w-4 h-4" onClick={activateAIMode} />
                 Ask Keyman
@@ -109,7 +109,7 @@ export default function DashboardSearch() {
             <button
               onClick={showAITransition ? activateAIMode : undefined}
               //onClick={activateAIMode}
-              className={`absolute right-3 top-1/2 transform -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
+              className={`absolute  right-0 md:right-3 top-1/2 transform  -translate-y-1/2 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
                 showAITransition
                   ? "bg-gradient-to-r from-green-500 to-orange-500 text-white hover:from-green-600 hover:to-orange-600"
                   : "bg-green-500 text-white hover:bg-green-600"

@@ -136,7 +136,12 @@ const MainContent: React.FC = () => {
         onPaymentError={handlePaymentError}
       />
       {/* AI Search Bar */}
-      <Paper p="lg" mb="xl" className="!shadow-lg max-w-[768px] mx-auto">
+      <Paper
+        p={{ base: "sm", md: "lg" }}
+        pb={{ base: "xl", md: "md" }}
+        mb="xl"
+        className="!shadow-lg max-w-[768px] mx-auto  w-full"
+      >
         <DashboardSearch />
         <TextInput
           display={"none"}
