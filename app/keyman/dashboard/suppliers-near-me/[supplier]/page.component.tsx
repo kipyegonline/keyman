@@ -56,44 +56,52 @@ export default function SupplierClientComponent({
           {_supplier?.name ?? "supplier"}
         </Link>
       </Breadcrumbs>
-      <div className="max-w-4xl mx-auto p-4">
-        {_supplier ? <SupplierProfile supplier={_supplier} /> : null}
-        <div>
-          <h2 className="text-2xl font-semibold my-4 mb-2">
-            Price List for {_supplier?.name ?? "Supplier"}
-          </h2>
-          {_priceList && _priceList.length > 0 ? (
-            <>
-              <Grid>
-                {_priceList.map((item, index) => (
-                  <PricelistItem
-                    handleAddCart={() => null}
-                    item={item}
-                    index={index}
-                    key={item.id}
-                    hideControls={true}
-                    handleEditClick={() => null}
-                    handleDeleteClick={() => null}
-                    isInCart={false}
-                    cartQuantity={0}
-                  />
-                ))}
-              </Grid>
-              <Box my="md">
-                {_priceList.length > perPage && (
-                  <Pagination
-                    total={total}
-                    onChange={(num) => setCurrent(num - 1)}
-                    value={current + 1}
-                  />
-                )}
-              </Box>
-            </>
-          ) : (
-            <div className=" text-gray-500">No price list available</div>
-          )}
-        </div>
-      </div>
+
+      <Grid>
+        <Grid.Col span={{ base: 12, md: 7 }}>
+          <div className="">
+            <h2 className="text-2xl font-semibold my-4 mb-2">
+              Price List for {_supplier?.name ?? "Supplier"}
+            </h2>
+
+            {_priceList && _priceList.length > 0 ? (
+              <div>
+                <div className="flex flex-wrap justify-start  gap-4 ">
+                  {_priceList.map((item, index) => (
+                    <PricelistItem
+                      handleAddCart={() => null}
+                      item={item}
+                      index={index}
+                      key={item.id}
+                      hideControls={true}
+                      handleEditClick={() => null}
+                      handleDeleteClick={() => null}
+                      isInCart={false}
+                      cartQuantity={0}
+                      cardSize="w-full md:!w-[320px] h-[280px]"
+                    />
+                  ))}
+                </div>
+                <Box my="md">
+                  {_priceList.length > perPage && (
+                    <Pagination
+                      total={total}
+                      onChange={(num) => setCurrent(num - 1)}
+                      value={current + 1}
+                    />
+                  )}
+                </Box>
+              </div>
+            ) : (
+              <div className=" text-gray-500">No price list available</div>
+            )}
+          </div>
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, md: 5 }}>
+          {" "}
+          {_supplier ? <SupplierProfile supplier={_supplier} /> : null}
+        </Grid.Col>
+      </Grid>
     </div>
   );
 }

@@ -793,7 +793,7 @@ export default function PricelistDashboard({
       </Paper>
 
       {/* Items Grid */}
-      <Grid>
+      <Flex wrap={"wrap"} gap={"md"}>
         {filteredItems
           ?.slice(current * perPage, (current + 1) * perPage)
           .map((item, index) => (
@@ -810,7 +810,7 @@ export default function PricelistDashboard({
               }
             />
           ))}
-      </Grid>
+      </Flex>
 
       <Box my="md">
         {filteredItems.length > perPage && (
@@ -1181,6 +1181,7 @@ export const PricelistItem: React.FC<{
   hideControls?: boolean;
   isInCart?: boolean;
   cartQuantity?: number;
+  cardSize?: string;
 }> = ({
   item,
   index,
@@ -1190,205 +1191,208 @@ export const PricelistItem: React.FC<{
   handleAddCart,
   isInCart = false,
   cartQuantity = 0,
+  cardSize = "",
 }) => {
   const isuserOwned = "isUserOwned" in item;
   return (
-    <Grid.Col key={item.id} span={{ base: 12, sm: 6, lg: 4 }}>
-      <Transition
-        mounted={true}
-        transition="scale"
-        duration={300}
-        timingFunction="ease-out"
-        enterDelay={index * 100}
-      >
-        {(styles) => (
-          <Card
-            shadow="md"
-            padding="lg"
-            radius="xl"
-            style={{
-              ...styles,
-              cursor: "pointer",
-              transition: "all 0.3s ease",
-              border: "1px solid #f0f0f0",
-              "&:hover": {
-                transform: "translateY(-8px)",
-                boxShadow: "0 20px 40px rgba(61, 107, 44, 0.15)",
-              },
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-8px)";
-              e.currentTarget.style.boxShadow =
-                "0 20px 40px rgba(61, 107, 44, 0.15)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
-            }}
-          >
-            {isInCart && (
-              <Badge
-                variant="filled"
-                color="#3D6B2C"
-                size="sm"
-                style={{
-                  position: "absolute",
-                  top: 10,
-                  left: 10,
-                  zIndex: 1,
-                }}
-              >
-                In Cart ({cartQuantity})
-              </Badge>
-            )}
-            <Flex justify={"flex-end"}>
-              {hideControls ? null : (
-                <div className="flex gap-x-4 items-center">
-                  <Tooltip label="Edit Price">
+    <Transition
+      mounted={true}
+      transition="scale"
+      duration={300}
+      timingFunction="ease-out"
+      enterDelay={index * 100}
+    >
+      {(styles) => (
+        <Card
+          shadow="md"
+          padding="lg"
+          radius="md"
+          style={{
+            ...styles,
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+            border: "1px solid #f0f0f0",
+            "&:hover": {
+              transform: "translateY(-8px)",
+              boxShadow: "0 20px 40px rgba(61, 107, 44, 0.15)",
+            },
+          }}
+          //className={cardSize}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "translateY(-8px)";
+            e.currentTarget.style.boxShadow =
+              "0 20px 40px rgba(61, 107, 44, 0.15)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "translateY(0)";
+            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+          }}
+          className="hover:translate-y-[-8px] hover:shadow-[0_20px_40px_rgba(61,107,44,0.15)]"
+          w={{
+            base: "100%", // Mobile: 1 card per row (full width)
+            sm: "calc(50% - 8px)", // Medium: 2 cards per row
+            lg: "calc(33.333% - 12px)", // Large: 3 cards per row
+          }}
+          maw="100%" // Ensure it never exceeds container width
+        >
+          {isInCart && (
+            <Badge
+              variant="filled"
+              color="#3D6B2C"
+              size="sm"
+              style={{
+                position: "absolute",
+                top: 10,
+                left: 10,
+                zIndex: 1,
+              }}
+            >
+              In Cart ({cartQuantity})
+            </Badge>
+          )}
+          <Flex justify={"flex-end"}>
+            {hideControls ? null : (
+              <div className="flex gap-x-4 items-center">
+                <Tooltip label="Edit Price">
+                  <ActionIcon
+                    variant="light"
+                    color="#3D6B2C"
+                    size="lg"
+                    radius="xl"
+                    onClick={handleEditClick}
+                  >
+                    <Edit3 size={18} />
+                  </ActionIcon>
+                </Tooltip>
+                {isuserOwned ? null : (
+                  <Tooltip label="Delete Item">
                     <ActionIcon
                       variant="light"
-                      color="#3D6B2C"
+                      color="red"
                       size="lg"
                       radius="xl"
-                      onClick={handleEditClick}
+                      onClick={handleDeleteClick}
                     >
-                      <Edit3 size={18} />
+                      <Trash2 size={18} />
                     </ActionIcon>
                   </Tooltip>
-                  {isuserOwned ? null : (
-                    <Tooltip label="Delete Item">
-                      <ActionIcon
-                        variant="light"
-                        color="red"
-                        size="lg"
-                        radius="xl"
-                        onClick={handleDeleteClick}
-                      >
-                        <Trash2 size={18} />
-                      </ActionIcon>
-                    </Tooltip>
-                  )}
-                  {isuserOwned ? null : (
-                    <Tooltip label="Add to cart">
-                      <ActionIcon
-                        variant="light"
-                        color="orange"
-                        size="lg"
-                        radius="xl"
-                        onClick={handleAddCart}
-                      >
-                        {isInCart ? (
-                          <CheckCircle2 size={18} />
-                        ) : (
-                          <ShoppingCart size={18} />
-                        )}
-                      </ActionIcon>
-                    </Tooltip>
-                  )}
-                </div>
-              )}
-            </Flex>
-            <Stack gap="md">
-              {/* Item Header */}
-              <Flex justify="space-between" align="flex-start">
-                <Box
-                  style={{ flexGrow: 1 }}
-                  className="flex flex-col md:flex-row justify-between items-center"
-                >
-                  <Box>
-                    {" "}
-                    <Text size="xl" mb="xs">
-                      {getItemEmoji(item.type, item.name)}
-                    </Text>
-                    <Text fw={600} size="md" lineClamp={2} mb="xs">
-                      {item.name}
-                    </Text>
-                    <Text size="sm" c="dimmed" lineClamp={1}>
-                      {item.swahili_name}
-                    </Text>
-                  </Box>
-
-                  <Box className="w-full md:w-24 h-auto md:h-24 mt-2">
-                    <Image
-                      src={
-                        isuserOwned ? item?.photo?.[0] : item?.item?.photo?.[0]
-                      }
-                      alt={""}
-                      height={100}
-                      width={100}
-                      className="h-full w-full"
-                    />
-                  </Box>
-                </Box>
-              </Flex>
-
-              <Divider />
-
-              {/* Price Section */}
-              {item.price && (
-                <Paper
-                  p="md"
-                  radius="lg"
-                  style={{ backgroundColor: "#f8f9fa" }}
-                >
-                  <Flex align="center" justify="space-between">
-                    <Box>
-                      <Text size="xs" c="dimmed" mb={2}>
-                        Current Price
-                      </Text>
-                      <Text size="xl" fw={700} c="#3D6B2C">
-                        KES {Number(item.price).toLocaleString()}
-                      </Text>
-                    </Box>
-                    <Avatar
-                      size="md"
+                )}
+                {isuserOwned ? null : (
+                  <Tooltip label="Add to cart">
+                    <ActionIcon
+                      variant="light"
+                      color="orange"
+                      size="lg"
                       radius="xl"
-                      style={{ backgroundColor: "#3D6B2C" }}
+                      onClick={handleAddCart}
                     >
-                      <Coins size={20} color="white" />
-                    </Avatar>
-                  </Flex>
-                </Paper>
-              )}
-
-              {/* Item Details */}
-              <Group justify="space-between">
-                <Badge
-                  variant="light"
-                  color={getTransportationColor(item.transportation_type)}
-                  size="md"
-                  radius="xl"
-                >
-                  {getTransportationIcon(item.transportation_type)}{" "}
-                  {item.transportation_type}
-                </Badge>
-
-                <Group gap="xs">
-                  <Weight size={14} />
-                  <Text size="sm" c="dimmed">
-                    {item.weight_in_kgs}kg
+                      {isInCart ? (
+                        <CheckCircle2 size={18} />
+                      ) : (
+                        <ShoppingCart size={18} />
+                      )}
+                    </ActionIcon>
+                  </Tooltip>
+                )}
+              </div>
+            )}
+          </Flex>
+          <Stack gap="md">
+            {/* Item Header */}
+            <Flex justify="space-between" align="flex-start">
+              <Box
+                style={{ flexGrow: 1 }}
+                className="flex flex-col md:flex-row justify-between items-center"
+              >
+                <Box>
+                  {" "}
+                  <Text size="xl" mb="xs">
+                    {getItemEmoji(item.type, item.name)}
                   </Text>
-                </Group>
-              </Group>
+                  <Text fw={600} size="md" lineClamp={2} mb="xs">
+                    {item.name}
+                  </Text>
+                  <Text size="sm" c="dimmed" lineClamp={1}>
+                    {item.swahili_name}
+                  </Text>
+                </Box>
 
-              {/* Edit Button */}
-              {hideControls ? null : (
-                <Button
-                  fullWidth
-                  variant="light"
-                  color="#3D6B2C"
-                  leftSection={<TrendingUp size={16} />}
-                  radius="xl"
-                  onClick={handleEditClick}
-                >
-                  Update Price
-                </Button>
-              )}
-            </Stack>
-          </Card>
-        )}
-      </Transition>
-    </Grid.Col>
+                <Box className="w-full md:w-24 h-auto md:h-24 mt-2">
+                  <Image
+                    src={
+                      isuserOwned ? item?.photo?.[0] : item?.item?.photo?.[0]
+                    }
+                    alt={""}
+                    height={100}
+                    width={100}
+                    className="h-full w-full"
+                  />
+                </Box>
+              </Box>
+            </Flex>
+
+            <Divider />
+
+            {/* Price Section */}
+            {item.price && (
+              <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
+                <Flex align="center" justify="space-between">
+                  <Box>
+                    <Text size="xs" c="dimmed" mb={2}>
+                      Current Price
+                    </Text>
+                    <Text size="xl" fw={700} c="#3D6B2C">
+                      KES {Number(item.price).toLocaleString()}
+                    </Text>
+                  </Box>
+                  <Avatar
+                    size="md"
+                    radius="xl"
+                    style={{ backgroundColor: "#3D6B2C" }}
+                  >
+                    <Coins size={20} color="white" />
+                  </Avatar>
+                </Flex>
+              </Paper>
+            )}
+
+            {/* Item Details */}
+            <Group justify="space-between">
+              <Badge
+                variant="light"
+                color={getTransportationColor(item.transportation_type)}
+                size="md"
+                radius="xl"
+              >
+                {getTransportationIcon(item.transportation_type)}{" "}
+                {item.transportation_type}
+              </Badge>
+
+              <Group gap="xs">
+                <Weight size={14} />
+                <Text size="sm" c="dimmed">
+                  {item.weight_in_kgs}kg
+                </Text>
+              </Group>
+            </Group>
+
+            {/* Edit Button */}
+            {hideControls ? null : (
+              <Button
+                fullWidth
+                variant="light"
+                color="#3D6B2C"
+                leftSection={<TrendingUp size={16} />}
+                radius="xl"
+                onClick={handleEditClick}
+              >
+                Update Price
+              </Button>
+            )}
+          </Stack>
+        </Card>
+      )}
+    </Transition>
   );
 };
 // Add this cart button component to your header section

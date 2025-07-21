@@ -15,7 +15,7 @@ export default async function Page({
   const { supplier } = await params;
 
   return (
-    <Container>
+    <Container size="lg" pl={{ base: "md", md: "xl" }}>
       <SupplierClientComponent supplierId={supplier} />
     </Container>
   );
