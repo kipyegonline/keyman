@@ -99,7 +99,7 @@ export const PublicPricelistItem: React.FC<{
             cursor: "pointer",
             transition: "all 0.3s ease",
             border: "1px solid #f0f0f0",
-            width: "100%",
+            //width: "100%",
             minHeight: "280px",
           }}
           className="hover:translate-y-[-8px] hover:shadow-[0_20px_40px_rgba(61,107,44,0.15)]"

@@ -239,14 +239,14 @@ export default function SupplierClientComponent({
         <Grid>
           <Grid.Col span={{ base: 12, md: 7 }} order={{ base: 1, md: 0 }}>
             {" "}
-            <div className="max-w-8xl mx-auto ">
+            <div className=" ">
               <h2 className="text-2xl font-semibold my-4 mb-2">Price List</h2>
               {_priceList && _priceList.length > 0 ? (
                 <>
                   <Flex
                     wrap="wrap"
                     justify={"flex-start"}
-                    align={"center"}
+                    //align={"center"}
                     gap="md"
                     //direction={"row"}
                   >
