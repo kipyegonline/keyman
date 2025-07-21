@@ -53,10 +53,13 @@ const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
               </p>
             </div>
 
-            <button className="group bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50] text-white px-8 py-4 rounded-xl font-medium text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2">
+            <Link
+              href="/accounnt/login"
+              className=" w-[80%] md:w-60 group bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50] text-white px-8 py-4 rounded-xl font-medium text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2"
+            >
               <span>Order Now</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
+            </Link>
           </div>
 
           <div className="relative">
@@ -218,10 +221,13 @@ const RequestOrderSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
               </div>
             </div>
 
-            <button className="bg-gradient-to-r from-[#F08C23] to-orange-400 text-white px-8 py-4 rounded-xl font-medium text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2">
+            <Link
+              href="/account/login"
+              className=" w-[80%] md:w-60 bg-gradient-to-r from-[#F08C23] to-orange-400 text-white px-8 py-4 rounded-xl font-medium text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2"
+            >
               <ShoppingCart className="w-5 h-5" />
               <span>Start Your Order</span>
-            </button>
+            </Link>
           </div>
 
           <div className="relative ">

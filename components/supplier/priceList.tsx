@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import {
-  Grid,
   Card,
   Text,
   Badge,
@@ -382,6 +381,7 @@ export default function PricelistDashboard({
         }, 3000);
       } else {
         notify.error("Something went wrong, try again later");
+        console.log(response);
       }
     } catch (error) {
       console.error("Error adding item:", error);
@@ -973,6 +973,7 @@ export default function PricelistDashboard({
             size="lg"
             required
             radius="md"
+            maxLength={20}
             error={validationErrors.some((error) =>
               error.includes("Item name")
             )}
@@ -989,6 +990,7 @@ export default function PricelistDashboard({
             leftSection={<Package size={16} />}
             size="lg"
             radius="md"
+            maxLength={20}
             error={validationErrors.some((error) =>
               error.includes("Swahili name")
             )}
@@ -1008,6 +1010,7 @@ export default function PricelistDashboard({
             error={validationErrors.some((error) =>
               error.includes("Description")
             )}
+            maxLength={50}
           />
 
           {/* Item Type */}
