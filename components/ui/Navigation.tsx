@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { Sun, Moon, Menu, X } from "lucide-react";
 import Link from "next/link";
-import { Image } from "@mantine/core";
+import { Text, Image } from "@mantine/core";
 import { usePathname } from "next/navigation";
 import { useAppContext } from "@/providers/AppContext";
 import { useCart } from "@/providers/CartContext";
@@ -42,7 +42,7 @@ export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
   const isSupplierSide = checkDash();
   const isGuest = !!!checkGuest();
   const isSupplierPath = pathname.startsWith("/supplier");
-  const hasAccess = isSupplierPath && (isGuest ? true : false);
+  const hasAccess = isSupplierPath;
 
   const paths = [
     "/account/login",
@@ -51,7 +51,8 @@ export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
     "/account/reset-password",
   ];
 
-  const isAccountPage = paths.includes(pathname);
+  const isAccountPage =
+    pathname.startsWith("/supplier") || paths.includes(pathname);
 
   const Checkout = cart.itemCount > 0 && hasAccess && (
     <CartButton cart={cart} setCartModalOpened={() => setModalOpen(true)} />
@@ -106,6 +107,11 @@ export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
               )}
             </button>
             {Checkout}
+            {isSupplierPath && isAccountPage && (
+              <Text fw={700} size="lg">
+                {JSON.parse(localStorage.getItem("keyman_user") ?? "{}")?.name}
+              </Text>
+            )}
             {isAccountPage ? null : (
               <Link
                 href="/account/login"
@@ -157,6 +163,14 @@ export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
           <div className="md:hidden " style={{ zIndex: 999 }}>
             <div className="px-2 py-4 space-y-1  w-full  flex justify-end gap-x-4">
               {Checkout}
+              {isSupplierPath && isAccountPage && (
+                <Text fw={700} size="lg">
+                  {
+                    JSON.parse(localStorage.getItem("keyman_user") ?? "{}")
+                      ?.name
+                  }
+                </Text>
+              )}
               {isAccountPage ? null : (
                 <Link
                   href="/account/login"

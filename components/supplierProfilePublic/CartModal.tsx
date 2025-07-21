@@ -12,12 +12,16 @@ import {
   Button,
   ActionIcon,
   TextInput,
+  Card,
 } from "@mantine/core";
 import { ShoppingCart, Minus, Plus, Trash2, CheckCircle2 } from "lucide-react";
 import { getItemEmoji } from "./priceListItem";
 import { DeliveryDate, DeliveryLocation } from "../keyman-bot/DeliveryLocation";
 import { Project } from "@/types";
 import { useState } from "react";
+import { login } from "@/api/registration";
+import { notify } from "@/lib/notifications";
+import { AxiosError } from "axios";
 
 type Props = {
   cartModalOpened: boolean;
@@ -58,10 +62,18 @@ export const CartModal = ({
 }: Props) => {
   const { updateQuantity, removeFromCart, clearCart } = useCart();
   const [hasChecked, setChecked] = useState(false);
+  const [isLoading, setLoading] = useState(false);
+  const [logins, setlogins] = useState({ email: "", password: "" });
+
   const [steps, setSteps] = useState(0);
   const onCheckout = () => {
     if (hasChecked) {
-      if (steps === 2) {
+      if (steps == 1) {
+        if (!isGuest) {
+          handleCheckout();
+          return;
+        }
+      } else if (steps === 2) {
         handleCheckout();
       } else {
         //setSteps(2);
@@ -69,6 +81,41 @@ export const CartModal = ({
     } else {
       setChecked(true);
       setSteps(1);
+    }
+  };
+  const handleLogin = async () => {
+    if (logins.email.trim().length < 7) {
+      notify.error("Email is required");
+      return;
+    }
+    if (logins.password.trim().length < 7) {
+      notify.error("Password is required");
+      return;
+    }
+    setLoading(true);
+    try {
+      const result = await login(logins.email, logins.password);
+
+      if (result.status) {
+        if (result?.token) {
+          localStorage.setItem("auth_token", result?.token);
+          localStorage.setItem("keyman_user", JSON.stringify(result?.user));
+        }
+        setSteps(4);
+        notify.success("Login successful, reloading page..");
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      } else {
+        notify.error("The provided credentials are incorrect.");
+      }
+    } catch (error) {
+      if (error instanceof AxiosError)
+        notify.error("Something went wrong. Try again later");
+      else if (error instanceof Error) notify.error(error.message);
+      else notify.error("An unknown error occured");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -204,6 +251,7 @@ export const CartModal = ({
             </Stack>
 
             <Divider />
+
             {hasChecked && steps === 1 ? (
               isGuest ? (
                 <Box p="lg">
@@ -213,7 +261,7 @@ export const CartModal = ({
                     mt="md"
                     direction={{ base: "column", md: "row" }}
                   >
-                    <Button>Sign in</Button>
+                    <Button onClick={() => setSteps(3)}>Sign in</Button>
                     <Button variant="outline" onClick={() => setSteps(2)}>
                       Continue as guest
                     </Button>
@@ -271,6 +319,36 @@ export const CartModal = ({
                 <Divider />
               </Paper>
             ) : null}
+            {hasChecked && steps === 3 ? (
+              <Card>
+                <Text ta="center" fw="700">
+                  Sign to your Keyman account
+                </Text>
+                <TextInput
+                  type="email"
+                  label="Email"
+                  placeholder="Email"
+                  value={logins.email}
+                  onChange={(e) =>
+                    setlogins({ ...logins, email: e.target.value })
+                  }
+                  mb="md"
+                />
+                <TextInput
+                  type="password"
+                  label="Password"
+                  value={logins.password}
+                  onChange={(e) =>
+                    setlogins({ ...logins, password: e.target.value })
+                  }
+                  placeholder="Password"
+                  mb="md"
+                />
+                <Button loading={isLoading} onClick={handleLogin}>
+                  Sign In
+                </Button>
+              </Card>
+            ) : null}
 
             {/* Cart Summary */}
             <Paper
@@ -298,6 +376,7 @@ export const CartModal = ({
                 onClick={() => {
                   if (confirm("Clear cark")) clearCart();
                 }}
+                disabled={cartSpinner || isLoading}
                 radius="xl"
               >
                 Clear Cart
@@ -309,7 +388,7 @@ export const CartModal = ({
                 onClick={onCheckout}
                 radius="xl"
                 size="lg"
-                loading={cartSpinner}
+                loading={cartSpinner || isLoading}
               >
                 Checkout
               </Button>

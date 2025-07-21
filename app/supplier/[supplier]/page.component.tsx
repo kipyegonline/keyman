@@ -87,13 +87,12 @@ export default function SupplierClientComponent({
   const perPage = 25;
 
   const total = Math.ceil(_priceList?.length / perPage);
-  const resetGuestState = () => {
+  const resetState = () => {
     setDate("");
     setLocation("");
     setEmail("");
     setPhone("");
     clearCart();
-    localStorage.removeItem(tokenName);
   };
 
   const handleCheckout = async () => {
@@ -179,8 +178,10 @@ export default function SupplierClientComponent({
         setTimeout(() => {
           setCartModalOpened(false);
           if (isGuest) {
-            resetGuestState();
+            localStorage.removeItem(tokenName);
           }
+          resetState();
+
           setCartSpinner(false);
         }, 3000);
         setSuccessMessage(`Request created successfully`);
@@ -236,13 +237,19 @@ export default function SupplierClientComponent({
       </Breadcrumbs>
       <div className=" p-4 ">
         <Grid>
-          <Grid.Col span={{ base: 12, md: 7 }}>
+          <Grid.Col span={{ base: 12, md: 7 }} order={{ base: 1, md: 0 }}>
             {" "}
-            <div>
+            <div className="max-w-8xl mx-auto ">
               <h2 className="text-2xl font-semibold my-4 mb-2">Price List</h2>
               {_priceList && _priceList.length > 0 ? (
                 <>
-                  <Flex className="" wrap="wrap" gap="md">
+                  <Flex
+                    wrap="wrap"
+                    justify={"flex-start"}
+                    align={"center"}
+                    gap="md"
+                    //direction={"row"}
+                  >
                     {_priceList.map((item, index) => (
                       <PublicPricelistItem
                         item={item as PublicPriceList}
