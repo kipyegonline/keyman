@@ -55,9 +55,10 @@ const TopNavigation: React.FC = () => {
     mainDashboard,
   } = useAppContext();
   const router = useRouter();
-  const { cart, setModalOpen } = useCart();
+
   const isSupplierSide = checkDash();
   const pathname = usePathname();
+  const { cart, setModalOpen } = useCart();
   const [ownsCart, setOwnsCart] = React.useState(false);
   React.useEffect(() => {
     const ownsCart = checkAuth() === getLocalCart()?.supplierId;

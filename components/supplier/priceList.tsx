@@ -79,10 +79,10 @@ interface Photo {
   photo: [string];
   isUserOwned: boolean;
 }
-interface PhotoArray {
+export interface PhotoArray {
   item: { photo: [string] };
 }
-
+export type PublicPriceList = Pricelist & PhotoArray;
 type Picha = Photo | PhotoArray;
 export type WholePriceList = Pricelist & Picha;
 

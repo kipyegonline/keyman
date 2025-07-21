@@ -16,7 +16,7 @@ export default async function Page({
   const { supplier } = await params;
 
   return (
-    <Container size="lg" py="md">
+    <Container size="fluid" py="md">
       <div className="relative ">
         {" "}
         <NavigationComponent isFixed={false} />
