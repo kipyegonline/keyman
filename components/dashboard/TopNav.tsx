@@ -30,7 +30,7 @@ import Link from "next/link";
 import { CartButton } from "../supplier/priceList";
 import { useCart } from "@/providers/CartContext";
 
-const checkDash = () => {
+export const checkDash = () => {
   const dashboard = globalThis?.window?.localStorage.getItem("dashboard");
   if (dashboard === null) return true;
   return dashboard === "dashboard";
@@ -56,7 +56,7 @@ const TopNavigation: React.FC = () => {
   } = useAppContext();
   const router = useRouter();
 
-  const isSupplierSide = checkDash();
+  //const isSupplierSide = checkDash();
   const pathname = usePathname();
   const { cart, setModalOpen } = useCart();
   const [ownsCart, setOwnsCart] = React.useState(false);
@@ -64,9 +64,13 @@ const TopNavigation: React.FC = () => {
     const ownsCart = checkAuth() === getLocalCart()?.supplierId;
     setOwnsCart(ownsCart);
   }, []);
+  const checkPath = () => {
+    if (pathname.includes("price-list")) return true;
+    else if (pathname.includes("dashboard/suppliers-near-me")) return true;
+    else return false;
+  };
 
-  const hasAccess =
-    !isSupplierSide && pathname.includes("price-list") && ownsCart;
+  const hasAccess = checkPath() && ownsCart;
   const profileMenuItems = [
     // { label: "Edit Profile", icon: Edit, key: "profile" },
     //{ label: "Hardware/Service Profile", icon: Wrench, key: "hardware" },

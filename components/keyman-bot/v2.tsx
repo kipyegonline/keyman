@@ -98,6 +98,7 @@ const ChatBot: React.FC = () => {
   const { data: threadData } = useQuery({
     queryKey: ["chatbot-threads"],
     queryFn: async () => await createThread(),
+    enabled: isOpen,
   });
 
   const threadId = React.useMemo(() => {
@@ -110,7 +111,7 @@ const ChatBot: React.FC = () => {
     queryKey: ["chatbot-message-count", threadId],
     queryFn: async () => await getMessageCount(threadId),
     refetchOnWindowFocus: false,
-    enabled: !!threadId,
+    enabled: !!threadId && isOpen,
     refetchInterval: isWaitingForResponse ? 1000 : false,
     refetchIntervalInBackground: false,
   });
