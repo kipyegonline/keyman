@@ -58,9 +58,18 @@ const SuppliersNearMe: React.FC = () => {
     enabled: !!userLocation,
   });
   const filteredSuppliers: ISupplierContact[] = React.useMemo(() => {
+    if (searchQuery.trim())
+      return _suppliers?.suppliers?.filter(
+        (supplier: ISupplierContact) =>
+          supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          supplier.keyman_number
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          supplier.email.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     if (_suppliers?.suppliers) return _suppliers?.suppliers;
     else return [];
-  }, [_suppliers]);
+  }, [_suppliers, searchQuery]);
   // Get user location on component mount
   useEffect(() => {
     const getCurrentLocation = () => {

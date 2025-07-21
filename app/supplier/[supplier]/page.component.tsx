@@ -107,7 +107,9 @@ export default function SupplierClientComponent({
         process.env.NEXT_PUBLIC_GUEST_EMAIL as string,
         process.env.NEXT_PUBLIC_GUEST_PASSWORD as string
       );
-      localStorage.setItem("auth_token", result?.token ?? "");
+      if (result.status) {
+        localStorage.setItem("auth_token", result?.token ?? "");
+      }
     }
 
     // validate gues fields

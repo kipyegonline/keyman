@@ -262,26 +262,28 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
             <Badge size="sm" style={{ backgroundColor: "#3D6B2C" }}>
               {supplier?.type}
             </Badge>
-            <Badge size="sm" style={{ backgroundColor: "#F08C23" }}>
+            <Badge
+              size="sm"
+              style={{ backgroundColor: "#F08C23", display: "none" }}
+            >
               {supplierData.yearsInBusiness} Years
             </Badge>
-            <div className="flex items-center gap-1">
+            <Badge
+              size="sm"
+              variant="light"
+              className="mb-2"
+              style={{ backgroundColor: "#3D6B2C15", color: "#3D6B2C" }}
+            >
+              <Hash size={10} className="mr-1 inline-block " />
+              {supplier?.keyman_number}
+            </Badge>
+            <div className="flexy items-center gap-1 hidden">
               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
               <Text size="sm" className="font-medium">
                 {supplierData.rating}
               </Text>
             </div>
           </div>
-
-          <Badge
-            size="sm"
-            variant="light"
-            className="mb-2"
-            style={{ backgroundColor: "#3D6B2C15", color: "#3D6B2C" }}
-          >
-            <Hash size={10} className="mr-1" />
-            {supplier?.keyman_number}
-          </Badge>
         </div>
       </div>
 
@@ -403,11 +405,9 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
           </div>
         </div>
 
-        <Divider />
-
         {/* Certifications */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
+        <div className="hidden">
+          <div className="flex items-center gap-2 mb-3 ">
             <Award className="w-4 h-4 text-[#F08C23]" />
             <Text size="sm" className="font-bold text-gray-900">
               Certifications

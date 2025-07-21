@@ -66,7 +66,7 @@ const TopNavigation: React.FC = () => {
   }, []);
   const checkPath = () => {
     if (pathname.includes("price-list")) return true;
-    else if (pathname.includes("dashboard/suppliers-near-me")) return true;
+    else if (pathname.includes("dashboard/suppliers-near-me/")) return true;
     else return false;
   };
 

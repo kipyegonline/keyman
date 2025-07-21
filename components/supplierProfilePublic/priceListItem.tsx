@@ -14,6 +14,7 @@ import {
   Paper,
   Avatar,
   Group,
+  Spoiler,
 } from "@mantine/core";
 import {
   CheckCircle2,
@@ -204,6 +205,15 @@ export const PublicPricelistItem: React.FC<{
                 <Text size="sm" c="dimmed" lineClamp={1}>
                   {item.swahili_name}
                 </Text>
+
+                <Spoiler
+                  maxHeight={60}
+                  showLabel="Show more"
+                  hideLabel="Hide"
+                  className="hidden"
+                >
+                  {item.description}
+                </Spoiler>
               </Box>
 
               <Box
