@@ -37,7 +37,7 @@ export default function SupplierClientComponent({
     } else return [];
   }, [priceList]);
 
-  const perPage = 25;
+  const perPage = 9;
 
   const total = Math.ceil(_priceList?.length / perPage);
 
@@ -67,20 +67,22 @@ export default function SupplierClientComponent({
             {_priceList && _priceList.length > 0 ? (
               <div>
                 <div className="flex flex-wrap justify-start  gap-4 ">
-                  {_priceList.map((item, index) => (
-                    <PricelistItem
-                      handleAddCart={() => null}
-                      item={item}
-                      index={index}
-                      key={item.id}
-                      hideControls={true}
-                      handleEditClick={() => null}
-                      handleDeleteClick={() => null}
-                      isInCart={false}
-                      cartQuantity={0}
-                      cardSize="w-full md:!w-[320px] h-[280px]"
-                    />
-                  ))}
+                  {_priceList
+                    .slice(current * perPage, current * perPage + perPage)
+                    .map((item, index) => (
+                      <PricelistItem
+                        handleAddCart={() => null}
+                        item={item}
+                        index={index}
+                        key={item.id}
+                        hideControls={true}
+                        handleEditClick={() => null}
+                        handleDeleteClick={() => null}
+                        isInCart={false}
+                        cartQuantity={0}
+                        cardSize="w-full md:!w-[320px] h-[280px]"
+                      />
+                    ))}
                 </div>
                 <Box my="md">
                   {_priceList.length > perPage && (

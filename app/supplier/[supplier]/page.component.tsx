@@ -84,7 +84,7 @@ export default function SupplierClientComponent({
     enabled: !!isGuest,
   });
 
-  const perPage = 25;
+  const perPage = 9;
 
   const total = Math.ceil(_priceList?.length / perPage);
   const resetState = () => {
@@ -250,27 +250,34 @@ export default function SupplierClientComponent({
                     gap="md"
                     //direction={"row"}
                   >
-                    {_priceList.map((item, index) => (
-                      <PublicPricelistItem
-                        item={item as PublicPriceList}
-                        index={index}
-                        key={item.id}
-                        handleAddCart={() =>
-                          addToCart(item as ICartItem & WholePriceList)
-                        }
-                        handleIncreaseQuantity={() => {
-                          const currentQty = getItemQuantity(item.id as string);
-                          updateQuantity(item.id as string, currentQty + 1);
-                        }}
-                        handleDecreaseQuantity={() => {
-                          const currentQty = getItemQuantity(item.id as string);
-                          updateQuantity(item.id as string, currentQty - 1);
-                        }}
-                        isInCart={isItemInCart(item.id as string)}
-                        cartQuantity={getItemQuantity(item.id as string)}
-                      />
-                    ))}
+                    {_priceList
+                      .slice(current * perPage, current * perPage + perPage)
+                      .map((item, index) => (
+                        <PublicPricelistItem
+                          item={item as PublicPriceList}
+                          index={index}
+                          key={item.id}
+                          handleAddCart={() =>
+                            addToCart(item as ICartItem & WholePriceList)
+                          }
+                          handleIncreaseQuantity={() => {
+                            const currentQty = getItemQuantity(
+                              item.id as string
+                            );
+                            updateQuantity(item.id as string, currentQty + 1);
+                          }}
+                          handleDecreaseQuantity={() => {
+                            const currentQty = getItemQuantity(
+                              item.id as string
+                            );
+                            updateQuantity(item.id as string, currentQty - 1);
+                          }}
+                          isInCart={isItemInCart(item.id as string)}
+                          cartQuantity={getItemQuantity(item.id as string)}
+                        />
+                      ))}
                   </Flex>
+
                   <Box my="md">
                     {_priceList.length > perPage && (
                       <Pagination
