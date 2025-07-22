@@ -110,6 +110,7 @@ export const PublicPricelistItem: React.FC<{
             lg: "calc(33.333% - 12px)", // Large: 3 cards per row
           }}
           maw="100%" // Ensure it never exceeds container width
+          miw={{ base: "100%", md: 280 }}
         >
           {isInCart && (
             <Badge
@@ -210,7 +211,9 @@ export const PublicPricelistItem: React.FC<{
                   maxHeight={60}
                   showLabel="Show more"
                   hideLabel="Hide"
-                  className="hidden"
+                  style={{
+                    display: item.name === item.description ? "none" : "block",
+                  }}
                 >
                   {item.description}
                 </Spoiler>
