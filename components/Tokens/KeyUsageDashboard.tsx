@@ -30,6 +30,7 @@ import {
   Award,
   Activity,
   Sparkles,
+  Coins,
 } from "lucide-react";
 
 interface KeyUsageData {
@@ -156,7 +157,7 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
           </div>
           <div>
             <Text size="xl" fw="bold" className="text-gray-800">
-              Key Usage Dashboard
+              Coin Usage Dashboard
             </Text>
             <Text size="sm" className="text-gray-600">
               Monitor your construction request tokens
@@ -198,7 +199,7 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
               className="p-2 rounded-lg"
               style={{ backgroundColor: `${cardVariants.balance.color}20` }}
             >
-              <Key size={24} style={{ color: cardVariants.balance.color }} />
+              <Coins size={24} style={{ color: cardVariants.balance.color }} />
             </div>
             <Badge
               size="sm"
@@ -227,7 +228,7 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
             {data.currentBalance}
           </Text>
           <Text size="xs" className="text-gray-500">
-            Available keys
+            Available Coins
           </Text>
         </Card>
 
@@ -263,7 +264,7 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
           </Group>
 
           <Text size="xs" fw={500} className="text-gray-600 mb-1">
-            Free Keys
+            Free coins
           </Text>
           <Text size="2xl" fw="bold" style={{ color: cardVariants.free.color }}>
             {data.freeKeys}
@@ -314,7 +315,7 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
           </Group>
 
           <Text size="xs" fw={500} className="text-gray-600 mb-1">
-            Top-up Keys
+            Top-up coins
           </Text>
           <Text
             size="2xl"
@@ -340,7 +341,7 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
                   Monthly Usage
                 </Text>
                 <Text size="sm" className="text-gray-600">
-                  {data.usedThisMonth} of {data.monthlyLimit} keys used this
+                  {data.usedThisMonth} of {data.monthlyLimit} coins used this
                   month
                 </Text>
               </div>
@@ -453,7 +454,7 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
               Recent Activity
             </Text>
             <Text size="sm" className="text-gray-600">
-              Your latest key transactions
+              Your latest coin transactions
             </Text>
           </div>
           <ActionIcon
@@ -531,10 +532,10 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
         <Group justify={"space-between"} align="center">
           <div>
             <Text size="lg" fw={600} className="text-gray-800 mb-2">
-              Need more keys?
+              Need more coins?
             </Text>
             <Text size="sm" className="text-gray-600">
-              Keep your construction projects moving with our flexible key
+              Keep your construction projects moving with our flexible coin
               packages
             </Text>
           </div>
@@ -553,7 +554,7 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
               },
             }}
           >
-            Top Up Keys
+            Top Up coins
           </Button>
         </Group>
       </Card>

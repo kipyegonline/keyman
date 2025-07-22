@@ -552,7 +552,7 @@ const SupplierDashboard: React.FC<Props> = ({
                   </Text>
                   <Group align="baseline" gap="xs">
                     <Text size="3xl" fw={900}>
-                      {balance?.total?.toLocaleString()} keys
+                      {balance?.total?.toLocaleString()} coins
                     </Text>
                   </Group>
                   <Text size="sm" className="text-green-100 mt-2">

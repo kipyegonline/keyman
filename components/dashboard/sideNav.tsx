@@ -50,8 +50,8 @@ const Sidebar: React.FC<{
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "orders", label: "Orders", icon: ShoppingCart },
     { id: "requests", label: "Requests", icon: ClipboardList },
-    { id: "suppliers-near-me", label: "Suppliers near me", icon: LocateIcon },
-    { id: "keyman-coin", label: "My Keys", icon: Coins },
+    { id: "suppliers-near-me", label: "Stores near me", icon: LocateIcon },
+    { id: "keyman-coin", label: "My Coins", icon: Coins },
 
     //{ id: 'materials', label: 'Materials', icon: Package },
     //{ id: 'settings', label: 'Settings', icon: Settings },

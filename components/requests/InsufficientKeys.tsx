@@ -82,9 +82,9 @@ const InsufficientKeys: React.FC<InsufficientKeysProps> = ({
   const getTierBenefits = (tier: string) => {
     switch (tier) {
       case "professional":
-        return { multiplier: "2x", bonus: "10% bonus keys" };
+        return { multiplier: "2x", bonus: "10% bonus coins" };
       case "enterprise":
-        return { multiplier: "5x", bonus: "25% bonus keys" };
+        return { multiplier: "5x", bonus: "25% bonus coins" };
       default:
         return { multiplier: "1x", bonus: "Standard rate" };
     }
@@ -141,11 +141,11 @@ const InsufficientKeys: React.FC<InsufficientKeysProps> = ({
             </div>
 
             <Text size="xl" fw="bold" className="text-gray-800 mb-2">
-              Insufficient Keyman Keys to make request
+              Insufficient Keyman coins to make request
             </Text>
 
             <Text size="sm" className="text-gray-600 max-w-md mx-auto">
-              You need more keys to submit this construction request. Keys
+              You need more coins to submit this construction request. Coins
               ensure quality interactions between contractors and suppliers.
             </Text>
           </div>
@@ -157,7 +157,7 @@ const InsufficientKeys: React.FC<InsufficientKeysProps> = ({
                 <Group gap="xs">
                   <Key size={18} style={{ color: "#3D6B2C" }} />
                   <Text fw="600" className="text-gray-700">
-                    Current Keys
+                    Current Coins
                   </Text>
                 </Group>
                 <Badge
@@ -235,7 +235,7 @@ const InsufficientKeys: React.FC<InsufficientKeysProps> = ({
             >
               <Group gap="xs">
                 <Zap size={16} />
-                <Text fw={600}>Top Up Keys</Text>
+                <Text fw={600}>Top Up coins</Text>
               </Group>
             </Button>
 
@@ -267,7 +267,7 @@ const InsufficientKeys: React.FC<InsufficientKeysProps> = ({
             <Group gap="xs">
               <RefreshCw size={14} className="text-gray-400" />
               <Text size="xs" className="text-gray-500 text-center">
-                Keys are consumed only when suppliers respond to your requests
+                Coins are consumed only when suppliers respond to your requests
               </Text>
             </Group>
           </div>

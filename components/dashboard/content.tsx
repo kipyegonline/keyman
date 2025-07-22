@@ -87,7 +87,7 @@ const MainContent: React.FC = () => {
       color: "#F08C23",
     },
     {
-      label: "Keys Balance",
+      label: "Coins Balance",
       value: balance?.balance?.total || "0",
       icon: Coins,
       color: "#3D6B2C",
@@ -188,7 +188,7 @@ const MainContent: React.FC = () => {
           color="gray"
           className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"
         >
-          Top Up Keys
+          Top Up coins
         </Button>
       </Group>
 
