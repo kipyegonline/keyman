@@ -665,7 +665,7 @@ const PreviewStep: React.FC<{
                 </Text>
                 <Text fw={500}>
                   {form.values.delivery_date
-                    ? form.values.delivery_date.toLocaleDateString()
+                    ? new Date(form.values.delivery_date).toDateString()
                     : "Not selected"}
                 </Text>
               </div>
