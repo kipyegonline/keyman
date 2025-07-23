@@ -578,7 +578,14 @@ const ChatBot: React.FC = () => {
         <div className="max-w-[100%] space-y-3">
           <div className="bg-white text-gray-800 border border-gray-200 rounded-2xl px-4 py-2 shadow-sm">
             <div className="flex items-start space-x-2">
-              <Bot className="w-4 h-4 mt-1 text-[#3D6B2C] flex-shrink-0" />
+              <div>
+                {" "}
+                <Image
+                  src="/keyman_logo.png"
+                  className="w-20 h-10 mt-1 text-[#3D6B2C] rounded-3xl flex-shrink-0"
+                />
+              </div>
+
               <p className="text-sm">{text}</p>
             </div>
           </div>
@@ -783,6 +790,12 @@ const ChatBot: React.FC = () => {
                     <div className="flex justify-start">
                       <div className="bg-white text-gray-800 border border-gray-200 rounded-2xl px-4 py-2 shadow-sm">
                         <div className="flex items-center space-x-2">
+                          <div>
+                            <Image
+                              src="/keyman_logo.png"
+                              className="w-4 h-4 mt-1 text-[#3D6B2C] flex-shrink-0"
+                            />
+                          </div>
                           <Bot className="w-4 h-4 text-[#3D6B2C]" />
                           <div className="flex space-x-1">
                             <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>

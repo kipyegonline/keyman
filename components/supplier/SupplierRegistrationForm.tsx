@@ -48,6 +48,8 @@ import {
 } from "lucide-react";
 import { becomeSupplier } from "@/api/supplier";
 import Link from "next/link";
+import { notify } from "@/lib/notifications";
+import { AxiosError } from "axios";
 
 // Types and Interfaces
 export interface SupplierInfo {
@@ -408,13 +410,26 @@ const SupplierRegistrationForm: React.FC<{
       ...values,
       categories: [...values?.categories],
     };
+    try {
+      setLoading(true);
 
-    setLoading(true);
-    const response = await becomeSupplier(payload);
-    console.log(response);
-    setLoading(false);
-    setShowSuccess(true);
-    // setTimeout(() => setShowSuccess(false), 5000);
+      const response = await becomeSupplier(payload);
+      if (response.status) {
+        setShowSuccess(true);
+      } else {
+        notify.error("Something went wrong. Try again later.");
+      }
+
+      setTimeout(() => setShowSuccess(false), 5000);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(error);
+      } else if (error instanceof AxiosError) {
+        console.error(error.response);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const categoriesError = (
