@@ -279,11 +279,11 @@ export default function PricelistDashboard({
 
     /*if (!addForm.swahili_name.trim()) {
       errors.push("Swahili name is required");
-    }
+    }*/
 
     if (!addForm.description.trim()) {
       errors.push("Description is required");
-    }*/
+    }
 
     if (!addForm.type.trim() || addForm.type === "Select Type") {
       errors.push("Item type is required");
@@ -339,7 +339,12 @@ export default function PricelistDashboard({
       // Append all form fields
       formData.append("supplier_detail_id", supplierId as string);
       formData.append("name", addForm.name);
-      formData.append("swahili_name", addForm.swahili_name);
+      formData.append(
+        "swahili_name",
+        addForm.swahili_name.trim().length === 0
+          ? addForm.name
+          : addForm.swahili_name
+      );
       formData.append("description", addForm.description);
       formData.append("type", addForm.type);
       formData.append("price", addForm.price.toString());

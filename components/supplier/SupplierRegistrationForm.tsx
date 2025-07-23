@@ -363,7 +363,8 @@ const SupplierRegistrationForm: React.FC<{
     return errors;
   };
 
-  const nextStep = () => {
+  const nextStep = (e: React.FormEvent) => {
+    e.preventDefault();
     const errors = validateCategories();
     if (errors) {
       form.setErrors({ categories: errors });
@@ -405,8 +406,9 @@ const SupplierRegistrationForm: React.FC<{
 
     const payload = {
       ...values,
-      categories: [values?.categories?.[1], values?.categories?.[2] ?? ""],
+      categories: [...values?.categories],
     };
+
     setLoading(true);
     const response = await becomeSupplier(payload);
     console.log(response);
@@ -414,6 +416,7 @@ const SupplierRegistrationForm: React.FC<{
     setShowSuccess(true);
     // setTimeout(() => setShowSuccess(false), 5000);
   };
+
   const categoriesError = (
     <>
       {form.errors.categories && (
