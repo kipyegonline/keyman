@@ -20,6 +20,8 @@ import {
   Box,
   Image,
   Text,
+  Card,
+  Divider,
 } from "@mantine/core";
 import { Bell, ChevronDown, Sun, Moon } from "lucide-react";
 import { useAppContext } from "@/providers/AppContext";
@@ -228,6 +230,25 @@ const TopNavigation: React.FC = () => {
             </Menu.Target>
 
             <Menu.Dropdown>
+              <div className="py-1 flex  gap-x-2 justify-center">
+                <p>Checkout</p>
+                {cart.itemCount > 0 && hasAccess && (
+                  <CartButton
+                    cart={cart}
+                    setCartModalOpened={() => setModalOpen(true)}
+                  />
+                )}
+              </div>
+              <Card>
+                <Text size="xs" c="dimmed">
+                  {user?.name}
+                </Text>
+                <Text size="xs" c="dimmed">
+                  {user?.email}
+                </Text>
+              </Card>
+              <Divider />
+
               {profileMenuItems.map((item, index) => {
                 const Icon = item.icon;
                 return (

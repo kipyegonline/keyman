@@ -817,7 +817,9 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
 
     const payload = {
       status: "SUBMITTED",
-      delivery_date: form.values.delivery_date?.toISOString() ?? "",
+      delivery_date: form.values.delivery_date
+        ? new Date(form.values.delivery_date)?.toISOString()
+        : "",
       latitude: ltd,
       longitude: lng,
       ks_number: form.values.ks_number,
