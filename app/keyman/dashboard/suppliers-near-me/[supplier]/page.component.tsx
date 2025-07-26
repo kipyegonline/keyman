@@ -107,7 +107,7 @@ export default function SupplierClientComponent({
       delivery_date: date ?? "",
       latitude: ltd,
       longitude: lng,
-      ks_number: _supplier?.ks_number ?? "",
+      ks_number: _supplier?.keyman_number ?? "",
       supplier_id: _supplier?.id,
       created_from: "items",
       //@ts-expect-error
