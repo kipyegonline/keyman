@@ -68,11 +68,11 @@ const TopNavigation: React.FC = () => {
   }, []);
   const checkPath = () => {
     if (pathname.includes("price-list")) return true;
-    else if (pathname.includes("dashboard/suppliers-near-me/")) return true;
+    else if (pathname.includes("/dashboard/suppliers-near-me/")) return true;
     else return false;
   };
 
-  const hasAccess = checkPath() && ownsCart;
+  const hasAccess = checkPath();
   const profileMenuItems = [
     // { label: "Edit Profile", icon: Edit, key: "profile" },
     //{ label: "Hardware/Service Profile", icon: Wrench, key: "hardware" },
@@ -133,6 +133,7 @@ const TopNavigation: React.FC = () => {
           <Link href={mainDashboard ? "/keyman/dashboard" : "/keyman/supplier"}>
             <Image src="/keyman_logo.png" alt="logo" h={40} w={40} />
           </Link>
+          <span className="hidden">{ownsCart}</span>
         </Box>
         <Box>
           {" "}
