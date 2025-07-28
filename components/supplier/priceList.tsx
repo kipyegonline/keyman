@@ -73,6 +73,8 @@ export interface Pricelist {
   item_id?: string;
 
   added_by_supplier_id?: string;
+  stock?: string;
+  metrics?: string;
 }
 interface Photo {
   photo: [string];
@@ -174,6 +176,7 @@ export default function PricelistDashboard({
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
+  const [description, setDescription] = useState("");
 
   const [cartSpinner, setCartSpinner] = useState(false);
 
@@ -241,32 +244,49 @@ export default function PricelistDashboard({
 
   const handleSavePrice = async () => {
     if (!editForm || !selectedItem) return;
+    const formData = new FormData();
 
+    formData.append("item_id", editForm?.item_id as string);
+    formData.append("price", editForm?.price.toString() as string);
+    formData.append("description", editForm?.description as string);
+    formData.append("stock", editForm?.stock as string);
+    formData.append("metrics", editForm?.metrics as string);
+
+    // Append image if it exists
+    if (file) {
+      const file64 = await toDataUrlFromFile(file);
+
+      const file_ = DataURIToBlob(file64 as string);
+
+      formData.append("image", file_, file.name);
+    }
+    /*
     const payload: [{ item_id: string; price: number }] = [
       {
         item_id: editForm?.item_id as string,
         price: +editForm?.price as number,
       },
-    ];
-    if (payload.length === 1) {
-      setIsLoading(true);
+    ];*/
 
-      const response = await updateSupplierPriceList(
-        supplierId as string,
-        payload
-      );
+    setIsLoading(true);
 
-      setIsLoading(false);
-      if (response.status) {
-        notify.success(`Price updated for ${editForm.name}`);
-        setTimeout(() => {
-          setSuccessMessage("");
-          setModalOpened(false);
-        }, 2000);
-        setSuccessMessage(`Price updated for ${editForm.name}`);
-        refetchPricelist();
-      } else notify.error(response.message);
-    }
+    const response = await updateSupplierPriceList(
+      supplierId as string,
+      formData
+    );
+
+    setIsLoading(false);
+    if (response.status) {
+      notify.success(`Price updated for ${editForm.name}`);
+      setfile(null);
+      setEditForm(null);
+      setTimeout(() => {
+        setSuccessMessage("");
+        setModalOpened(false);
+      }, 2000);
+      setSuccessMessage(`Price updated for ${editForm.name}`);
+      refetchPricelist();
+    } else notify.error(response.message);
   };
 
   // Add Item Functions
@@ -324,7 +344,16 @@ export default function PricelistDashboard({
     setValidationErrors(errors);
     return errors.length === 0;
   };
-
+  const handleFormUpdate = React.useCallback(
+    (formType: "edit" | "add", field: string, value: any) => {
+      if (formType === "edit") {
+        setEditForm((prev) => (prev ? { ...prev, [field]: value } : null));
+      } else {
+        setAddForm((prev) => ({ ...prev, [field]: value }));
+      }
+    },
+    []
+  );
   const handleAddItem = async () => {
     if (!validateAddForm()) {
       return;
@@ -377,6 +406,7 @@ export default function PricelistDashboard({
           image: null,
         });
         setValidationErrors([]);
+        setfile(null);
 
         // Optional: Refresh the items list
         refetchPricelist();
@@ -409,10 +439,30 @@ export default function PricelistDashboard({
       weight_in_kgs: 0,
       image: null,
     });
+    setfile(null);
   };
+  const filteredItems = React.useMemo(() => {
+    let filtered = items || [];
+
+    if (searchTerm.length > 2) {
+      filtered = filtered.filter(
+        (item) =>
+          item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          item.swahili_name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    if (filterType) {
+      filtered = filtered.filter(
+        (item) => item.transportation_type === filterType
+      );
+    }
+
+    return filtered;
+  }, [items, searchTerm, filterType]);
 
   const perPage = 25;
-  const filteredItems = items;
+
   const total = Math.ceil(filteredItems?.length / perPage);
   const resetState = () => {
     setLocation("");
@@ -480,6 +530,198 @@ export default function PricelistDashboard({
       setCartSpinner(!true);
     }
   };
+
+  const EditComponent = (
+    <Modal
+      opened={modalOpened}
+      onClose={() => {
+        setModalOpened(false);
+        setfile(null);
+        setEditForm(null);
+      }}
+      title={
+        <Group>
+          <Avatar size="sm" radius="xl" style={{ backgroundColor: "#3D6B2C" }}>
+            <Edit3 size={16} color="white" />
+          </Avatar>
+          <Text fw={600}>Update Item Price</Text>
+        </Group>
+      }
+      size="md"
+      radius="lg"
+      centered
+    >
+      {editForm && (
+        <Stack gap="md">
+          <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
+            <Text size="lg" fw={600} mb="xs">
+              {getItemEmoji(editForm.type, editForm.name)} {editForm.name}
+            </Text>
+            <Text size="sm" c="dimmed">
+              {editForm.swahili_name}
+            </Text>
+          </Paper>
+
+          <NumberInput
+            label="Price (KES)"
+            placeholder="Enter new price"
+            value={Number(editForm.price || 0)}
+            onChange={(value) => handleFormUpdate("edit", "price", +value)}
+            leftSection={<HandCoins size={16} />}
+            thousandSeparator=","
+            decimalScale={2}
+            size="lg"
+            required
+            radius="md"
+          />
+          {/* Description */}
+          <Textarea
+            label="Description"
+            placeholder="Enter item description"
+            value={editForm.description || ""}
+            onChange={(e) =>
+              handleFormUpdate("edit", "description", e.currentTarget.value)
+            }
+            size="lg"
+            radius="md"
+            minRows={3}
+            maxLength={500}
+          />
+
+          <Select
+            label="Transportation Type"
+            value={editForm.transportation_type}
+            onChange={(value) =>
+              handleFormUpdate(
+                "edit",
+                "transportation_type",
+                (value as Pricelist["transportation_type"]) || "TUKTUK"
+              )
+            }
+            data={[
+              { value: "TUKTUK", label: "🛺 TukTuk" },
+              { value: "PICKUP", label: "🚛 Pickup" },
+              { value: "LORRY", label: "🚚 Lorry" },
+            ]}
+            display="none"
+            size="lg"
+            radius="md"
+          />
+
+          <NumberInput
+            label="Weight (kg)"
+            value={Number(editForm.weight_in_kgs || 0)}
+            onChange={(value) =>
+              handleFormUpdate("edit", "weight_in_kgs", +value || 0)
+            }
+            leftSection={<Weight size={16} />}
+            decimalScale={2}
+            size="lg"
+            display="none"
+            radius="md"
+          />
+          {/**Stock */}
+          <TextInput
+            label="Stock"
+            placeholder="Enter item stock"
+            value={editForm.stock}
+            size="lg"
+            onChange={(e) =>
+              handleFormUpdate("edit", "stock", e.target.value || "")
+            }
+            radius="md"
+          />
+          {/**metrics */}
+          <TextInput
+            label="Metrics"
+            placeholder="Enter item Metrics (kgs/litres)"
+            value={editForm.metrics}
+            size="lg"
+            onChange={(e) =>
+              handleFormUpdate("edit", "metrics", e.target.value || "")
+            }
+            radius="md"
+          />
+          {/* Image Upload */}
+          <FileInput
+            label="Item Image (Optional)"
+            description="Upload an image of the item (Max 5MB, JPEG/PNG/WebP)"
+            placeholder="Choose image file"
+            value={file}
+            onChange={setfile}
+            leftSection={<ImageIcon size={16} />}
+            accept="image/jpeg,image/jpg,image/png,image/webp"
+            size="lg"
+            radius="md"
+            clearable
+            error={validationErrors.some(
+              (error) => error.includes("Image") || error.includes("format")
+            )}
+            styles={{
+              input: {
+                cursor: "pointer",
+                "&::placeholder": {
+                  color: "#868e96",
+                },
+              },
+            }}
+          />
+
+          {/* Image Preview */}
+          {file && (
+            <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
+              <Group>
+                <Avatar
+                  size="lg"
+                  radius="md"
+                  src={URL.createObjectURL(file)}
+                  alt="Item preview"
+                >
+                  <ImageIcon size={24} />
+                </Avatar>
+                <Box style={{ flex: 1 }}>
+                  <Text size="sm" fw={500}>
+                    {file.name}
+                  </Text>
+                  <Text size="xs" c="dimmed">
+                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                  </Text>
+                </Box>
+                <ActionIcon
+                  variant="light"
+                  color="red"
+                  onClick={() => setfile(null)}
+                >
+                  <X size={16} />
+                </ActionIcon>
+              </Group>
+            </Paper>
+          )}
+
+          <Group justify="flex-end" mt="xl">
+            <Button
+              variant="light"
+              color="gray"
+              leftSection={<X size={16} />}
+              onClick={() => setModalOpened(false)}
+              radius="xl"
+            >
+              Cancel
+            </Button>
+            <Button
+              color="#3D6B2C"
+              leftSection={<Save size={16} />}
+              onClick={handleSavePrice}
+              loading={isLoading}
+              radius="xl"
+            >
+              Save Changes
+            </Button>
+          </Group>
+        </Stack>
+      )}
+    </Modal>
+  );
   // Cart Modal Component
 
   const CartModal = () => (
@@ -828,108 +1070,7 @@ export default function PricelistDashboard({
       </Box>
 
       {/* Edit Modal */}
-      <Modal
-        opened={modalOpened}
-        onClose={() => setModalOpened(false)}
-        title={
-          <Group>
-            <Avatar
-              size="sm"
-              radius="xl"
-              style={{ backgroundColor: "#3D6B2C" }}
-            >
-              <Edit3 size={16} color="white" />
-            </Avatar>
-            <Text fw={600}>Update Item Price</Text>
-          </Group>
-        }
-        size="md"
-        radius="lg"
-        centered
-      >
-        {editForm && (
-          <Stack gap="md">
-            <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
-              <Text size="lg" fw={600} mb="xs">
-                {getItemEmoji(editForm.type, editForm.name)} {editForm.name}
-              </Text>
-              <Text size="sm" c="dimmed">
-                {editForm.swahili_name}
-              </Text>
-            </Paper>
-
-            <NumberInput
-              label="Price (KES)"
-              placeholder="Enter new price"
-              value={Number(editForm.price || 0)}
-              onChange={(value) => setEditForm({ ...editForm, price: +value })}
-              leftSection={<HandCoins size={16} />}
-              thousandSeparator=","
-              decimalScale={2}
-              size="lg"
-              required
-              radius="md"
-            />
-
-            <Select
-              label="Transportation Type"
-              value={editForm.transportation_type}
-              onChange={(value) =>
-                setEditForm({
-                  ...editForm,
-                  transportation_type:
-                    (value as Pricelist["transportation_type"]) || "TUKTUK",
-                })
-              }
-              data={[
-                { value: "TUKTUK", label: "🛺 TukTuk" },
-                { value: "PICKUP", label: "🚛 Pickup" },
-                { value: "LORRY", label: "🚚 Lorry" },
-              ]}
-              display="none"
-              size="lg"
-              radius="md"
-            />
-
-            <NumberInput
-              label="Weight (kg)"
-              value={Number(editForm.weight_in_kgs || 0)}
-              onChange={(value) =>
-                setEditForm({
-                  ...editForm,
-                  weight_in_kgs: +value || 0,
-                })
-              }
-              leftSection={<Weight size={16} />}
-              decimalScale={2}
-              size="lg"
-              display="none"
-              radius="md"
-            />
-
-            <Group justify="flex-end" mt="xl">
-              <Button
-                variant="light"
-                color="gray"
-                leftSection={<X size={16} />}
-                onClick={() => setModalOpened(false)}
-                radius="xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                color="#3D6B2C"
-                leftSection={<Save size={16} />}
-                onClick={handleSavePrice}
-                loading={isLoading}
-                radius="xl"
-              >
-                Save Changes
-              </Button>
-            </Group>
-          </Stack>
-        )}
-      </Modal>
+      {EditComponent}
 
       {/* Add Item Modal */}
       <Modal
@@ -973,7 +1114,7 @@ export default function PricelistDashboard({
             label="Item Name"
             placeholder="Enter item name"
             value={addForm.name}
-            onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+            onChange={(e) => handleFormUpdate("add", "name", e.target.value)}
             leftSection={<Package size={16} />}
             size="lg"
             required
@@ -990,7 +1131,7 @@ export default function PricelistDashboard({
             placeholder="Enter Swahili name"
             value={addForm.swahili_name}
             onChange={(e) =>
-              setAddForm({ ...addForm, swahili_name: e.target.value })
+              handleFormUpdate("add", "swahili_name", e.target.value)
             }
             leftSection={<Package size={16} />}
             size="lg"
@@ -1005,9 +1146,9 @@ export default function PricelistDashboard({
           <Textarea
             label="Description"
             placeholder="Enter item description"
-            value={addForm.description}
+            value={addForm.description || ""}
             onChange={(e) =>
-              setAddForm({ ...addForm, description: e.target.value })
+              handleFormUpdate("add", "description", e.target.value || "")
             }
             size="lg"
             radius="md"
@@ -1023,10 +1164,11 @@ export default function PricelistDashboard({
             label="Item Type"
             value={addForm.type}
             onChange={(value) =>
-              setAddForm({
-                ...addForm,
-                type: (value as Pricelist["type"]) || "SELECT Type",
-              })
+              handleFormUpdate(
+                "add",
+                "type",
+                (value as Pricelist["type"]) || ""
+              )
             }
             leftSection={<Package size={16} />}
             data={services}
@@ -1043,7 +1185,7 @@ export default function PricelistDashboard({
             label="Price (KES)"
             placeholder="Enter price"
             value={Number(addForm.price || 0)}
-            onChange={(value) => setAddForm({ ...addForm, price: +value || 0 })}
+            onChange={(value) => handleFormUpdate("add", "price", +value || 0)}
             leftSection={<HandCoins size={16} />}
             thousandSeparator=","
             decimalScale={2}
@@ -1060,10 +1202,7 @@ export default function PricelistDashboard({
             placeholder="Enter weight"
             value={Number(addForm.weight_in_kgs || 0)}
             onChange={(value) =>
-              setAddForm({
-                ...addForm,
-                weight_in_kgs: +value || 0,
-              })
+              handleFormUpdate("add", "weight_in_kgs", +value || 0)
             }
             leftSection={<Weight size={16} />}
             decimalScale={2}
@@ -1079,11 +1218,11 @@ export default function PricelistDashboard({
             label="Transportation Type"
             value={addForm.transportation_type}
             onChange={(value) =>
-              setAddForm({
-                ...addForm,
-                transportation_type:
-                  (value as Pricelist["transportation_type"]) || "TUKTUK",
-              })
+              handleFormUpdate(
+                "add",
+                "transportation_type",
+                (value as Pricelist["transportation_type"]) || "TUKTUK"
+              )
             }
             data={[
               { value: "TUKTUK", label: "🛺 TukTuk" },
