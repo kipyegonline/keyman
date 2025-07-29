@@ -232,7 +232,6 @@ const TopNavigation: React.FC = () => {
 
             <Menu.Dropdown>
               <div className="py-1 flex  gap-x-2 justify-center">
-                <p>Checkout</p>
                 {cart.itemCount > 0 && hasAccess && (
                   <CartButton
                     cart={cart}
