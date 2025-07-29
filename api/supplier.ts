@@ -173,10 +173,11 @@ export const updateSupplierPriceList = async (
   payload: FormData
 ) => {
   // Define a more specific type for payload if possible
+
   try {
     const response = await AxiosClient.post(
       ENDPOINTS.supplier.UPDATE_PRICE_LIST(supplierDetailId),
-      { items: [payload] },
+      payload,
       { headers: { "Content-Type": "multipart/form-data" } }
     ); // Or AxiosClient.put
     return response.data;

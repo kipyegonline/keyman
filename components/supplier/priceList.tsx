@@ -244,8 +244,22 @@ export default function PricelistDashboard({
 
   const handleSavePrice = async () => {
     if (!editForm || !selectedItem) return;
-    const formData = new FormData();
 
+    const formdata = new FormData();
+    formdata.append("items[1][item_id]", editForm?.item_id as string);
+    formdata.append("items[1][price]", editForm?.price.toString() as string);
+    //formdata.append("items[1][image]", fileInput.files[0], "Screenshot 2025-07-22 at 08.40.19.png");
+    formdata.append("items[1][stock]", editForm?.stock as string);
+    formdata.append("items[1][description]", editForm?.description as string);
+    formdata.append("items[1][metrics]", editForm?.metrics as string);
+    if (file) {
+      const file64 = await toDataUrlFromFile(file);
+
+      const file_ = DataURIToBlob(file64 as string);
+      formdata.append("items[1][image]", file_, file.name);
+    }
+
+    /*
     formData.append("item_id", editForm?.item_id as string);
     formData.append("price", editForm?.price.toString() as string);
     formData.append("description", editForm?.description as string);
@@ -259,7 +273,7 @@ export default function PricelistDashboard({
       const file_ = DataURIToBlob(file64 as string);
 
       formData.append("image", file_, file.name);
-    }
+    }*/
     /*
     const payload: [{ item_id: string; price: number }] = [
       {
@@ -272,7 +286,7 @@ export default function PricelistDashboard({
 
     const response = await updateSupplierPriceList(
       supplierId as string,
-      formData
+      formdata
     );
 
     setIsLoading(false);
