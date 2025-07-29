@@ -193,7 +193,7 @@ const MainContent: React.FC = () => {
         </Button>
         <Button
           size="lg"
-          variant="light"
+          variant="gradient"
           onClick={() => null}
           leftSection={<ReceiptText size={20} />}
           color="gray"
