@@ -25,6 +25,7 @@ import {
   Search,
   Brain,
   Bot,
+  ReceiptText,
 } from "lucide-react";
 import { useAppContext } from "@/providers/AppContext";
 import { useRouter } from "next/navigation";
@@ -189,6 +190,16 @@ const MainContent: React.FC = () => {
           className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"
         >
           Top Up coins
+        </Button>
+        <Button
+          size="lg"
+          variant="light"
+          onClick={() => null}
+          leftSection={<ReceiptText size={20} />}
+          color="gray"
+          className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+        >
+          Keyman Contract
         </Button>
       </Group>
 

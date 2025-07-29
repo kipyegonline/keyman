@@ -156,7 +156,7 @@ const Sidebar: React.FC<{
               <Hammer className="w-6 h-6 text-white" />
             </Box>
             <Text size="xl" fw={700} c={isDark ? "white" : "white"}>
-              Dashboard
+              Your profile
             </Text>
           </Group>
         )}
