@@ -55,12 +55,14 @@ import {
   Navigation,
   LucideProps,
   LoaderCircle,
+  ReceiptText,
 } from "lucide-react";
 
 import { CoinBalance, SupplierDetails } from "@/types";
 import { notify } from "@/lib/notifications";
 import { inviteUserToSupplier } from "@/api/supplier";
 import SocialShare from "@/lib/SocilalShareComponent";
+import KeyContractBanner from "../contract/contractBanner";
 
 type Props = { supplierDetails: SupplierDetails; balance: CoinBalance };
 type Stafftype = "staff" | "service_provider";
@@ -79,6 +81,7 @@ const SupplierDashboard: React.FC<Props> = ({
   const [role, setRole] = useState<"normal" | "advanced" | "">("");
 
   const [animateCards, setAnimateCards] = useState(false);
+  const [contract, setContract] = useState(false);
 
   // Mock data - replace with your actual API data
   const supplierInfo = {
@@ -375,6 +378,7 @@ const SupplierDashboard: React.FC<Props> = ({
 
   return (
     <div className=" p-2 md:p-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+      <KeyContractBanner opened={contract} onClose={() => setContract(false)} />
       {/* Enhanced Header Section */}
       <Transition mounted={animateCards} transition="fade" duration={800}>
         {(styles) => (
@@ -469,6 +473,18 @@ const SupplierDashboard: React.FC<Props> = ({
                     >
                       View Location
                     </Button>
+                    <div>
+                      <Button
+                        size="md"
+                        variant="filled"
+                        onClick={() => setContract(true)}
+                        leftSection={<ReceiptText size={20} />}
+                        color="keymanOrange"
+                        className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                      >
+                        Keyman Contract
+                      </Button>
+                    </div>
                     {/* Social Media Links */}
                     {(_supplierInfo?.facebook_link ||
                       _supplierInfo?.instagram_link ||

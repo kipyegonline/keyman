@@ -277,6 +277,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               <Hash size={10} className="mr-1 inline-block " />
               {supplier?.keyman_number}
             </Badge>
+
             <div className="flexy items-center gap-1 hidden">
               <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
               <Text size="sm" className="font-medium">

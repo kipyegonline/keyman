@@ -41,12 +41,14 @@ import { RequestDeliveryItem } from "@/types";
 import Link from "next/link";
 import { Order } from "@/types/orders";
 import DashboardSearch from "../keyman-bot/DashboardSearch";
+import KeyContractBanner from "../contract/contractBanner";
 // Main Content Component
 const MainContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const { darkMode: isDark, user } = useAppContext();
   const router = useRouter();
   const [isOpen, setOpen] = useState(false);
+  const [showContract, setContract] = useState(false);
   const { data: balance, refetch } = useQuery({
     queryKey: ["balance"],
     queryFn: async () => getBalance(""),
@@ -136,6 +138,10 @@ const MainContent: React.FC = () => {
         onPaymentSuccess={handlePaymentSuccess}
         onPaymentError={handlePaymentError}
       />
+      <KeyContractBanner
+        opened={showContract}
+        onClose={() => setContract(false)}
+      />
       {/* AI Search Bar */}
       <Paper
         p={{ base: "sm", md: "lg" }}
@@ -193,10 +199,10 @@ const MainContent: React.FC = () => {
         </Button>
         <Button
           size="lg"
-          variant="gradient"
-          onClick={() => null}
+          variant="filled"
+          onClick={() => setContract(true)}
           leftSection={<ReceiptText size={20} />}
-          color="gray"
+          color="keymanOrange"
           className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"
         >
           Keyman Contract
