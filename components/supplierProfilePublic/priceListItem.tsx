@@ -286,6 +286,11 @@ export const PublicPricelistItem: React.FC<{
                   {item.transportation_type}
                 </span>
               </Badge>
+              {item?.stock && +item?.stock > 1 && (
+                <Badge variant="light" color="#3D6B2C" size="md" radius="xl">
+                  {item?.stock}in stock
+                </Badge>
+              )}
 
               <Group gap="xs" style={{ flexShrink: 0 }}>
                 <Weight size={14} />

@@ -94,7 +94,7 @@ const KeymanSignupComponent: React.FC = () => {
     const response = await registerUser(payload);
     if (response.status) {
       // Handle successful registration, e.g., show success message or redirect
-      console.log("Registration successful:", response);
+
       form.reset();
       setLoading(false);
 

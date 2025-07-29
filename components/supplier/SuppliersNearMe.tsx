@@ -16,6 +16,8 @@ import {
   Avatar,
   Divider,
   Alert,
+  Box,
+  Pagination,
 } from "@mantine/core";
 import {
   Search,
@@ -40,6 +42,7 @@ interface ISupplierContact {
   email: string;
   keyman_number: string;
   comments: null;
+  photo?: string[];
 }
 
 const SuppliersNearMe: React.FC = () => {
@@ -122,7 +125,12 @@ const SuppliersNearMe: React.FC = () => {
     window.open(`mailto:${email}`, "_blank");
   };
   }, [searchQuery, suppliers]);*/
-
+  const perPage = 25,
+    total = Math.ceil(filteredSuppliers.length / perPage);
+  const [current, setCurrent] = useState(0);
+  const startIndex = current * perPage;
+  const endIndex = startIndex + perPage;
+  const paginatedSuppliers = filteredSuppliers.slice(startIndex, endIndex);
   const handleCall = (phone: string) => {
     window.open(`tel:${phone}`, "_self");
   };
@@ -242,7 +250,7 @@ const SuppliersNearMe: React.FC = () => {
 
         {/* Suppliers Grid */}
         <Grid>
-          {filteredSuppliers.map((supplier, index: number) => (
+          {paginatedSuppliers.map((supplier, index: number) => (
             <Grid.Col key={supplier.id} span={{ base: 12, md: 6, lg: 4 }}>
               <Transition
                 mounted={true}
@@ -278,6 +286,7 @@ const SuppliersNearMe: React.FC = () => {
                               backgroundColor: "#F0F9FF",
                               color: "#3D6B2C",
                             }}
+                            src={supplier?.photo?.[0]}
                           >
                             <User size={24} />
                           </Avatar>
@@ -302,6 +311,9 @@ const SuppliersNearMe: React.FC = () => {
                           lineClamp={2}
                         >
                           {supplier.name}
+                        </Text>
+                        <Text className="line-clamp-6" size="sm" c="dimmed">
+                          {supplier.comments}
                         </Text>
 
                         <Divider />
@@ -366,6 +378,15 @@ const SuppliersNearMe: React.FC = () => {
             </Grid.Col>
           ))}
         </Grid>
+        <Box my="md">
+          {filteredSuppliers.length > perPage && (
+            <Pagination
+              total={total}
+              onChange={(num) => setCurrent(num - 1)}
+              value={current + 1}
+            />
+          )}
+        </Box>
 
         {/* No Results State */}
         {filteredSuppliers.length === 0 && !loading && (

@@ -92,7 +92,7 @@ const RequestDetailSuplier: React.FC<{
   const [open, setOpen] = React.useState(false);
 
   const { data: balance, refetch: refetchBalance } = useQuery({
-    queryFn: async () => await getBalance(supplierId),
+    queryFn: async () => await getBalance(supplierId, true),
     queryKey: ["balance", supplierId],
     enabled: !!supplierId,
   });
@@ -141,6 +141,7 @@ const RequestDetailSuplier: React.FC<{
   };
 
   const getValuation = (totalAmount: number, balance: number) => {
+    if (balance === 0) return false;
     return balance >= (2 / 100) * (totalAmount / 20);
   };
   const getTotalAmount = (orderItems: PricedRequestItem[]) => {
@@ -191,8 +192,12 @@ const RequestDetailSuplier: React.FC<{
     // do a valuation check once  check once more
 
     const valuated = getValuation(totalCost, _balance);
+
+    //return;
     if (!valuated) {
+      notify.error("You have insufficient coins to submit this quote");
       setShowModal(true);
+
       return;
     }
 
@@ -253,7 +258,7 @@ const RequestDetailSuplier: React.FC<{
       notify.success("Quote submitted successfully");
       setSuccess(true);
     } else {
-      //notify.error(response.message);
+      notify.error(response?.message?.balance);
     }
   };
 
@@ -275,6 +280,25 @@ const RequestDetailSuplier: React.FC<{
       return totalAmount;
     } else return 0;
   }, [orderItems]);
+  const getRequiredTokens = (totalAmount: number) => {
+    return (totalAmount / 20) * 0.02 > 0.9 ? (totalAmount / 20) * 0.02 : 1;
+  };
+
+  const getrequiredAmount = (totalAmount: number, _balance: number) => {
+    if (_balance <= 0) {
+      const res = 20 * ((totalAmount / 20) * 0.02);
+      return res > 19 ? res : 20;
+    }
+    {
+      return 20 * ((totalAmount / 20) * 0.02 - _balance);
+    }
+  };
+
+  const amount = React.useCallback(
+    () => getrequiredAmount(totalAmount, _balance),
+    [totalAmount, _balance]
+  );
+  //console.log(amount(), "cg");
   if (success)
     return (
       <QuoteSuccess quoteId={"Keyman"} requestCode={selectedRequest?.code} />
@@ -287,7 +311,7 @@ const RequestDetailSuplier: React.FC<{
         onClose={() => setShowModal(false)}
         onTopUp={handleTopUp}
         currentTokens={_balance}
-        requiredTokens={totalAmount ? (totalAmount / 20) * 0.02 : 0}
+        requiredTokens={totalAmount ? getRequiredTokens(totalAmount) : 0}
         userName=""
       />
       <PaymentModal
@@ -295,7 +319,8 @@ const RequestDetailSuplier: React.FC<{
         onClose={() => setOpen(false)}
         type="request"
         typeId={requestId}
-        amount={totalAmount ? 20 * ((totalAmount / 20) * 0.02 - _balance) : 0}
+        //amount={totalAmount ? 20 * ((totalAmount / 20) * 0.02 - _balance) : 0}
+        amount={amount()}
         description=""
         availablePaymentMethods={["mpesa", "airtel_money", "t_kash"]}
         onPaymentSuccess={() => {

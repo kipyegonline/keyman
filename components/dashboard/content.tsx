@@ -205,7 +205,7 @@ const MainContent: React.FC = () => {
           color="keymanOrange"
           className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"
         >
-          Keyman Contract
+          Keycontract
         </Button>
       </Group>
 

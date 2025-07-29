@@ -1211,11 +1211,24 @@ export default function PricelistDashboard({
             min={0}
             error={validationErrors.some((error) => error.includes("Price"))}
           />
-
+          {/**Metrics */}
+          <TextInput
+            label="Metrics (Kgs/Litres/Metres)"
+            size="lg"
+            onChange={(e) =>
+              handleFormUpdate("add", "metrics", e.target.value || "")
+            }
+            radius="md"
+            required
+            placeholder="Enter item metrics unit"
+            maxLength={10}
+            value={addForm?.metrics}
+            error={validationErrors.some((error) => error.includes("Metrics"))}
+          />
           {/* Weight */}
           <NumberInput
-            label="Weight (kg)"
-            placeholder="Enter weight"
+            label="Weight (Kg)"
+            placeholder="Enter item metrics unit"
             value={Number(addForm.weight_in_kgs || 0)}
             onChange={(value) =>
               handleFormUpdate("add", "weight_in_kgs", +value || 0)
@@ -1558,14 +1571,11 @@ export const PricelistItem: React.FC<{
               </Group>
               <Group gap="xs">
                 <Store size={14} />
-                <Badge
-                  variant="light"
-                  color={getTransportationColor(item.transportation_type)}
-                  size="md"
-                  radius="xl"
-                >
-                  {item?.stock ?? ""}
-                </Badge>
+                {item?.stock && +item?.stock > 1 && (
+                  <Badge variant="light" color="#3D6B2C" size="md" radius="xl">
+                    {item?.stock}in stock
+                  </Badge>
+                )}
               </Group>
             </Group>
 

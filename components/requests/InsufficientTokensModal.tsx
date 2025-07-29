@@ -146,7 +146,7 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
                 {pkg.tokens}
               </Text>
               <Text size="sm" c="dimmed">
-                tokens
+                coins
               </Text>
             </Group>
 
@@ -226,10 +226,10 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
             </div>
 
             <Text size="xl" fw={700} className="text-gray-800 mb-2">
-              Insufficient Tokens
+              Insufficient Coins
             </Text>
             <Text c="dimmed" size="sm">
-              Hi {userName}, you need more tokens to submit this quote
+              Hi {userName}, you need more coins to submit this quote
             </Text>
           </div>
 
@@ -243,7 +243,7 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
                 </Text>
               </Group>
               <Badge color="orange" variant="light">
-                {currentTokens} tokens
+                {currentTokens} coins
               </Badge>
             </Group>
 
@@ -257,10 +257,10 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
 
             <Group justify="space-between">
               <Text size="xs" c="dimmed">
-                You have: {currentTokens} tokens
+                You have: {currentTokens} coins
               </Text>
               <Text size="xs" c="dimmed">
-                Need: {requiredTokens} tokens
+                Need: {requiredTokens} coins
               </Text>
             </Group>
 
@@ -271,8 +271,11 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
               mt="sm"
             >
               <Text size="sm">
-                You need <strong>{tokensNeeded} more tokens</strong> to submit
-                this quote
+                You need{" "}
+                <strong>
+                  {tokensNeeded} {tokensNeeded > 1 ? "more coins" : "coin"}{" "}
+                </strong>{" "}
+                to submit this quote
               </Text>
             </Alert>
             <Alert
@@ -283,8 +286,10 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
             >
               {" "}
               <Text size="sm">
-                1 token costs ksh20., Amount needed is{" "}
-                <strong>{tokensNeeded * 20}</strong>
+                1 coin costs ksh20., Amount needed is{" "}
+                <strong>
+                  {tokensNeeded * 20 > 20 ? tokensNeeded * 20 : 20}
+                </strong>
               </Text>
             </Alert>
           </Paper>
@@ -319,7 +324,7 @@ const InsufficientTokensModal: React.FC<InsufficientTokensModalProps> = ({
                   <Group gap="xs" mb="sm">
                     <TrendingUp size={16} className="text-[#3D6B2C]" />
                     <Text size="sm" fw={500}>
-                      Why Choose Tokens?
+                      Why Choose coins?
                     </Text>
                   </Group>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs text-gray-600">

@@ -267,6 +267,7 @@ const CategorySelector: React.FC<{
   return (
     <div className="space-y-4">
       <Select
+        display={"none"}
         label="Main Category"
         placeholder="Select your business category"
         data={mainCategories}
@@ -308,12 +309,14 @@ const CategorySelector: React.FC<{
 // Main Component
 const SupplierRegistrationForm: React.FC<{
   supplierTypes: CategoryStructure;
-}> = ({ supplierTypes }) => {
+  refresh: () => void;
+}> = ({ supplierTypes, refresh }) => {
   const [active, setActive] = useState(0);
   const [mainCategory, setMainCategory] = useState("");
   const [subCategory, setSubCategory] = useState<string[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+
   const form = useForm<SupplierInfo>({
     initialValues: {
       name: "",
@@ -359,8 +362,6 @@ const SupplierRegistrationForm: React.FC<{
     let errors!: string;
     if (subCategory.length < 1) {
       errors = "Please select up to 2 categories";
-    } else if (subCategory.length > 2) {
-      errors = "Please select 2 categories";
     }
     return errors;
   };
@@ -375,8 +376,8 @@ const SupplierRegistrationForm: React.FC<{
 
     if (active === 0) {
       const validation = form.validate();
-      if (!validation.hasErrors && mainCategory && subCategory) {
-        //form.setFieldValue('categories', subCategory);
+
+      if (!validation.hasErrors) {
         setActive(1);
       }
     } else {
@@ -416,6 +417,7 @@ const SupplierRegistrationForm: React.FC<{
       const response = await becomeSupplier(payload);
       if (response.status) {
         setShowSuccess(true);
+        setTimeout(() => refresh(), 3000);
       } else {
         notify.error("Something went wrong. Try again later.");
       }
@@ -593,10 +595,10 @@ const SupplierRegistrationForm: React.FC<{
                     </Grid.Col>
 
                     <Grid.Col span={12}>
-                      {supplierTypes && (
+                      {supplierTypes && form.values.type.length > 0 && (
                         <CategorySelector
                           supplierTypes={supplierTypes}
-                          mainCategory={mainCategory}
+                          mainCategory={form.values.type}
                           subCategory={subCategory}
                           onMainCategoryChange={setMainCategory}
                           onSubCategoryChange={handleSubCategory}
@@ -847,7 +849,7 @@ const SupplierRegistrationForm: React.FC<{
                 <Button
                   onClick={nextStep}
                   className="bg-[#3D6B2C] hover:bg-[#2A4B1F] transition-all duration-300 transform hover:scale-105"
-                  disabled={active === 0 && (!mainCategory || !subCategory)}
+                  //disabled={active === 0 && (!mainCategory || !subCategory)}
                 >
                   Next Step
                 </Button>

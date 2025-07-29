@@ -482,7 +482,7 @@ const SupplierDashboard: React.FC<Props> = ({
                         color="keymanOrange"
                         className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"
                       >
-                        Keyman Contract
+                        Keycontract
                       </Button>
                     </div>
                     {/* Social Media Links */}
