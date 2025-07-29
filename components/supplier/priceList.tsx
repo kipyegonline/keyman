@@ -48,6 +48,7 @@ import {
   Upload,
   ShoppingCart,
   Minus,
+  Store,
 } from "lucide-react";
 import { updateSupplierPriceList } from "@/api/supplier";
 import { notify } from "@/lib/notifications";
@@ -71,6 +72,7 @@ export interface Pricelist {
   weight_in_kgs: number;
   image?: File | null;
   item_id?: string;
+  attachment_url?: string[];
 
   added_by_supplier_id?: string;
   stock?: string;
@@ -1355,6 +1357,27 @@ export const PricelistItem: React.FC<{
   cardSize = "",
 }) => {
   const isuserOwned = "isUserOwned" in item;
+  const getRightImage = (item: WholePriceList | Pricelist) => {
+    if (isuserOwned) {
+      if (
+        "attachment_url" in item &&
+        item?.attachment_url &&
+        item?.attachment_url?.length > 0
+      )
+        return item?.attachment_url.at(-1);
+      //@ts-ignore
+      else return item?.photo?.[0];
+    } else {
+      if (
+        "attachment_url" in item &&
+        item?.attachment_url &&
+        item["attachment_url"].length > 0
+      )
+        return item?.attachment_url.at(-1);
+      //@ts-ignore
+      else return item?.item?.photo?.[0];
+    }
+  };
   return (
     <Transition
       mounted={true}
@@ -1480,9 +1503,7 @@ export const PricelistItem: React.FC<{
 
                 <Box className="w-full md:w-24 h-auto md:h-24 mt-2">
                   <Image
-                    src={
-                      isuserOwned ? item?.photo?.[0] : item?.item?.photo?.[0]
-                    }
+                    src={getRightImage(item)}
                     alt={""}
                     height={100}
                     width={100}
@@ -1534,6 +1555,17 @@ export const PricelistItem: React.FC<{
                 <Text size="sm" c="dimmed">
                   {item.weight_in_kgs}kg
                 </Text>
+              </Group>
+              <Group gap="xs">
+                <Store size={14} />
+                <Badge
+                  variant="light"
+                  color={getTransportationColor(item.transportation_type)}
+                  size="md"
+                  radius="xl"
+                >
+                  {item?.stock ?? ""}
+                </Badge>
               </Group>
             </Group>
 
