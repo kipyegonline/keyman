@@ -298,7 +298,7 @@ const RequestDetailSuplier: React.FC<{
     () => getrequiredAmount(totalAmount, _balance),
     [totalAmount, _balance]
   );
-  //console.log(amount(), "cg");
+  console.log(selectedRequest, "bl");
   if (success)
     return (
       <QuoteSuccess quoteId={"Keyman"} requestCode={selectedRequest?.code} />
@@ -509,7 +509,9 @@ const RequestDetailSuplier: React.FC<{
                           </ThemeIcon>
                         </Tooltip>
                       )}
-                      {item.checked || !checkIfPriced(item) ? (
+                      {selectedRequest?.already_quoted ? (
+                        <Badge variant="light">Already quoted</Badge>
+                      ) : item.checked || !checkIfPriced(item) ? (
                         <PricingComponent
                           item={item}
                           updateItemPrices={handleItemUpdate}

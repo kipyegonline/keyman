@@ -184,7 +184,7 @@ interface Category {
 }
 
 export interface CoinBalance {
-  breakdown: { free: string; paid: number };
+  breakdown: { free: string; paid: number; topup: number };
   total: number;
 }
 
@@ -279,6 +279,7 @@ export interface RequestDelivery {
   updated_at: string;
 }
 export interface RequestDeliveryItem {
+  already_quoted?: boolean;
   code: string;
   created_at: string;
   created_from: string;

@@ -63,6 +63,7 @@ import { notify } from "@/lib/notifications";
 import { inviteUserToSupplier } from "@/api/supplier";
 import SocialShare from "@/lib/SocilalShareComponent";
 import KeyContractBanner from "../contract/contractBanner";
+//import PaymentModal from "../Tokens";
 
 type Props = { supplierDetails: SupplierDetails; balance: CoinBalance };
 type Stafftype = "staff" | "service_provider";
@@ -379,6 +380,7 @@ const SupplierDashboard: React.FC<Props> = ({
   return (
     <div className=" p-2 md:p-6 bg-gradient-to-br from-gray-50 to-white min-h-screen">
       <KeyContractBanner opened={contract} onClose={() => setContract(false)} />
+
       {/* Enhanced Header Section */}
       <Transition mounted={animateCards} transition="fade" duration={800}>
         {(styles) => (
@@ -587,7 +589,7 @@ const SupplierDashboard: React.FC<Props> = ({
                       </Badge>
                     </Text>
                     <Text>
-                      Paid:{" "}
+                      Top Up:{" "}
                       <Badge
                         size="md"
                         // variant="gradient"
@@ -596,11 +598,15 @@ const SupplierDashboard: React.FC<Props> = ({
                         color="keymanOrange"
                       >
                         {" "}
-                        {balance?.breakdown?.paid}
+                        {balance?.breakdown?.topup}
                       </Badge>
                     </Text>
                   </Group>
                 </div>
+                <Group justify="space-between" align="center" display="none">
+                  <Button>Top up coins</Button>
+                </Group>
+
                 <ActionIcon
                   size="xl"
                   radius="xl"
