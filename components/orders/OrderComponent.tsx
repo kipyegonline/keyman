@@ -177,8 +177,8 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
       year: "numeric",
       month: "long",
       day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+      //hour: "2-digit",
+      //minute: "2-digit",
     });
   };
   /*
@@ -392,7 +392,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({
                 shadow="sm"
                 padding="lg"
                 radius="md"
-                className="hover:shadow-md transition-all duration-300 animate-in fade-in-50 slide-in-from-left-4"
+                className="hover:shadow-md transition-all border-keymanOrange duration-300 animate-in fade-in-50 slide-in-from-left-4"
                 style={{ animationDelay: "300ms" }}
               >
                 <Group gap="sm" mb="md">

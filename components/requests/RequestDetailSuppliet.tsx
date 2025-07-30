@@ -298,7 +298,7 @@ const RequestDetailSuplier: React.FC<{
     () => getrequiredAmount(totalAmount, _balance),
     [totalAmount, _balance]
   );
-  console.log(selectedRequest, "bl");
+
   if (success)
     return (
       <QuoteSuccess quoteId={"Keyman"} requestCode={selectedRequest?.code} />

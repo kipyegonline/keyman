@@ -151,7 +151,7 @@ const OrderCompletionSection: React.FC<OrderCompletionProps> = ({
         shadow="sm"
         padding="lg"
         radius="md"
-        className="hover:shadow-md transition-all duration-300 animate-in fade-in-50 slide-in-from-left-4"
+        className="hover:shadow-md transition-all border-red duration-300 animate-in fade-in-50 slide-in-from-left-4"
         style={{ animationDelay: "250ms" }}
       >
         <Group justify="space-between" mb="md">

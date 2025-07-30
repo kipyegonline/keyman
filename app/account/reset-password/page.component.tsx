@@ -176,6 +176,9 @@ const KeymanResetPassword: React.FC = () => {
             placeholder="Reset Key"
             leftSection={<Key size={16} />}
             size="md"
+            type="tel"
+            autoComplete="one-time-code"
+            inputMode="numeric"
             {...form.getInputProps("resetKey")}
             description="Enter the 6-digit code sent to your email"
           />

@@ -8,8 +8,9 @@ import { Box, Text } from "@mantine/core";
 
 export default function OrdersClientcomponent() {
   const { data: orders, isLoading } = useQuery({
-    queryKey: ["user-orders", "orders"],
+    queryKey: ["user-orders"],
     queryFn: async () => await getOrders(""),
+    staleTime: 1000 * 60 * 5,
   });
 
   const ordersList = React.useMemo(() => {
@@ -17,7 +18,7 @@ export default function OrdersClientcomponent() {
       return orders.orders;
     } else return [];
   }, [orders]);
-  console.log(ordersList, "ol");
+
   if (isLoading) return <LoadingComponent message="Loading your orders..." />;
 
   return (

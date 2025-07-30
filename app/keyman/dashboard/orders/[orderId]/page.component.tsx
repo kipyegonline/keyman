@@ -26,7 +26,7 @@ export default function OrderClientComponent({ orderId }: { orderId: string }) {
   return (
     <div>
       <Breadcrumbs separator="/">
-        <Link href="/keyman/supplier/orders" className="text-keyman-green">
+        <Link href="/keyman/dashboard/orders" className="text-keyman-green">
           Orders
         </Link>
         <Link href="/" inert>
