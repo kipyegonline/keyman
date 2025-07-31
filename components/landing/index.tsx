@@ -19,6 +19,7 @@ import { NavigationComponent } from "../ui/Navigation";
 import { KeymanSkeleton } from "@/lib/helperComponents";
 import { useRouter } from "next/navigation";
 import { Image } from "@mantine/core";
+import SuppliersNearMeCTA from "./SuppliersNearMeCT";
 
 // Hero Section Component
 const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
@@ -488,6 +489,7 @@ const KeymanLanding: React.FC = () => {
       <div className="pt-18"></div>
 
       <AnimatedHeroSection />
+      <SuppliersNearMeCTA />
       <RegistrationSection darkMode={darkMode} />
       {/** <AskKeymanSection darkMode={darkMode} />*/}
       <HeroSection darkMode={darkMode} />

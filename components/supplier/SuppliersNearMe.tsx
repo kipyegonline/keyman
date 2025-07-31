@@ -45,7 +45,9 @@ interface ISupplierContact {
   photo?: string[];
 }
 
-const SuppliersNearMe: React.FC = () => {
+const SuppliersNearMe: React.FC<{ url?: string }> = ({
+  url = `/keyman/dashboard/suppliers-near-me/`,
+}) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -260,9 +262,7 @@ const SuppliersNearMe: React.FC = () => {
                 exitDuration={200}
               >
                 {(styles) => (
-                  <Link
-                    href={`/keyman/dashboard/suppliers-near-me/${supplier.id}`}
-                  >
+                  <Link href={`${url}${supplier.id}`}>
                     <Card
                       shadow="md"
                       padding="lg"
