@@ -124,7 +124,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
         .join(", ")}. Located in ${supplier?.address} with ${
         supplierData.rating
       } star rating!`,
-      url: `https://www.keymanstores.com/keyman/dashboard/suppliers-near-me/${supplier?.id}`,
+      url: `https://www.keymanstores.com/supplier/${supplier?.id}`,
     };
 
     try {

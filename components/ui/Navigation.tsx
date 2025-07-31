@@ -166,8 +166,10 @@ export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
               {isSupplierPath && isAccountPage && (
                 <Text fw={700} size="lg">
                   {
-                    JSON.parse(localStorage.getItem("keyman_user") ?? "{}")
-                      ?.name
+                    JSON.parse(
+                      globalThis?.window?.localStorage.getItem("keyman_user") ??
+                        "{}"
+                    )?.name
                   }
                 </Text>
               )}
