@@ -18,6 +18,7 @@ import {
   Alert,
   Box,
   Pagination,
+  Spoiler,
 } from "@mantine/core";
 import {
   Search,
@@ -30,6 +31,7 @@ import {
   //Star,
   Navigation,
   AlertCircle,
+  Star,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getSuppliersNearMe } from "@/api/requests";
@@ -290,6 +292,7 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
                           >
                             <User size={24} />
                           </Avatar>
+
                           <Badge
                             color="orange"
                             variant="light"
@@ -312,9 +315,22 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
                         >
                           {supplier.name}
                         </Text>
-                        <Text className="line-clamp-6" size="sm" c="dimmed">
-                          {supplier.comments}
-                        </Text>
+
+                        {supplier &&
+                        supplier?.comments &&
+                        (supplier?.comments as string)?.length > 0 ? (
+                          <Spoiler
+                            showLabel="see more"
+                            hideLabel="less"
+                            maxHeight={50}
+                          >
+                            <Text size="sm" c="dimmed">
+                              {supplier.comments}
+                            </Text>
+                          </Spoiler>
+                        ) : (
+                          <Text c="dimmed">No description....</Text>
+                        )}
 
                         <Divider />
 
@@ -344,7 +360,21 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
                         </Stack>
 
                         {/* Action Buttons */}
-                        <Group justify="apart" gap="xs" mt="md">
+                        <Group justify="center" gap="xs" mt="md">
+                          {[...Array(5)].map((item, i) => (
+                            <Star
+                              size={20}
+                              key={i}
+                              color={i < 3 ? "orange" : "gray"}
+                            />
+                          ))}
+                        </Group>
+                        <Group
+                          justify="apart"
+                          gap="xs"
+                          mt="md"
+                          display={"none"}
+                        >
                           <Button
                             variant="outline"
                             size="sm"

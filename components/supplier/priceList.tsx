@@ -1577,6 +1577,13 @@ export const PricelistItem: React.FC<{
                   </Badge>
                 )}
               </Group>
+              {item?.metrics && (
+                <Group gap="xs">
+                  <Badge variant="light" color="#3D6B2C" size="md" radius="xl">
+                    {item?.metrics}
+                  </Badge>
+                </Group>
+              )}
             </Group>
 
             {/* Edit Button */}

@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { confirmItemReceipt, ReleaseItem } from "@/api/orders";
 import { getCurrentLocation } from "@/lib/geolocation";
+import { notify } from "@/lib/notifications";
 
 interface OrderItem {
   amounts: {
@@ -104,12 +105,14 @@ const OrderCompletionSection: React.FC<OrderCompletionProps> = ({
         const result = await confirmItemReceipt(orderId, payload);
 
         if (result.status) {
+          notify.success("Receipt confirmed. reloading shortly...");
           setReceiveSuccess(true);
           onReceive();
           setTimeout(() => {
             setModalOpen(false);
             setReceiveSuccess(false);
             setCheckedItems(new Set());
+            window.location.reload();
           }, 1500);
         }
       } catch (error) {
