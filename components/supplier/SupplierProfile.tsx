@@ -206,7 +206,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
     },
     { icon: Shield, active: supplierData.is_escrow_only, label: "Escrow Only" },
   ];
-
+  console.log(supplier);
   return (
     <div className="w-full h-full bg-white">
       {/* Minimalist Header */}
@@ -247,11 +247,17 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
             size={60}
             radius="xl"
             className="mb-3 border-2 border-[#3D6B2C]"
-            src={null}
+            src={
+              supplier?.photo && supplier?.photo?.length > 0
+                ? supplier?.photo[0]
+                : null
+            }
           >
-            <div className="text-lg font-bold text-[#3D6B2C]">
-              {supplier?.name?.charAt(0)}
-            </div>
+            {supplier?.photo && supplier?.photo?.length === 0 && (
+              <div className="text-lg font-bold text-[#3D6B2C]">
+                {supplier?.name?.charAt(0)}
+              </div>
+            )}
           </Avatar>
 
           <Title order={3} className="text-xl font-bold text-gray-900 mb-1">

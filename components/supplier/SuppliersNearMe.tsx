@@ -280,17 +280,25 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
                     >
                       <Stack gap="md">
                         {/* Header */}
+
                         <Group justify="space-between" align="flex-start">
                           <Avatar
-                            size="lg"
+                            // size="lg"
                             radius="md"
                             style={{
                               backgroundColor: "#F0F9FF",
                               color: "#3D6B2C",
                             }}
-                            src={supplier?.photo?.[0]}
+                            size={120}
+                            alt={supplier?.photo?.[0]}
+                            src={
+                              supplier?.photo && supplier?.photo?.length > 0
+                                ? supplier?.photo?.[0]
+                                : null
+                            }
                           >
-                            <User size={24} />
+                            {supplier?.photo &&
+                              supplier?.photo?.length === 0 && <User />}
                           </Avatar>
 
                           <Badge

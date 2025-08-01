@@ -395,9 +395,14 @@ const SupplierDashboard: React.FC<Props> = ({
                 <Grid.Col span={{ base: 12, md: 8 }}>
                   <Group align="flex-start" gap="lg">
                     <Avatar
-                      src={""}
+                      src={
+                        _supplierInfo?.photo &&
+                        _supplierInfo?.photo[0]?.length > 0
+                          ? _supplierInfo?.photo[0]
+                          : null
+                      }
                       alt={_supplierInfo?.name ?? "Keyman Store"}
-                      size={80}
+                      size={120}
                       radius="lg"
                       className="bg-gradient-to-r from-green-600 to-green-700 shadow-lg"
                     >
@@ -598,7 +603,7 @@ const SupplierDashboard: React.FC<Props> = ({
                         color="keymanOrange"
                       >
                         {" "}
-                        {balance?.breakdown?.topup}
+                        {balance?.breakdown?.topup ?? 0}
                       </Badge>
                     </Text>
                   </Group>

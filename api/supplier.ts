@@ -1,6 +1,6 @@
 import AxiosClient from "@/config/axios";
 import { ENDPOINTS } from "@/lib/endpoints";
-import { SupplierInfo } from "@/types";
+//import { SupplierInfo } from "@/types";
 import { AxiosError } from "axios";
 
 export const getSupplierTypes = async () => {
@@ -23,15 +23,20 @@ export const getSupplierTypes = async () => {
   }
 };
 
-type BecomeSupplier = Omit<SupplierInfo, "categories"> & {
-  categories: string[];
-}; // Assuming category is a string, adjust as necessary
+//type BecomeSupplier = Omit<SupplierInfo, "categories"> & {
+// categories: string[];
+//}; // Assuming category is a string, adjust as necessary
 // };
-export const becomeSupplier = async (payload: BecomeSupplier) => {
+export const becomeSupplier = async (payload: FormData) => {
   try {
     const response = await AxiosClient.post(
       ENDPOINTS.supplier.BECOME_SUPPLIER,
-      payload
+      payload,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     return response.data;
   } catch (error) {

@@ -52,6 +52,7 @@ import { becomeSupplier } from "@/api/supplier";
 import Link from "next/link";
 import { notify } from "@/lib/notifications";
 import { AxiosError } from "axios";
+import { DataURIToBlob, toDataUrlFromFile } from "@/lib/FileHandlers";
 
 // Types and Interfaces
 export interface SupplierInfo {
@@ -398,25 +399,36 @@ const SupplierRegistrationForm: React.FC<{
     const formData = new FormData();
 
     Object.entries(values).forEach(([key, value]) => {
-      if (key === "photo" && value instanceof File) {
-        formData.append(key, value);
-      } else if (key === "categories" && Array.isArray(value)) {
-        formData.append(key, JSON.stringify(value));
+      if (key === "categories" && Array.isArray(value)) {
+        value.forEach((v, i) => {
+          formData.append(`categories[${i}]`, v);
+        });
+        //formData.append(key, JSON.stringify(value));
       } else if (value !== undefined && value !== null) {
-        formData.append(key, value.toString());
+        if (key !== "photo") {
+          formData.append(key, value.toString());
+        }
       }
     });
 
-    // Here you would typically send formData to your backend
+    if (values.photo) {
+      const file64 = await toDataUrlFromFile(values.photo);
 
+      const file_ = DataURIToBlob(file64 as string);
+      console.log(file_);
+
+      formData.append("photo", file_, values.photo.name);
+    }
+    // Here you would typically send formData to your backend
+    /*
     const payload = {
       ...values,
       categories: [...values?.categories],
-    };
+    };*/
     try {
       setLoading(true);
 
-      const response = await becomeSupplier(payload);
+      const response = await becomeSupplier(formData);
       if (response.status) {
         setShowSuccess(true);
         setTimeout(() => refresh(), 3000);

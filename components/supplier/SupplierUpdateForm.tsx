@@ -39,6 +39,7 @@ import {
 import { updateSupplierDetails } from "@/api/supplier";
 import Link from "next/link";
 import { DataURIToBlob, toDataUrlFromFile } from "@/lib/FileHandlers";
+import { notify } from "@/lib/notifications";
 
 // Types and Interfaces
 export interface SupplierUpdateInfo {
@@ -362,15 +363,16 @@ const SupplierUpdateForm: React.FC<{
 
     if (!confirm("Are you sure you want to update your information?")) return;
     const formData = new FormData();
-
+    //const category=[]
     Object.entries(values).forEach(([key, value]) => {
       if (key === "categories" && Array.isArray(value)) {
-        value.forEach((v) => {
-          formData.append(key, v);
+        value.forEach((v, i) => {
+          formData.append(`categories[${i}]`, v);
         });
-        //formData.append(key, JSON.stringify(value));
       } else if (value !== undefined && value !== null) {
-        formData.append(key, value.toString());
+        if (key !== "photo") {
+          formData.append(key, value.toString());
+        }
       }
     });
 
@@ -378,13 +380,10 @@ const SupplierUpdateForm: React.FC<{
       const file64 = await toDataUrlFromFile(values.photo);
 
       const file_ = DataURIToBlob(file64 as string);
-      console.log(file_);
 
-      // formData.append("photo", file_, values.photo.name);
+      formData.append("photo", file_, values.photo.name);
     }
-    for (const [k, v] of formData.entries()) {
-      console.log(k, v);
-    }
+
     setLoading(true);
     try {
       const id = initialData?.id as string;
@@ -392,6 +391,10 @@ const SupplierUpdateForm: React.FC<{
       const results = await updateSupplierDetails(id, formData);
       if (results.status) {
         setShowSuccess(true);
+        notify.success("Update Successful!, redirecting...");
+        setTimeout(() => {
+          location.href = "/keyman/supplier";
+        }, 3000);
         //setTimeout(() => setShowSuccess(false), 5000);
       } else {
       }
@@ -709,7 +712,7 @@ const SupplierUpdateForm: React.FC<{
                     >
                       Your business information has been updated successfully!
                     </Notification>
-                    <Box className="py-4 flex justify-center">
+                    <Box className="py-4 flex justify-center" display="hidden">
                       <Link
                         href="/keyman/supplier"
                         className="text-keyman-green my-2"

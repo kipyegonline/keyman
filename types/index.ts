@@ -92,7 +92,7 @@ export interface SupplierInfo {
   /**
    * @property {string} [photo] - Optional: A URL or reference to a photo of the supplier or their business.
    */
-  photo?: File | null;
+  photo?: string[];
   /**
    * @property {string} [comments] - Optional: Additional comments about the supplier.
    */

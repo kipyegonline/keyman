@@ -195,7 +195,7 @@ export const PublicPricelistItem: React.FC<{
                 //minWidth: "100px",
                 // width: "100px",
                 // height: "100px",
-                height: 150,
+                height: 200,
                 alignSelf: "center",
               }}
               // className="border-red "
@@ -203,7 +203,7 @@ export const PublicPricelistItem: React.FC<{
               <Image
                 src={item?.item?.photo?.[0]}
                 alt={item.name}
-                fit="cover"
+                fit="fill"
                 radius="lg"
                 fallbackSrc="/placeholder-image.png"
                 style={{
