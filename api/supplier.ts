@@ -49,14 +49,12 @@ export const becomeSupplier = async (payload: BecomeSupplier) => {
   }
 };
 
-export const updateSupplierDetails = async (
-  id: string,
-  payload: Partial<SupplierInfo>
-) => {
+export const updateSupplierDetails = async (id: string, payload: FormData) => {
   try {
     const response = await AxiosClient.post(
       ENDPOINTS.supplier.UPDATE_SUPPLIER_DETAILS(id),
-      payload
+      payload,
+      { headers: { "Content-Type": "multipart/form-data" } }
     );
 
     return response.data;

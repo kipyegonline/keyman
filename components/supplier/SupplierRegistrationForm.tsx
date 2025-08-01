@@ -23,6 +23,7 @@ import {
   Notification,
   MultiSelect,
   Box,
+  Avatar,
 } from "@mantine/core";
 import {
   User,
@@ -45,6 +46,7 @@ import {
   CheckCircle,
   Navigation,
   Globe,
+  ImageDown,
 } from "lucide-react";
 import { becomeSupplier } from "@/api/supplier";
 import Link from "next/link";
@@ -530,6 +532,29 @@ const SupplierRegistrationForm: React.FC<{
                         {...form.getInputProps("email")}
                         required
                       />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <FileInput
+                        accept="image/png,image/jpeg, image/jpg"
+                        label="Company logo"
+                        placeholder="business@example.com"
+                        leftSection={
+                          <ImageDown size={16} className="text-[#3D6B2C]" />
+                        }
+                        className="transition-all duration-300 hover:scale-[1.02]"
+                        {...form.getInputProps("photo")}
+                        required
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      {form.values.photo && (
+                        <Avatar
+                          size="lg"
+                          radius="md"
+                          src={URL.createObjectURL(form.values.photo)}
+                          alt="Item preview"
+                        ></Avatar>
+                      )}
                     </Grid.Col>
                     <Grid.Col span={12}>
                       <Select

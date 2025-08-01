@@ -18,6 +18,8 @@ import {
   Loader,
   Box,
   Textarea,
+  FileInput,
+  Avatar,
 } from "@mantine/core";
 import {
   User,
@@ -32,9 +34,11 @@ import {
   Save,
   RefreshCw,
   ArrowLeft,
+  ImageDown,
 } from "lucide-react";
 import { updateSupplierDetails } from "@/api/supplier";
 import Link from "next/link";
+import { DataURIToBlob, toDataUrlFromFile } from "@/lib/FileHandlers";
 
 // Types and Interfaces
 export interface SupplierUpdateInfo {
@@ -49,6 +53,7 @@ export interface SupplierUpdateInfo {
   is_escrow_only: boolean;
   id?: string;
   comments: string;
+  photo: File | null;
 }
 export interface Location {
   location: {
@@ -234,6 +239,7 @@ const CategorySelector: React.FC<{
           leftSection={<Building2 size={16} className="text-[#3D6B2C]" />}
           className="transition-all duration-300 hover:scale-[1.01]"
           error={error}
+          display={"none"}
         />
       )}
       <Transition
@@ -245,13 +251,13 @@ const CategorySelector: React.FC<{
           <MultiSelect
             style={styles}
             label="Specific Categories"
-            placeholder="Select up to 2 categories"
+            placeholder="Select  categories"
             data={getSubCategories()}
             value={subCategory}
             onChange={onSubCategoryChange}
             leftSection={<Package size={16} className="text-[#F08C23]" />}
             className="transition-all duration-300 hover:scale-[1.01]"
-            maxValues={2}
+            //maxValues={2}
           />
         )}
       </Transition>
@@ -286,6 +292,7 @@ const SupplierUpdateForm: React.FC<{
       // categories:  [],
       is_escrow_only: false,
       comments: "",
+      photo: null,
     },
     validate: {
       name: (value) =>
@@ -354,14 +361,40 @@ const SupplierUpdateForm: React.FC<{
     }*/
 
     if (!confirm("Are you sure you want to update your information?")) return;
+    const formData = new FormData();
 
+    Object.entries(values).forEach(([key, value]) => {
+      if (key === "categories" && Array.isArray(value)) {
+        value.forEach((v) => {
+          formData.append(key, v);
+        });
+        //formData.append(key, JSON.stringify(value));
+      } else if (value !== undefined && value !== null) {
+        formData.append(key, value.toString());
+      }
+    });
+
+    if (values.photo) {
+      const file64 = await toDataUrlFromFile(values.photo);
+
+      const file_ = DataURIToBlob(file64 as string);
+      console.log(file_);
+
+      // formData.append("photo", file_, values.photo.name);
+    }
+    for (const [k, v] of formData.entries()) {
+      console.log(k, v);
+    }
     setLoading(true);
     try {
       const id = initialData?.id as string;
-      await updateSupplierDetails(id, values);
 
-      setShowSuccess(true);
-      //setTimeout(() => setShowSuccess(false), 5000);
+      const results = await updateSupplierDetails(id, formData);
+      if (results.status) {
+        setShowSuccess(true);
+        //setTimeout(() => setShowSuccess(false), 5000);
+      } else {
+      }
     } catch (error) {
       console.error("Update failed:", error);
     } finally {
@@ -463,6 +496,29 @@ const SupplierUpdateForm: React.FC<{
                             {...form.getInputProps("email")}
                             required
                           />
+                        </Grid.Col>
+                        <Grid.Col span={{ base: 12, md: 6 }}>
+                          <FileInput
+                            accept="image/png,image/jpeg, image/jpg"
+                            label="Company logo"
+                            placeholder="business@example.com"
+                            leftSection={
+                              <ImageDown size={16} className="text-[#3D6B2C]" />
+                            }
+                            className="transition-all duration-300 hover:scale-[1.02]"
+                            {...form.getInputProps("photo")}
+                            required
+                          />
+                        </Grid.Col>
+                        <Grid.Col span={{ base: 12, md: 6 }}>
+                          {form.values.photo && (
+                            <Avatar
+                              size="lg"
+                              radius="md"
+                              src={URL.createObjectURL(form.values.photo)}
+                              alt="Item preview"
+                            ></Avatar>
+                          )}
                         </Grid.Col>
                       </Grid>
                     </Card>

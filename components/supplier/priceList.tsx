@@ -1563,20 +1563,22 @@ export const PricelistItem: React.FC<{
                 {item.transportation_type}
               </Badge>
 
-              <Group gap="xs">
+              <Group gap="xs" display="none">
                 <Weight size={14} />
                 <Text size="sm" c="dimmed">
                   {item.weight_in_kgs}kg
                 </Text>
               </Group>
-              <Group gap="xs">
-                <Store size={14} />
-                {item?.stock && +item?.stock > 1 && (
+
+              {item?.stock && +item?.stock > 1 && (
+                <Group gap="xs">
+                  <Store size={14} />
                   <Badge variant="light" color="#3D6B2C" size="md" radius="xl">
                     {item?.stock}in stock
                   </Badge>
-                )}
-              </Group>
+                </Group>
+              )}
+
               {item?.metrics && (
                 <Group gap="xs">
                   <Badge variant="light" color="#3D6B2C" size="md" radius="xl">

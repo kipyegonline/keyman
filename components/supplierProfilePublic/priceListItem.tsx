@@ -190,6 +190,33 @@ export const PublicPricelistItem: React.FC<{
 
           <Stack gap="md">
             {/* Item Header */}
+            <Box
+              style={{
+                //minWidth: "100px",
+                // width: "100px",
+                // height: "100px",
+                height: 150,
+                alignSelf: "center",
+              }}
+              // className="border-red "
+            >
+              <Image
+                src={item?.item?.photo?.[0]}
+                alt={item.name}
+                fit="cover"
+                radius="lg"
+                fallbackSrc="/placeholder-image.png"
+                style={{
+                  objectFit: "cover",
+                  border: "2px solid #f0f0f0",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                  height: "100%",
+                  //width: 320,
+                  width: 380,
+                }}
+                // className="w-full "
+              />
+            </Box>
             <Flex
               justify="space-between"
               align="flex-start"
@@ -197,7 +224,7 @@ export const PublicPricelistItem: React.FC<{
               gap="sm"
             >
               <Box style={{ flex: 1 }}>
-                <Text size="xl" mb="xs">
+                <Text size="xl" mb="xs" display="none">
                   {getItemEmoji(item.type, item.name)}
                 </Text>
                 <Text fw={600} size="md" lineClamp={2} mb="xs">
@@ -217,30 +244,6 @@ export const PublicPricelistItem: React.FC<{
                 >
                   {item.description}
                 </Spoiler>
-              </Box>
-
-              <Box
-                style={{
-                  minWidth: "100px",
-                  width: "100px",
-                  height: "100px",
-                  alignSelf: "center",
-                }}
-              >
-                <Image
-                  src={item?.item?.photo?.[0]}
-                  alt={item.name}
-                  height={100}
-                  width={100}
-                  fit="cover"
-                  radius="lg"
-                  fallbackSrc="/placeholder-image.png"
-                  style={{
-                    objectFit: "cover",
-                    border: "2px solid #f0f0f0",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  }}
-                />
               </Box>
             </Flex>
 
@@ -297,7 +300,7 @@ export const PublicPricelistItem: React.FC<{
                 </Badge>
               )}
 
-              <Group gap="xs" style={{ flexShrink: 0 }}>
+              <Group gap="xs" style={{ flexShrink: 0, display: "none" }}>
                 <Weight size={14} />
                 <Text size="sm" c="dimmed">
                   {item.weight_in_kgs}kg
