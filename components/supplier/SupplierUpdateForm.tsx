@@ -316,12 +316,14 @@ const SupplierUpdateForm: React.FC<{
       return data?.location?.coordinates as [number, number];
     else return [0, 0];
   };
+
   useEffect(() => {
     if (initialData) {
       form.setValues({
         name: initialData.name,
         phone: initialData.phone,
         email: initialData.email,
+        comments: initialData.comments,
         // type:initialData.type,
         address: initialData.address,
         //categories:initialData.categories,

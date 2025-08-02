@@ -35,6 +35,7 @@ export default function SupplierComponentDashboard() {
   }, [supplier]);
 
   //console.log(supplier, isError, error, isLoading);
+
   if (isLoading)
     return <LoadingComponent message="Fetching supplier details" />;
   return (
