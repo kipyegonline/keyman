@@ -357,6 +357,13 @@ const SupplierRegistrationForm: React.FC<{
       longitude: (value) => (value === 0 ? "Please set your location" : null),
       country: (value) =>
         value.length === 0 ? "Please select your country" : null,
+      photo: (value) => (value ? null : "Please upload a business photo"),
+      comments: (value) =>
+        value && value.length < 10
+          ? "Description must be more than 10 characters"
+          : value && value.length > 500
+          ? " must be less than 500 characters"
+          : null,
       //categories: (value) => (value.length < 1 ? 'Please select a category'  : value.length>2? "Please select 2 categories":null),
     },
   });
