@@ -114,6 +114,10 @@ const MainContent: React.FC = () => {
     navigateTo();
     router.push("/keyman/dashboard/requests/create-request");
   };
+  const handleContract = () => {
+    navigateTo();
+    router.push("/keyman/dashboard/key-contract");
+  };
   const isSupplier = user && "supplier_details" in user;
   return (
     <Container
@@ -200,7 +204,7 @@ const MainContent: React.FC = () => {
         <Button
           size="lg"
           variant="filled"
-          onClick={() => setContract(true)}
+          onClick={handleContract}
           leftSection={<ReceiptText size={20} />}
           color="keymanOrange"
           className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"

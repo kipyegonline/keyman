@@ -6,6 +6,7 @@ import {
   ShoppingCart,
   Settings,
   DiamondPercent,
+  ReceiptText,
 } from "lucide-react";
 import {
   Group,
@@ -43,6 +44,7 @@ const Sidebar: React.FC<{
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "requests", label: "Requests near me", icon: ClipboardList },
     { id: "orders", label: "Orders", icon: ShoppingCart },
+    { id: "key-contract", label: "My Contracts", icon: ReceiptText },
     { id: "price", label: "Manage my store", icon: DiamondPercent },
     { id: "update", label: "Update profile", icon: Settings },
     { id: "customer", label: "Customer Profile", icon: User },
@@ -84,6 +86,10 @@ const Sidebar: React.FC<{
         break;
       case "customer":
         handleSupplyRoute();
+        break;
+      case "key-contract":
+        navigateTo();
+        router.push("/keyman/supplier/key-contract");
         break;
       default:
         break;
