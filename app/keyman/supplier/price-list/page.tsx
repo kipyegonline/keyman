@@ -1,11 +1,13 @@
 import React from "react";
 import PriceListClientcomponent from "./page.component";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: "Keyman Dashboard | manage my store",
-  description: "Manage supplier price list",
-  keywords: ["Keyman", "Dashboard", "Placeholder"],
+export const metadata: Metadata = {
+  title: "Price List - Keyman Stores",
+  description:
+    "Manage your supplier price list for construction materials. Update pricing, add new items, and maintain your product catalog.",
 };
+
 export default function PriceListPage() {
   return (
     <div className="px-2 md:px-20 ">
