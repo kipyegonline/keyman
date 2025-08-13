@@ -20,6 +20,9 @@ import { KeymanSkeleton } from "@/lib/helperComponents";
 import { useRouter } from "next/navigation";
 import { Image } from "@mantine/core";
 import SuppliersNearMeCTA from "./SuppliersNearMeCT";
+import KeymanBanner from "../Banner";
+import { getBannerssNearMe } from "@/api/requests";
+import { useQuery } from "@tanstack/react-query";
 
 // Hero Section Component
 const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
@@ -442,6 +445,56 @@ const RegistrationSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
 const KeymanLanding: React.FC = () => {
   const { darkMode, user } = useAppContext();
   const router = useRouter();
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  const { data: _banners } = useQuery({
+    queryKey: ["banners_near_me"],
+    queryFn: async () =>
+      getBannerssNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0),
+    enabled: !!userLocation,
+  });
+  // Get user location on component mount
+  useEffect(() => {
+    const getCurrentLocation = () => {
+      if (!navigator.geolocation) {
+        //setLocationError("Geolocation is not supported by this browser");
+        //setLoading(false);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation({ lat: latitude, lng: longitude });
+          // setLoading(false);
+        },
+        (error) => {
+          console.log(error);
+          /* setLocationError(
+            "Unable to retrieve your location. Try again later."
+          );*/
+          //  setLoading(false);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 600000,
+        }
+      );
+    };
+
+    getCurrentLocation();
+  }, []);
+
+  const banners = React.useMemo(() => {
+    if (_banners?.adverts?.length > 0) {
+      return _banners?.adverts;
+    }
+    return [];
+  }, [_banners]);
   const createElement = (style: HTMLElement) => {
     style.textContent = `
       @keyframes fade-in {
@@ -489,7 +542,11 @@ const KeymanLanding: React.FC = () => {
       <div className="pt-18"></div>
 
       <AnimatedHeroSection />
+      <div className="py-4">
+        <KeymanBanner banners={banners} />
+      </div>
       <SuppliersNearMeCTA />
+
       <RegistrationSection darkMode={darkMode} />
       {/** <AskKeymanSection darkMode={darkMode} />*/}
       <HeroSection darkMode={darkMode} />

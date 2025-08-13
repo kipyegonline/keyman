@@ -1,16 +1,17 @@
-import React from 'react'
-import OrdersClientcomponent from './page.component'
+import React from "react";
+import OrdersClientcomponent from "./page.component";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: 'Keyman Orders',  
-  description: 'manage your orders with ease',
-  keywords: ['Keyman', 'Orders', 'Account', 'Dashboard'],
-}
+export const metadata: Metadata = {
+  title: "My Orders - Keyman Stores",
+  description:
+    "Track and manage your construction material orders with ease. View order status, delivery information, and payment details.",
+};
+
 export default function Page() {
   return (
     <div>
-        <OrdersClientcomponent/>
-      
+      <OrdersClientcomponent />
     </div>
-  )
+  );
 }

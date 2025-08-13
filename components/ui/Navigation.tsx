@@ -92,6 +92,16 @@ export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
             </span>
             <span className="text-sm font-medium text-[#F08C23]">STORES</span>
           </Link>
+          <Link className="hidden md:block" href="/about">
+            <span className="text-md font-medium text-gray-500 hover:text-gray-900">
+              About Us
+            </span>
+          </Link>
+          <Link className="hidden md:block" href="/contact">
+            <span className="text-md font-medium text-gray-500 hover:text-gray-900">
+              Contact Us
+            </span>
+          </Link>
 
           <div className="hidden md:flex items-center space-x-4">
             <button
@@ -166,7 +176,7 @@ export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
 
         {isMenuOpen && (
           <div className="md:hidden " style={{ zIndex: 999 }}>
-            <div className="px-2 py-4 space-y-1  w-full  flex justify-end gap-x-4">
+            <div className="px-2 py-4 space-y-1  w-full  flex flex-col md:flex-row justify-end gap-x-4">
               {Checkout}
               {isSupplierPath && isAccountPage && (
                 <Text fw={700} size="lg">
@@ -178,6 +188,16 @@ export const NavigationComponent: React.FC<{ isFixed: boolean }> = ({
                   }
                 </Text>
               )}
+              <Link href="/about">
+                <span className="text-md font-medium text-gray-500 hover:text-gray-900">
+                  About Us
+                </span>
+              </Link>
+              <Link href="/contact">
+                <span className="text-md font-medium text-gray-500 hover:text-gray-900">
+                  Contact Us
+                </span>
+              </Link>
               {isAccountPage ? null : (
                 <Link
                   href="/account/login"

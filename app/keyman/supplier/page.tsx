@@ -1,11 +1,11 @@
 import React from "react";
-
+import type { Metadata } from "next";
 import SupplierComponentDashboard from "./page.component";
 
-export const metadata = {
-  title: "Keyman Suppliers",
-  description: "Suppliers profile",
-  keywords: ["Keyman", "Profile", "Account", "Dashboard"],
+export const metadata: Metadata = {
+  title: "Supplier Dashboard - Keyman Stores",
+  description:
+    "Manage your supplier profile, orders, and business connections on Keyman's construction commerce platform.",
 };
 
 export default function Page() {

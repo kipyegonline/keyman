@@ -14,6 +14,7 @@ import "leaflet/dist/leaflet.css";
 import "@mantine/carousel/styles.css";
 //import ChatBot from "@/components/keyman-bot";
 import AnalyticsScripts from "@/components/ui/AnalyticsScript";
+import { Footer } from "@/components/ui/Footer";
 //import ChatBot from "@/components/keyman-bot";
 import ChatBot from "@/components/keyman-bot/v2";
 
@@ -34,6 +35,7 @@ export default function RootLayout({
       <body className={`${poppins.variable}  antialiased`}>
         <AppProviders>
           <main className=""> {children}</main>
+          <Footer />
           <AnalyticsScripts />
           <GoogleAnalytics gaId={TrackingId} />
           <ChatBot />

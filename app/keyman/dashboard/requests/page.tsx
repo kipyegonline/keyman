@@ -1,17 +1,17 @@
-import React from 'react'
-import RequestClientComponent from './page.component'
+import React from "react";
+import RequestClientComponent from "./page.component";
+import type { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: "My Requests - Keyman Stores",
+  description:
+    "View and manage your construction material requests, track quotes, and award suppliers.",
+};
 
-export const metadata = {
-  title: 'Keyman Dashboard',
-  description: 'Keyman Dashboard Requests',
-  keywords: ['Keyman', 'Dashboard', 'requests'],}
 export default function RequestsPage() {
-   
-    return (
+  return (
     <div>
-    <RequestClientComponent/>
+      <RequestClientComponent />
     </div>
-  )
+  );
 }
-
