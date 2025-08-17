@@ -42,6 +42,7 @@ import {
   AlertCircle,
   Briefcase,
 } from "lucide-react";
+import RequestChat from "@/components/contract/RequestChat";
 
 interface Milestone {
   id: string;
