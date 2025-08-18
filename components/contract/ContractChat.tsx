@@ -82,7 +82,7 @@ const ContractChat: React.FC<ContractChatProps> = ({
   const CHAT_STORAGE_PREFIX = "contract_chat_history_";
 
   const defaultState: ChatState = {
-    baseUrlProd: process.env.NEXT_PUBLIC_BASE_URL as string,
+    baseUrlProd: "https://kimari.app.n8n.cloud",
     baseUrlTest: "https://kimari.app.n8n.cloud",
     env: "prod", // 'test' | 'prod'
     userType, // 'user' | 'supplier'
