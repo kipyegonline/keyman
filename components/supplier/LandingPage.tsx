@@ -63,6 +63,8 @@ import { notify } from "@/lib/notifications";
 import { inviteUserToSupplier } from "@/api/supplier";
 import SocialShare from "@/lib/SocilalShareComponent";
 import KeyContractBanner from "../contract/contractBanner";
+import { navigateTo } from "@/lib/helpers";
+import { useRouter } from "next/navigation";
 //import PaymentModal from "../Tokens";
 
 type Props = { supplierDetails: SupplierDetails; balance: CoinBalance };
@@ -83,6 +85,7 @@ const SupplierDashboard: React.FC<Props> = ({
 
   const [animateCards, setAnimateCards] = useState(false);
   const [contract, setContract] = useState(false);
+  const router = useRouter();
 
   // Mock data - replace with your actual API data
   const supplierInfo = {
@@ -194,6 +197,10 @@ const SupplierDashboard: React.FC<Props> = ({
   const removeStaffMember = (staff: SupplierDetails["staff"][0]) => {
     if (confirm(`Remove ${staff?.user?.name}`)) {
     }
+  };
+  const handleContract = () => {
+    navigateTo();
+    router.push("/keyman/supplier/key-contract");
   };
 
   const StaffMemberInvitation = (
@@ -484,7 +491,7 @@ const SupplierDashboard: React.FC<Props> = ({
                       <Button
                         size="md"
                         variant="filled"
-                        onClick={() => setContract(true)}
+                        onClick={handleContract}
                         leftSection={<ReceiptText size={20} />}
                         color="keymanOrange"
                         className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"

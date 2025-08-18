@@ -73,4 +73,19 @@ export const ENDPOINTS = {
       `/api/ai-chat/threads/${threadId}/messages/count`,
   },
   banners: { BANNERS_NEAR_ME: "/api/banners/close-by" },
+  contracts: {
+    GET_CONTRACTS: "/api/keyman-contracts",
+    CREATE_CONTRACT: "/api/keyman-contracts",
+    GET_CONTRACT_DETAILS: (contract_id: string) =>
+      `/api/keyman-contracts/${contract_id}`,
+    UPDATE_CONTRACT: (contract_id: string) =>
+      `/api/keyman-contracts/${contract_id}`,
+    DELETE_CONTRACT: (contract_id: string) =>
+      `/api/keyman-contracts/${contract_id}`,
+    CREATE_MILESTONE: `/api/keyman-contract-milestones`,
+    UPDATE_MILESTONE: (milestone_id: string) =>
+      `/api/keyman-contract-milestones/${milestone_id}`,
+    UPDATE_MILESTONE_COPY: (milestone_id: string) =>
+      `/api/keyman-contract-milestones/${milestone_id}/copy`,
+  },
 };

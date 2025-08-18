@@ -854,6 +854,15 @@ const ChatBot: React.FC = () => {
                   </button>
                 </div>
               )}
+              <a
+                href="/Keymanstores, principle guidlines and codes of doing business.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => window.location.reload()}
+                className="text-keyman-green hover:text-keyman-green-hover hover:underline text-xs pl-4"
+              >
+                Code of conduct
+              </a>
             </div>
           </>
         )}
