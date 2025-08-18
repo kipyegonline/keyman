@@ -92,7 +92,7 @@ export default function ClientContractPage({
       {showContract && (
         <ContractChatBot
           userToken={token ?? ""}
-          sessionId={token ?? ""}
+          sessionId={`supplier-${contract.id}`}
           contractId={contract.id}
           userType="supplier"
           supplierId={localStorage.getItem("supplier_id") ?? ""}
