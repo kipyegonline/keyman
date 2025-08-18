@@ -6,12 +6,15 @@ import { getContractDetails } from "@/api/contract";
 import ContractDetails from "@/components/contract/contractDetails";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { ContractChatBot } from "@/components/contract";
+import { getToken } from "@/providers/AppContext";
 
 export default function ClientContractPage({
   contractId,
 }: {
   contractId: string;
 }) {
+  const [showContract, setShowContract] = React.useState(false);
   const { data, isLoading, error } = useQuery({
     queryKey: ["contract", contractId],
     queryFn: async () => await getContractDetails(contractId),
@@ -83,15 +86,27 @@ export default function ClientContractPage({
     );
   }
 
+  const token = getToken();
   return (
     <Container size="xl" className="py-6">
       {breadcrumbs}
+      {showContract && (
+        <ContractChatBot
+          userToken={token ?? ""}
+          sessionId={token ?? ""}
+          contractId={contract.id}
+          userType="user"
+          //supplierId={localStorage.getItem("supplier_id") ?? ""}
+          onClose={() => setShowContract(false)}
+        />
+      )}
       <ContractDetails
         contract={contract}
         userType="customer" // You can determine this based on user context
         onEdit={() => {
           // Handle edit action
-          console.log("Edit contract:", contract.id);
+
+          setShowContract(true);
         }}
         onViewDocuments={() => {
           // Handle view documents action
