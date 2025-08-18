@@ -52,7 +52,7 @@ export default function CustomerContract() {
       )}
 
       <ContractList
-        contracts={contracts}
+        contracts={[...contracts]}
         userType="customer"
         isLoading={isLoading}
         onCreateContract={handleCreateContract}

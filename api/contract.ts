@@ -21,3 +21,23 @@ export const getContracts = async () => {
     }
   }
 };
+export const getContractDetails = async (contractId: string) => {
+  try {
+    const response = await AxiosClient.get(
+      ENDPOINTS.contracts.GET_CONTRACT_DETAILS(contractId)
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while fetching order details",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};

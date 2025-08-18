@@ -36,6 +36,8 @@ import {
   Shield,
   Zap,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { navigateTo } from "@/lib/helpers";
 
 // Contract interface based on API response
 export interface Contract {
@@ -78,10 +80,9 @@ const ContractList: React.FC<ContractListProps> = ({
   onShareContract,
 }) => {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
-  const [selectedContract, setSelectedContract] = useState<Contract | null>(
-    null
-  );
+  const [selectedContract] = useState<Contract | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
+  const router = useRouter();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -303,7 +304,17 @@ const ContractList: React.FC<ContractListProps> = ({
       {/* Contracts Grid */}
       <Grid gutter="md">
         {contracts.map((contract) => (
-          <Grid.Col key={contract.id} span={{ base: 12, md: 6, lg: 4 }}>
+          <Grid.Col
+            key={contract.id}
+            span={{ base: 12, md: 6, lg: 4 }}
+            onClick={() => {
+              navigateTo();
+              if (userType === "customer")
+                router.push(`/keyman/dashboard/key-contract/${contract.id}`);
+              else if (userType === "supplier")
+                router.push(`/keyman/supplier/key-contract/${contract.id}`);
+            }}
+          >
             <Transition
               mounted={true}
               transition="slide-up"
@@ -328,10 +339,6 @@ const ContractList: React.FC<ContractListProps> = ({
                   `}
                   onMouseEnter={() => setHoveredCard(contract.id)}
                   onMouseLeave={() => setHoveredCard(null)}
-                  onClick={() => {
-                    setSelectedContract(contract);
-                    // setModalOpened(true);
-                  }}
                 >
                   {/* Contract Header */}
                   <Group justify="space-between" className="mb-3">
