@@ -91,18 +91,11 @@ const ContractChat: React.FC<ContractChatProps> = ({
 
   // State management
   const [state, setState] = useState<ChatState>({
-    baseUrlProd:
-      localStorage.getItem(LS_KEYS.baseUrlProd) || defaultState.baseUrlProd,
-    baseUrlTest:
-      localStorage.getItem(LS_KEYS.baseUrlTest) || defaultState.baseUrlTest,
-    env:
-      (localStorage.getItem(LS_KEYS.env) as "test" | "prod") ||
-      defaultState.env,
-    userType:
-      (localStorage.getItem(LS_KEYS.userType) as "user" | "supplier") ||
-      defaultState.userType,
-    userToken:
-      localStorage.getItem(LS_KEYS.userToken) || defaultState.userToken,
+    baseUrlProd: defaultState.baseUrlProd,
+    baseUrlTest: defaultState.baseUrlTest,
+    env: defaultState.env,
+    userType: defaultState.userType,
+    userToken: defaultState.userToken,
   });
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);

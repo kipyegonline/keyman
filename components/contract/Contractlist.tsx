@@ -330,7 +330,7 @@ const ContractList: React.FC<ContractListProps> = ({
                   onMouseLeave={() => setHoveredCard(null)}
                   onClick={() => {
                     setSelectedContract(contract);
-                    // setModalOpened(true);
+                    setModalOpened(true);
                   }}
                 >
                   {/* Contract Header */}
