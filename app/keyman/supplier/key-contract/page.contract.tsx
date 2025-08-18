@@ -94,7 +94,7 @@ export default function SupplierContractPage() {
       )}
 
       <ContractList
-        contracts={[...contracts, ...kandarasi]}
+        contracts={[...contracts]}
         userType="supplier"
         isLoading={isLoading}
         onCreateContract={handleCreateContract}
