@@ -16,6 +16,8 @@ interface AppContext {
   toggleChatMode: () => void;
   message: string;
   setChatMessage: (text: string) => void;
+  verified: 0 | 1;
+  setVerified: (value: 0 | 1) => void;
 }
 
 const AppContext = React.createContext({} as AppContext);
@@ -136,6 +138,7 @@ const checkCurrentDash = () => {
 export default function AppContextProvider({ children }: Props) {
   const [darkMode, setDarkMode] = React.useState(false);
   const [mainDashboard, setMainDashboard] = React.useState(checkCurrentDash());
+  const [verified, setVerified] = React.useState<0 | 1>(0);
 
   const [activeItem, setActiveItem] = React.useState(getDash() ?? "dashboard");
   const [user, _setUser] = React.useState<KeymanUser | null>(null);
@@ -191,6 +194,8 @@ export default function AppContextProvider({ children }: Props) {
         mainDashboard,
         message,
         setChatMessage,
+        verified,
+        setVerified,
       }}
     >
       {children}

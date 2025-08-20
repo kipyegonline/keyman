@@ -288,16 +288,18 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               {supplier?.name?.charAt(0)}
             </div>
           </Avatar>
-
-          <Title order={3} className="text-xl font-bold text-gray-900 mb-1">
-            {supplier?.name}{" "}
-            <CircleCheck
-              className="w-6 h-6 inline-block ml-1"
-              style={{
-                color: supplier?.is_user_verified === 0 ? "#ccc" : "#3D6B2C",
-              }}
-            />
-          </Title>
+          <div className="flex items-center">
+            <Title order={3} className="text-xl font-bold text-gray-900 mb-1">
+              {supplier?.name}{" "}
+              <CircleCheck
+                size={30}
+                className=" inline-block ml-1"
+                style={{
+                  color: supplier?.is_user_verified === 0 ? "#ccc" : "#3D6B2C",
+                }}
+              />
+            </Title>
+          </div>
 
           <div className="flex flex-wrap gap-1 justify-center mb-2 ">
             <Badge size="sm" style={{ backgroundColor: "#3D6B2C" }}>

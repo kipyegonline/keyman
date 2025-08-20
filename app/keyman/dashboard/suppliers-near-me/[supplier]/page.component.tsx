@@ -19,6 +19,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import React from "react";
 import { Project } from "@/types";
+import { useAppContext } from "@/providers/AppContext";
 /*eslint-disable*/
 
 export default function SupplierClientComponent({
@@ -30,6 +31,7 @@ export default function SupplierClientComponent({
   const [cartSpinner, setCartSpinner] = React.useState(false);
   const [date, setDate] = React.useState("");
   const [location, setLocation] = React.useState("");
+  const { setVerified } = useAppContext();
   const { data: supplier, isLoading } = useQuery({
     queryKey: ["supplier", supplierId],
     queryFn: async () => getSupplierDetails(supplierId),
@@ -57,6 +59,12 @@ export default function SupplierClientComponent({
       return await getProjects();
     },
   });
+
+  React.useEffect(() => {
+    if (supplier) {
+      setVerified(supplier?.supplier?.is_user_verified ?? 0);
+    }
+  }, [supplier]);
   const {
     addToCart,
     cart,

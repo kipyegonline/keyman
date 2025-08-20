@@ -7,6 +7,7 @@ import {
   MapPin,
   //Share,
   LogOut,
+  ReceiptText,
 } from "lucide-react";
 import {
   Group,
@@ -22,15 +23,17 @@ import {
   Text,
   Card,
   Divider,
+  Tooltip,
 } from "@mantine/core";
 import { Bell, ChevronDown, Sun, Moon } from "lucide-react";
-import { useAppContext } from "@/providers/AppContext";
+import { getToken, useAppContext } from "@/providers/AppContext";
 import { navigateTo } from "@/lib/helpers";
 import { usePathname, useRouter } from "next/navigation";
 import { logOutKeymanUser } from "@/api/registration";
 import Link from "next/link";
 import { CartButton } from "../supplier/priceList";
 import { useCart } from "@/providers/CartContext";
+import { ContractChatBot } from "../contract";
 
 export const checkDash = () => {
   const dashboard = globalThis?.window?.localStorage.getItem("dashboard");
@@ -55,6 +58,7 @@ const TopNavigation: React.FC = () => {
     user,
     logOutUser,
     mainDashboard,
+    verified,
   } = useAppContext();
   const router = useRouter();
 
@@ -62,6 +66,7 @@ const TopNavigation: React.FC = () => {
   const pathname = usePathname();
   const { cart, setModalOpen } = useCart();
   const [ownsCart, setOwnsCart] = React.useState(false);
+  const [showContract, setShowContract] = React.useState(false);
   React.useEffect(() => {
     const ownsCart = checkAuth() === getLocalCart()?.supplierId;
     setOwnsCart(ownsCart);
@@ -69,10 +74,12 @@ const TopNavigation: React.FC = () => {
   const checkPath = () => {
     if (pathname.includes("price-list")) return true;
     else if (pathname.includes("/dashboard/suppliers-near-me/")) return true;
+    else if (pathname.startsWith("/supplier/")) return true;
     else return false;
   };
 
   const hasAccess = checkPath();
+
   const profileMenuItems = [
     // { label: "Edit Profile", icon: Edit, key: "profile" },
     //{ label: "Hardware/Service Profile", icon: Wrench, key: "hardware" },
@@ -125,6 +132,7 @@ const TopNavigation: React.FC = () => {
         break;
     }
   };
+  const token = getToken();
 
   const MobileNav = (
     <Flex>
@@ -176,6 +184,16 @@ const TopNavigation: React.FC = () => {
           : "bg-white border-gray-200 border-b shadow-lg  relative -top-2"
       }
     >
+      {showContract && (
+        <ContractChatBot
+          userToken={token ?? ""}
+          sessionId={``}
+          //contractId={contract.id}
+          userType="supplier"
+          supplierId={localStorage.getItem("supplier_id") ?? ""}
+          onClose={() => setShowContract(false)}
+        />
+      )}
       <Flex style={{ height: "100%" }} justify={"space-between"} align="center">
         {PCMenu}
         {MobileNav}
@@ -191,13 +209,27 @@ const TopNavigation: React.FC = () => {
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </ActionIcon>
+          {hasAccess && (
+            <Tooltip label={"Key contract"} position="bottom">
+              <ActionIcon
+                //disabled={supplier?.is_user_verified === 0}
+                disabled={verified === 0}
+                variant="light"
+                size="lg"
+                onClick={() => setShowContract(true)}
+                className="animate-pulse"
+              >
+                <ReceiptText size={22} />
+              </ActionIcon>
+            </Tooltip>
+          )}
+
           {cart.itemCount > 0 && hasAccess && (
             <CartButton
               cart={cart}
               setCartModalOpened={() => setModalOpen(true)}
             />
           )}
-
           {/* Notifications */}
           <Indicator inline label={null} size={16}>
             <ActionIcon
@@ -208,7 +240,6 @@ const TopNavigation: React.FC = () => {
               <Bell size={20} />
             </ActionIcon>
           </Indicator>
-
           {/* Profile Menu */}
           <Menu
             shadow="md"

@@ -21,6 +21,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import React from "react";
 import { login } from "@/api/registration";
+import { useAppContext } from "@/providers/AppContext";
 /*eslint-disable*/
 
 const checkGuest = () => {
@@ -42,7 +43,7 @@ export default function SupplierClientComponent({
   const [email, setEmail] = React.useState("");
 
   const isGuest = !!!checkGuest();
-
+  const { setVerified } = useAppContext();
   const {
     addToCart,
     cart,
@@ -83,6 +84,11 @@ export default function SupplierClientComponent({
     },
     enabled: !!isGuest,
   });
+  React.useEffect(() => {
+    if (supplier) {
+      setVerified(supplier?.supplier?.is_user_verified ?? 0);
+    }
+  }, [supplier]);
 
   const perPage = 9;
 

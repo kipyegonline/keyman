@@ -318,8 +318,8 @@ const TokenSystemSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
         <div className="grid md:grid-cols-3 gap-6">
           {[
             { tokens: "1", price: "Ksh20", popular: false },
-            { tokens: "20", price: "Ksh100", popular: true },
-            { tokens: "100", price: "ksh500", popular: false },
+            { tokens: "20", price: "Ksh400", popular: true },
+            { tokens: "100", price: "ksh2000", popular: false },
           ].map((plan, index) => (
             <div
               key={index}

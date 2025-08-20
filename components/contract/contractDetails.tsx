@@ -56,6 +56,9 @@ interface ContractDetails {
   start_date?: string;
   end_date?: string;
   total_amount: number;
+  contract_duration_in_duration: number;
+
+  contract_amount: number;
   payment_status?: "paid" | "pending" | "partial";
   customer?: {
     id: string;
@@ -151,6 +154,55 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       day: "numeric",
     });
   };
+
+  // Extract start and end dates from the first milestone or use contract dates
+  const getProjectDates = () => {
+    if (contract.milestones && contract.milestones.length > 0) {
+      const firstMilestone = contract.milestones[0];
+      return {
+        startDate: firstMilestone.due_date || contract.start_date,
+        endDate:
+          contract.milestones[contract.milestones.length - 1]?.due_date ||
+          contract.end_date,
+      };
+    }
+    return {
+      startDate: contract.start_date,
+      endDate: contract.end_date,
+    };
+  };
+
+  // Calculate duration between start and end dates
+  const calculateDuration = (startDate?: string, endDate?: string) => {
+    if (!startDate || !endDate) return "N/A";
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 30) {
+      return `${diffDays} day${diffDays !== 1 ? "s" : ""}`;
+    } else if (diffDays < 365) {
+      const months = Math.round(diffDays / 30);
+      return `${months} month${months !== 1 ? "s" : ""}`;
+    } else {
+      const years = Math.round(diffDays / 365);
+      const remainingMonths = Math.round((diffDays % 365) / 30);
+      if (remainingMonths > 0) {
+        return `${years} year${
+          years !== 1 ? "s" : ""
+        } ${remainingMonths} month${remainingMonths !== 1 ? "s" : ""}`;
+      }
+      return `${years} year${years !== 1 ? "s" : ""}`;
+    }
+  };
+
+  const projectDates = getProjectDates();
+  const projectDuration = calculateDuration(
+    projectDates.startDate,
+    projectDates.endDate
+  );
 
   return (
     <Box>
@@ -260,7 +312,9 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
               </Text>
               <Text size="xs" c="dimmed">
                 Est. completion:{" "}
-                {contract.end_date ? formatDate(contract.end_date) : "TBD"}
+                {projectDates.endDate
+                  ? formatDate(projectDates.endDate)
+                  : "TBD"}
               </Text>
             </Group>
           </Paper>
@@ -302,7 +356,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                         Duration
                       </Text>
                       <Text size="sm" fw={500}>
-                        {contract.duration || "N/A"}
+                        {projectDuration}
                       </Text>
                     </Group>
                   </Grid.Col>
@@ -312,8 +366,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                         Start Date
                       </Text>
                       <Text size="sm" fw={500}>
-                        {contract.start_date
-                          ? formatDate(contract.start_date)
+                        {projectDates.startDate
+                          ? formatDate(projectDates.startDate)
                           : "TBD"}
                       </Text>
                     </Group>
@@ -324,8 +378,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                         End Date
                       </Text>
                       <Text size="sm" fw={500}>
-                        {contract.end_date
-                          ? formatDate(contract.end_date)
+                        {projectDates.endDate
+                          ? formatDate(projectDates.endDate)
                           : "TBD"}
                       </Text>
                     </Group>
@@ -590,7 +644,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                       Total Value
                     </Text>
                     <Text size="lg" fw={700} className="text-green-700">
-                      {formatCurrency(contract.total_amount)}
+                      {formatCurrency(Number(contract.contract_amount))}
                     </Text>
                   </Group>
 
