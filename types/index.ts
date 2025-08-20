@@ -103,6 +103,8 @@ export interface SupplierInfo {
   name?: string;
   keyman_number?: string;
   id?: string;
+  is_user_verified?: number;
+  supplier_rating: null | number;
 }
 export interface categories {
   goods: { name: "goods"; categories: { id: string; name: string }[] };

@@ -30,9 +30,13 @@ import {
   Clock,
   Hash,
   Share2,
+  CircleCheck,
+  ReceiptText,
 } from "lucide-react";
 import { SupplierInfo } from "@/types";
 import SocialShare from "@/lib/SocilalShareComponent";
+import { ContractChatBot } from "../contract";
+import { getToken } from "@/providers/AppContext";
 
 interface ISupplierInfo {
   phone: string;
@@ -54,6 +58,7 @@ interface ISupplierInfo {
   has_inventory?: boolean;
   is_escrow_only?: boolean;
   photo?: File | null;
+  //supplier_rating: null | number;
   comments?: string;
   "categories[0]"?: string;
   "categories[1]"?: string;
@@ -106,6 +111,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
 }) => {
   const [isSharing, setIsSharing] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
+  const [showContract, setShowContract] = useState(false);
 
   const handleViewLocation = () => {
     const googleMapsUrl = `https://www.google.com/maps?q=${supplier?.location?.coordinates[1]},${supplier?.location?.coordinates[0]}`;
@@ -122,7 +128,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
       } specializing in ${supplier?.categories
         ?.map((cat) => cat?.item_category?.name)
         .join(", ")}. Located in ${supplier?.address} with ${
-        supplierData.rating
+        supplier?.supplier_rating
       } star rating!`,
       url: `https://www.keymanstores.com/supplier/${supplier?.id}`,
     };
@@ -208,8 +214,24 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
     { icon: Shield, active: supplierData.is_escrow_only, label: "Escrow Only" },
   ];
 
+  const token = getToken();
+  const rating =
+    supplier?.supplier_rating !== null &&
+    [...Array(supplier?.supplier_rating)].map((_, i) => (
+      <Star key={i} className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+    ));
+
   return (
     <div className="w-full h-full bg-white">
+      {showContract && (
+        <ContractChatBot
+          userToken={token ?? ""}
+          sessionId={token ?? ""}
+          userType="supplier"
+          supplierId={localStorage.getItem("supplier_id") ?? ""}
+          onClose={() => setShowContract(false)}
+        />
+      )}
       {/* Compact Header */}
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-3">
@@ -219,17 +241,28 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               Supplier Profile
             </Text>
           </div>
-
-          <Tooltip
-            label={shareSuccess ? "Link copied!" : "Share this profile"}
-            position="bottom"
-          >
-            <ActionIcon
-              variant="light"
-              size="sm"
-              onClick={handleShare}
-              disabled={isSharing}
-              className={`
+          <div>
+            {" "}
+            <Tooltip label={"Key contract"} position="bottom">
+              <ActionIcon
+                disabled={supplier?.is_user_verified === 0}
+                variant="light"
+                size="sm"
+                onClick={() => setShowContract(true)}
+              >
+                <ReceiptText className="w-4 h-4" />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip
+              label={shareSuccess ? "Link copied!" : "Share this profile"}
+              position="bottom"
+            >
+              <ActionIcon
+                variant="light"
+                size="sm"
+                onClick={handleShare}
+                disabled={isSharing}
+                className={`
                 hover:scale-110 transition-all duration-300
                 ${
                   shareSuccess
@@ -237,10 +270,11 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
                     : "bg-[#3D6B2C]/10 text-[#3D6B2C]"
                 }
               `}
-            >
-              <Share2 className="w-4 h-4" />
-            </ActionIcon>
-          </Tooltip>
+              >
+                <Share2 className="w-4 h-4" />
+              </ActionIcon>
+            </Tooltip>
+          </div>
         </div>
 
         <div className="flex flex-col items-center text-center">
@@ -256,10 +290,16 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
           </Avatar>
 
           <Title order={3} className="text-xl font-bold text-gray-900 mb-1">
-            {supplier?.name}
+            {supplier?.name}{" "}
+            <CircleCheck
+              className="w-6 h-6 inline-block ml-1"
+              style={{
+                color: supplier?.is_user_verified === 0 ? "#ccc" : "#3D6B2C",
+              }}
+            />
           </Title>
 
-          <div className="flex flex-wrap gap-1 justify-center mb-2">
+          <div className="flex flex-wrap gap-1 justify-center mb-2 ">
             <Badge size="sm" style={{ backgroundColor: "#3D6B2C" }}>
               {supplier?.type}
             </Badge>
@@ -280,13 +320,14 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               size="sm"
               style={{ backgroundColor: "#F08C23", display: "none" }}
             >
-              {supplierData.yearsInBusiness}Y
+              {supplierData.yearsInBusiness}
             </Badge>
-            <div className="flexy items-center gap-1 hidden">
-              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-              <Text size="sm" className="font-medium">
-                {supplierData.rating}
-              </Text>
+            <div className="flexy items-center gap-1 ">
+              {supplier?.supplier_rating === null ? (
+                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+              ) : (
+                rating
+              )}
             </div>
           </div>
         </div>

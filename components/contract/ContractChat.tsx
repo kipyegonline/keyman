@@ -590,8 +590,8 @@ const ContractChat: React.FC<ContractChatProps> = ({
 
     if (supplierId) {
       form.append("supplierId", supplierId);
-      if (contractId) form.append("contractId", contractId);
     }
+    if (contractId) form.append("contractId", contractId);
 
     form.append("workflow", "keyman_contract"); // Always use contract workflow
     form.append("user_type", supplierId ? "SERVICE_PROVIDER" : "CLIENT");
