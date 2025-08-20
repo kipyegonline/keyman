@@ -172,6 +172,13 @@ const SupplierDashboard: React.FC<Props> = ({
         supplier_detail_id: _supplierInfo?.id,
         ks_number: ksNumber,
       };
+      if (type === "staff")
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-expect-error
+        delete payload.ks_number;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-expect-error
+      else delete payload.email;
       setLoading(true);
       const response = await inviteUserToSupplier(payload);
       setLoading(false);
