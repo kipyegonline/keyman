@@ -45,6 +45,7 @@ interface ISupplierContact {
   keyman_number: string;
   comments: null;
   photo?: string[];
+  supplier_rating: null | string;
 }
 
 const SuppliersNearMe: React.FC<{ url?: string }> = ({
