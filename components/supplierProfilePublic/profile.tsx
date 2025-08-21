@@ -30,8 +30,8 @@ import {
   Clock,
   Hash,
   Share2,
-  CircleCheck,
   ReceiptText,
+  BadgeCheck,
 } from "lucide-react";
 import { SupplierInfo } from "@/types";
 import SocialShare from "@/lib/SocilalShareComponent";
@@ -291,13 +291,14 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
           <div className="flex items-center">
             <Title order={3} className="text-xl font-bold text-gray-900 mb-1">
               {supplier?.name}{" "}
-              <CircleCheck
-                size={30}
-                className=" inline-block ml-1"
-                style={{
-                  color: supplier?.is_user_verified === 0 ? "#ccc" : "#3D6B2C",
-                }}
-              />
+              {(supplier?.is_user_verified as number) > 0 && (
+                <BadgeCheck
+                  size={28}
+                  fill="#3D6B2C"
+                  stroke="white"
+                  className="inline-block relative -top-1"
+                />
+              )}
             </Title>
           </div>
 

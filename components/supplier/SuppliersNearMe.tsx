@@ -32,6 +32,7 @@ import {
   Navigation,
   AlertCircle,
   Star,
+  BadgeCheck,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getSuppliersNearMe } from "@/api/requests";
@@ -46,6 +47,7 @@ interface ISupplierContact {
   comments: null;
   photo?: string[];
   supplier_rating: null | string;
+  is_user_verified: number;
 }
 
 const SuppliersNearMe: React.FC<{ url?: string }> = ({
@@ -316,13 +318,22 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
                         </Group>
 
                         {/* Supplier Name */}
+
                         <Text
                           size="lg"
                           fw={600}
                           style={{ color: "#1F2937", lineHeight: 1.3 }}
                           lineClamp={2}
                         >
-                          {supplier.name}
+                          {supplier.name}{" "}
+                          {supplier && supplier?.is_user_verified > 0 && (
+                            <BadgeCheck
+                              size={28}
+                              fill="#3D6B2C"
+                              stroke="white"
+                              className="inline-block relative -top-1"
+                            />
+                          )}
                         </Text>
 
                         {supplier &&
