@@ -373,7 +373,15 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
                             <Star
                               size={20}
                               key={i}
-                              color={i < 3 ? "orange" : "gray"}
+                              color={
+                                supplier?.supplier_rating !== null
+                                  ? i < Number(supplier?.supplier_rating)
+                                    ? "orange"
+                                    : "gray"
+                                  : i <= 0
+                                  ? "orange"
+                                  : "gray"
+                              }
                             />
                           ))}
                         </Group>
