@@ -440,7 +440,10 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
           {filteredSuppliers.length > perPage && (
             <Pagination
               total={total}
-              onChange={(num) => setCurrent(num - 1)}
+              onChange={(num) => {
+                setCurrent(num - 1);
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
               value={current + 1}
             />
           )}
