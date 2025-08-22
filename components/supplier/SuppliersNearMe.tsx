@@ -60,16 +60,33 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
     lat: number;
     lng: number;
   } | null>(null);
+  const [useExtendedSearch, setUseExtendedSearch] = useState(false);
+
   //getSuppliersNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0)
   const { data: _suppliers, isLoading } = useQuery({
     queryKey: ["suppliers_near_me"],
     queryFn: async () =>
       getSuppliersNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0),
-    enabled: !!userLocation,
+    enabled: !!userLocation && !useExtendedSearch,
   });
+
+  // Extended search query with 400km distance
+  const { data: _extendedSuppliers, isLoading: isExtendedLoading } = useQuery({
+    queryKey: ["suppliers_near_me_extended", 4000000],
+    queryFn: async () =>
+      getSuppliersNearMe(
+        userLocation?.lat ?? 0,
+        userLocation?.lng ?? 0,
+        400000
+      ),
+    enabled: !!userLocation && useExtendedSearch,
+  });
+
+  const currentSuppliers = useExtendedSearch ? _extendedSuppliers : _suppliers;
+  const currentLoading = useExtendedSearch ? isExtendedLoading : isLoading;
   const filteredSuppliers: ISupplierContact[] = React.useMemo(() => {
     if (searchQuery.trim())
-      return _suppliers?.suppliers?.filter(
+      return currentSuppliers?.suppliers?.filter(
         (supplier: ISupplierContact) =>
           supplier.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           supplier.keyman_number
@@ -77,9 +94,9 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
             .includes(searchQuery.toLowerCase()) ||
           supplier.email.toLowerCase().includes(searchQuery.toLowerCase())
       );
-    if (_suppliers?.suppliers) return _suppliers?.suppliers;
+    if (currentSuppliers?.suppliers) return currentSuppliers?.suppliers;
     else return [];
-  }, [_suppliers, searchQuery]);
+  }, [currentSuppliers, searchQuery]);
   // Get user location on component mount
   useEffect(() => {
     const getCurrentLocation = () => {
@@ -147,7 +164,7 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
     console.log("Requesting quote from:", supplier.name);
   };
 
-  if (loading || isLoading) {
+  if (loading || currentLoading) {
     return (
       <Container size="lg" py="xl">
         <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -244,14 +261,28 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
             {filteredSuppliers.length !== 1 ? "s" : ""} found
           </Text>
           {userLocation && (
-            <Badge
-              color="green"
-              variant="light"
-              leftSection={<MapPin size={14} />}
-              size="lg"
-            >
-              Location-based results
-            </Badge>
+            <Group gap="xs">
+              <Badge
+                color="green"
+                variant="light"
+                leftSection={<MapPin size={14} />}
+                size="lg"
+              >
+                Location-based results
+              </Badge>
+              <Badge
+                color="orange"
+                variant="light"
+                leftSection={<Navigation size={14} />}
+                size="lg"
+                style={{ cursor: "pointer" }}
+                onClick={() => setUseExtendedSearch(!useExtendedSearch)}
+              >
+                {useExtendedSearch
+                  ? "Extended Search (400km)"
+                  : "Extend Search"}
+              </Badge>
+            </Group>
           )}
         </Group>
 

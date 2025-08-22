@@ -214,11 +214,12 @@ export const awardRequestItems = async (
  */
 export const getSuppliersNearMe = async (
   latitude: number,
-  longitude: number
+  longitude: number,
+  distance?: number
 ) => {
   try {
     const response = await AxiosClient.get(
-      ENDPOINTS.requests.SUPPLIERS_NEAR_ME(latitude, longitude)
+      ENDPOINTS.requests.SUPPLIERS_NEAR_ME(latitude, longitude, distance)
     );
     return response.data;
   } catch (error) {
