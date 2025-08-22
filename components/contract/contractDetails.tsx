@@ -94,6 +94,8 @@ interface ContractDetailsProps {
   onViewDocuments?: () => void;
   onShare?: () => void;
   handleChat?: () => void;
+  onDownload?: (contractId: string) => void;
+  isDownloading?: boolean;
 }
 
 const getStatusConfig = (status: string) => {
@@ -138,6 +140,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   onViewDocuments,
   onShare,
   handleChat,
+  onDownload,
+  isDownloading = false,
 }) => {
   const statusConfig = getStatusConfig(contract.status);
   const completedMilestones =
@@ -731,9 +735,16 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                     fullWidth
                     variant="outline"
                     color="gray"
-                    leftSection={<Download size={16} />}
+                    loading={isDownloading}
+                    disabled={isDownloading}
+                    onClick={() =>
+                      onDownload
+                        ? onDownload(contract.id)
+                        : console.log("Download feature coming soon!")
+                    }
+                    leftSection={!isDownloading && <Download size={16} />}
                   >
-                    Download Contract
+                    {isDownloading ? "Downloading..." : "Download Contract"}
                   </Button>
 
                   {userType === "customer" && contract.status === "active" && (

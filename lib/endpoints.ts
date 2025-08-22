@@ -87,5 +87,7 @@ export const ENDPOINTS = {
       `/api/keyman-contract-milestones/${milestone_id}`,
     UPDATE_MILESTONE_COPY: (milestone_id: string) =>
       `/api/keyman-contract-milestones/${milestone_id}/copy`,
+    DOWNLOAD_CONTRACT: (contract_id: string) =>
+      `/api/keyman-contracts/${contract_id}/download`,
   },
 };

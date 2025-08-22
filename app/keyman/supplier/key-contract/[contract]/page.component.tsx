@@ -2,7 +2,7 @@
 import React from "react";
 import { Container, Loader, Text, Alert, Breadcrumbs } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
-import { getContractDetails } from "@/api/contract";
+import { downloadContract, getContractDetails } from "@/api/contract";
 import ContractDetails from "@/components/contract/contractDetails";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
@@ -16,6 +16,7 @@ export default function ClientContractPage({
   contractId: string;
 }) {
   const [showContract, setShowContract] = React.useState(false);
+  const [isDownloading, setIsDownloading] = React.useState(false);
   const { data, isLoading, error } = useQuery({
     queryKey: ["contract", contractId],
     queryFn: async () => await getContractDetails(contractId),
@@ -27,6 +28,46 @@ export default function ClientContractPage({
     }
     return null;
   }, [data]);
+
+  const handleDownloadContract = async (id: string) => {
+    try {
+      setIsDownloading(true);
+      console.log("Starting download for contract:", id);
+      const result = await downloadContract(id);
+
+      if (result.status && result.data) {
+        // Create blob from the PDF data
+        const blob = new Blob([result.data], { type: "application/pdf" });
+
+        // Create download URL
+        const url = window.URL.createObjectURL(blob);
+
+        // Create temporary link element
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `contract-${contract?.code || id}.pdf`;
+
+        // Append to body, click, and remove
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Clean up the URL object
+        window.URL.revokeObjectURL(url);
+
+        console.log("Contract downloaded successfully");
+      } else {
+        console.error("Error downloading contract:", result.message);
+        // You can add a toast notification here
+        alert("Failed to download contract. Please try again.");
+      }
+    } catch (error) {
+      console.error("Download error:", error);
+      alert("An error occurred while downloading the contract.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const breadcrumbs = (
     <Breadcrumbs separator="/">
@@ -116,6 +157,8 @@ export default function ClientContractPage({
           // Handle share action
           console.log("Share contract:", contract.id);
         }}
+        onDownload={handleDownloadContract}
+        isDownloading={isDownloading}
         handleChat={() => {
           setShowContract(true);
         }}

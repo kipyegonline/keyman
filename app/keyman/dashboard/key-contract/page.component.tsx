@@ -32,7 +32,8 @@ export default function CustomerContract() {
     // Navigate to contract details page
   };
   const handleDownloadContract = (contractId: string) => {
-    console.log("Download contract:", contractId);
+    console.log("Download contract-----:", contractId);
+
     // Trigger contract download
   };
   const handleShareContract = (contractId: string) => {
