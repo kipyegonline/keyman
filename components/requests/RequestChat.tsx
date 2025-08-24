@@ -152,11 +152,7 @@ const RequestChat: React.FC<RequestChatProps> = ({
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
 
   // Environment and settings state
-  const [env, setEnv] = useState<"test" | "prod">(
-    (typeof window !== "undefined"
-      ? (localStorage.getItem(LS_KEYS.env) as "test" | "prod")
-      : null) || "test"
-  );
+  const [env, setEnv] = useState<"test" | "prod">("prod");
   const [userType, setUserType] = useState<"user" | "supplier">(
     (typeof window !== "undefined"
       ? (localStorage.getItem(LS_KEYS.userType) as "user" | "supplier")

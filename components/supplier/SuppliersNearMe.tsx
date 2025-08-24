@@ -278,9 +278,7 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
                 style={{ cursor: "pointer" }}
                 onClick={() => setUseExtendedSearch(!useExtendedSearch)}
               >
-                {useExtendedSearch
-                  ? "Extended Search (400km)"
-                  : "Extend Search"}
+                {useExtendedSearch ? "Viewing all stores" : "View All stores"}
               </Badge>
             </Group>
           )}

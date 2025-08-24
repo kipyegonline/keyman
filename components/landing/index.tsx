@@ -19,10 +19,11 @@ import { NavigationComponent } from "../ui/Navigation";
 import { KeymanSkeleton } from "@/lib/helperComponents";
 import { useRouter } from "next/navigation";
 import { Image } from "@mantine/core";
-import SuppliersNearMeCTA from "./SuppliersNearMeCT";
+//import SuppliersNearMeCTA from "./SuppliersNearMeCT";
 import KeymanBanner from "../Banner";
 import { getBannerssNearMe } from "@/api/requests";
 import { useQuery } from "@tanstack/react-query";
+import SuppliersNearMe from "../supplier/SuppliersNearMe";
 
 // Hero Section Component
 const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
@@ -545,7 +546,7 @@ const KeymanLanding: React.FC = () => {
       <div className="py-4">
         <KeymanBanner banners={banners} />
       </div>
-      <SuppliersNearMeCTA />
+      <SuppliersNearMe />
 
       <RegistrationSection darkMode={darkMode} />
       {/** <AskKeymanSection darkMode={darkMode} />*/}
