@@ -546,7 +546,7 @@ const KeymanLanding: React.FC = () => {
       <div className="py-4">
         <KeymanBanner banners={banners} />
       </div>
-      <SuppliersNearMe />
+      <SuppliersNearMe url="/suppliers-near-me/" />
 
       <RegistrationSection darkMode={darkMode} />
       {/** <AskKeymanSection darkMode={darkMode} />*/}
