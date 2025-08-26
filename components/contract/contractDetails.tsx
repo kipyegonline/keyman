@@ -164,7 +164,6 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       day: "numeric",
     });
   };
-  console.log(contract, "tract");
 
   // Extract start and end dates from the first milestone or use contract dates
   const getProjectDates = () => {
@@ -214,7 +213,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     projectDates.startDate,
     projectDates.endDate
   );
-  console.log(projectDates, "pd");
+
   return (
     <Box>
       <Stack gap="xl">
