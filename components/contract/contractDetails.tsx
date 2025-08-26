@@ -60,6 +60,10 @@ interface ContractDetails {
 
   contract_amount: number;
   payment_status?: "paid" | "pending" | "partial";
+  initiator: { id: string; name: string; email?: string; phone?: string };
+  contract_json?: {
+    agreement_summary?: string;
+  };
   customer?: {
     id: string;
     name: string;
@@ -85,6 +89,8 @@ interface Milestone {
   amount?: number;
   due_date?: string;
   completion_date?: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 interface ContractDetailsProps {
@@ -158,16 +164,17 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       day: "numeric",
     });
   };
+  console.log(contract, "tract");
 
   // Extract start and end dates from the first milestone or use contract dates
   const getProjectDates = () => {
     if (contract.milestones && contract.milestones.length > 0) {
       const firstMilestone = contract.milestones[0];
       return {
-        startDate: firstMilestone.due_date || contract.start_date,
-        endDate:
-          contract.milestones[contract.milestones.length - 1]?.due_date ||
-          contract.end_date,
+        startDate: firstMilestone?.start_date,
+        endDate: firstMilestone?.end_date,
+        //contract.milestones[contract.milestones.length - 1]?.due_date ||
+        // contract.end_date,
       };
     }
     return {
@@ -207,7 +214,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     projectDates.startDate,
     projectDates.endDate
   );
-
+  console.log(projectDates, "pd");
   return (
     <Box>
       <Stack gap="xl">
@@ -390,7 +397,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   </Grid.Col>
                 </Grid>
 
-                {contract.description && (
+                {contract.contract_json?.agreement_summary && (
                   <>
                     <Divider my="md" />
                     <div>
@@ -403,7 +410,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                         Description
                       </Text>
                       <Text size="sm" className="text-gray-600 leading-relaxed">
-                        {contract.description}
+                        {contract.contract_json?.agreement_summary}
                       </Text>
                     </div>
                   </>
@@ -438,26 +445,26 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                         </Avatar>
                         <div>
                           <Text fw={600} size="sm" className="text-gray-800">
-                            Customer
+                            Initiator
                           </Text>
                           <Text size="xs" c="dimmed">
-                            {contract.customer?.name || "Customer Name"}
+                            {contract?.initiator?.name || "Customer Name"}
                           </Text>
                         </div>
                       </Group>
-                      {contract.customer?.email && (
+                      {contract.initiator?.email && (
                         <Group gap="xs" mb="xs">
                           <Mail size={14} className="text-gray-500" />
                           <Text size="xs" c="dimmed">
-                            {contract.customer.email}
+                            {contract.initiator.email}
                           </Text>
                         </Group>
                       )}
-                      {contract.customer?.phone && (
+                      {contract.initiator?.phone && (
                         <Group gap="xs">
                           <Phone size={14} className="text-gray-500" />
                           <Text size="xs" c="dimmed">
-                            {contract.customer.phone}
+                            {contract.initiator.phone}
                           </Text>
                         </Group>
                       )}
@@ -764,6 +771,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                     color="blue"
                     leftSection={<Share2 size={16} />}
                     onClick={onShare}
+                    className="invisible"
                   >
                     Share Contract
                   </Button>
