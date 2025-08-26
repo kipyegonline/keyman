@@ -61,6 +61,12 @@ interface ContractDetails {
   contract_amount: number;
   payment_status?: "paid" | "pending" | "partial";
   initiator: { id: string; name: string; email?: string; phone?: string };
+  service_provider: {
+    id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+  };
   contract_json?: {
     agreement_summary?: string;
   };
@@ -84,6 +90,7 @@ interface ContractDetails {
 interface Milestone {
   id: string;
   title: string;
+  name: string;
   description: string;
   status: "completed" | "in_progress" | "pending" | "overdue";
   amount?: number;
@@ -156,7 +163,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const totalMilestones = contract.milestones?.length || 0;
   const progressPercentage =
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
-
+  //console.log(contract, "con");
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -482,26 +489,26 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                         </Avatar>
                         <div>
                           <Text fw={600} size="sm" className="text-gray-800">
-                            Supplier
+                            Service provider
                           </Text>
                           <Text size="xs" c="dimmed">
-                            {contract.supplier?.name || "Supplier Name"}
+                            {contract.service_provider?.name || ""}
                           </Text>
                         </div>
                       </Group>
-                      {contract.supplier?.email && (
+                      {contract.service_provider?.email && (
                         <Group gap="xs" mb="xs">
                           <Mail size={14} className="text-gray-500" />
                           <Text size="xs" c="dimmed">
-                            {contract.supplier.email}
+                            {contract.service_provider?.email}
                           </Text>
                         </Group>
                       )}
-                      {contract.supplier?.phone && (
+                      {contract.service_provider?.phone && (
                         <Group gap="xs">
                           <Phone size={14} className="text-gray-500" />
                           <Text size="xs" c="dimmed">
-                            {contract.supplier.phone}
+                            {contract.service_provider?.phone}
                           </Text>
                         </Group>
                       )}
@@ -552,6 +559,9 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                             }
                             title={
                               <Group justify="space-between" align="center">
+                                <Text fw={600} size="sm">
+                                  {milestone.name}
+                                </Text>
                                 <Text
                                   fw={600}
                                   size="sm"
