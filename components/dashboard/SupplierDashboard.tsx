@@ -50,8 +50,6 @@ const Sidebar: React.FC<{
     { id: "price", label: "Manage my store", icon: DiamondPercent },
     { id: "update", label: "Update profile", icon: Settings },
     { id: "customer", label: "Customer Profile", icon: User },
-    //{ id: 'materials', label: 'Materials', icon: Package },
-    //{ id: 'settings', label: 'Settings', icon: Settings },
   ];
   const handleSupplyRoute = () => {
     navigateTo();

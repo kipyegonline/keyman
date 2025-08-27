@@ -1,8 +1,13 @@
 "use client";
 import { getWallet } from "@/api/wallet";
-import { Container } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
-import React from "react";
+import { WalletData as WalletDataType } from "@/components/wallet/types";
+
+// Import wallet components
+import WalletLoadingComponent from "@/components/wallet/WalletLoadingComponent";
+import WalletNotFound from "@/components/wallet/WalletNotFound";
+import WalletOnboarding from "@/components/wallet/WalletOnboarding";
+import WalletData from "@/components/wallet/WalletData";
 
 export default function WalletClientComponent() {
   const { data: wallet, isLoading: loadingWallet } = useQuery({
@@ -10,13 +15,32 @@ export default function WalletClientComponent() {
     queryFn: async () => {
       return await getWallet();
     },
+    retry: 2,
   });
-  //console.log(data, "wall");
-  if (loadingWallet) return "loading wallet....";
-  if (!wallet?.status) {
-    if (wallet?.message === "Wallet not found")
-      return "You do not have a wallet. feature coming soon";
-    else return "Onboarding process is under way";
+
+  // Loading state
+  if (loadingWallet) {
+    return <WalletLoadingComponent />;
   }
-  return <Container>Lets display wallet details</Container>;
+
+  // Wallet not found or error states
+  if (!wallet?.status) {
+    if (wallet?.message === "Wallet not found") {
+      return <WalletNotFound />;
+    } else {
+      return <WalletOnboarding />;
+    }
+  }
+
+  // Wallet exists - prepare data
+  const walletData: WalletDataType = wallet.data || {
+    balance: 0,
+    currency: "KES",
+    walletId: "",
+    phoneNumber: "",
+    isVerified: false,
+    transactions: [],
+  };
+
+  return <WalletData walletData={walletData} isLoading={loadingWallet} />;
 }
