@@ -69,3 +69,66 @@ export const downloadContract = async (contractId: string) => {
     }
   }
 };
+
+export const updateMilestone = async (
+  milestoneId: string,
+  milestoneData: {
+    name: string;
+    status?: string;
+    amount?: number;
+    description: string;
+  }
+) => {
+  try {
+    const response = await AxiosClient.put(
+      ENDPOINTS.contracts.UPDATE_MILESTONE(milestoneId),
+      milestoneData
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while updating the milestone",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};
+
+export const updateContract = async (
+  contractId: string,
+  contractData: {
+    status: string;
+    contract_amount: number;
+    contract_duration_in_duration: number;
+    contract_json: {
+      title: string;
+      [key: string]: string | number | boolean | object;
+    };
+  }
+) => {
+  try {
+    const response = await AxiosClient.put(
+      ENDPOINTS.contracts.UPDATE_CONTRACT(contractId),
+      contractData
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while updating the contract",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};

@@ -7,12 +7,12 @@ export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full border-t transition-all duration-300 bg-gradient-to-br from-green-600 to-green-800 border-green-700">
+    <footer className="w-full border-t transition-all duration-300 bg-keyman-green border-green-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
           {/* Logo Section */}
           <div className="flex items-center justify-center md:justify-start space-x-2">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 hidden rounded-lg flexy items-center justify-center">
               <Image
                 src="/keyman_logo.png"
                 alt="Keyman Logo"
@@ -21,9 +21,21 @@ export const Footer: React.FC = () => {
                 className="rounded-lg"
               />
             </div>
-            <div className="flex flex-col">
+            <div className="flex items-center">
+              <div className="w-20 ml-[50px]">
+                <Image
+                  src="/keyman_logo.png"
+                  alt="Keyman Logo Text"
+                  width={80}
+                  height={40}
+                  className="rounded-lg"
+                />
+              </div>
+
               <span className="text-xl font-bold text-white">KEYMAN</span>
-              <span className="text-sm font-medium text-white">STORES</span>
+              <span className="text-sm font-medium text-white ml-2">
+                STORES
+              </span>
             </div>
           </div>
 

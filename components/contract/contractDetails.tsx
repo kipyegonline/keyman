@@ -36,7 +36,13 @@ import {
   AlertCircle,
   Activity,
   MoreVertical,
+  Edit,
 } from "lucide-react";
+import { useState } from "react";
+import EditMilestoneModal from "./EditMilestoneModal";
+import EditContractModal from "./EditContractModal";
+import { updateContract, updateMilestone } from "@/api/contract";
+import { notify } from "@/lib/notifications";
 
 // Use the actual API response structure
 interface ContractDetails {
@@ -69,6 +75,7 @@ interface ContractDetails {
   };
   contract_json?: {
     agreement_summary?: string;
+    title?: string;
   };
   customer?: {
     id: string;
@@ -109,6 +116,8 @@ interface ContractDetailsProps {
   handleChat?: () => void;
   onDownload?: (contractId: string) => void;
   isDownloading?: boolean;
+  onEditMilestone?: (milestoneId: string) => void;
+  refresh: () => void;
 }
 
 const getStatusConfig = (status: string) => {
@@ -149,23 +158,108 @@ const formatCurrency = (amount: number) => {
 const ContractDetails: React.FC<ContractDetailsProps> = ({
   contract,
   userType = "customer",
-  onEdit,
+  //onEdit,
   onViewDocuments,
   onShare,
   handleChat,
   onDownload,
+  refresh,
   isDownloading = false,
+  //onEditMilestone,
 }) => {
+  const [editModalOpened, setEditModalOpened] = useState(false);
+  const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(
+    null
+  );
+  const [editContractModalOpened, setEditContractModalOpened] = useState(false);
+
+  const handleEditMilestone = (milestoneId: string) => {
+    const milestone = contract.milestones?.find((m) => m.id === milestoneId);
+    if (milestone) {
+      setSelectedMilestone(milestone);
+      setEditModalOpened(true);
+    }
+  };
+
+  const handleSaveMilestone = async (
+    milestoneId: string,
+    data: { name: string; description: string; amount?: number }
+  ) => {
+    // This function will be called when the user saves the milestone
+    // You can implement the API call logic here
+    console.log("Saving milestone:", milestoneId, data);
+
+    const response = await updateMilestone(milestoneId, data);
+    if (response.status) {
+      notify.success("Milestone updated successfully");
+      refresh();
+      setEditModalOpened(false);
+      setSelectedMilestone(null);
+    } else {
+      notify.error(response.message);
+    }
+    console.log(response, "response");
+
+    // If onEditMilestone prop is provided, call it
+    /*
+    if (onEditMilestone) {
+      onEditMilestone(milestoneId);
+    }*/
+
+    // Close the modal after saving
+  };
+
+  const handleEditContract = () => {
+    setEditContractModalOpened(true);
+  };
+
+  const handleSaveContract = async (
+    contractId: string,
+    data: {
+      title: string;
+      contract_amount: number;
+      contract_duration_in_duration: number;
+    }
+  ) => {
+    try {
+      console.log("Saving contract:", contractId, data);
+      const payload = {
+        ...data,
+        status: "pending",
+        contract_json: { title: data.title },
+      };
+
+      const response = await updateContract(contractId, payload);
+
+      console.log(response, "contract response");
+
+      if (response.status) {
+        refresh();
+        notify.success("Contract updated successfully");
+        // Only close modal on success
+        setEditContractModalOpened(false);
+      } else {
+        notify.error("Failed to update contract");
+        // Keep modal open on failure so user can retry
+      }
+    } catch (error) {
+      console.error("Error updating contract:", error);
+      notify.error("An error occurred while updating the contract");
+      // Keep modal open on error so user can retry
+    }
+  };
+
   const statusConfig = getStatusConfig(contract.status);
   const completedMilestones =
-    contract.milestones?.filter((m: Milestone) => m.status === "completed")
-      .length || 0;
+    contract.milestones?.filter(
+      (m: Milestone) => m.status.toLowerCase() === "completed"
+    ).length || 0;
   const totalMilestones = contract.milestones?.length || 0;
   const progressPercentage =
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
-  //console.log(contract, "con");
+  console.log(contract, editModalOpened, "con");
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString("en-UK", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -243,7 +337,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                 </ThemeIcon>
                 <div>
                   <Title order={2} className="text-gray-800 mb-2">
-                    {contract.title}
+                    {contract?.contract_json?.title || "Contract Overview"}
                   </Title>
                   <Group gap="sm">
                     <Badge
@@ -278,11 +372,11 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                     Chat
                   </Button>
                 )}
-                {userType === "customer" && onEdit && (
+                {userType === "customer" && (
                   <Button
                     variant="light"
                     style={{ backgroundColor: "#3D6B2C15", color: "#3D6B2C" }}
-                    onClick={onEdit}
+                    onClick={handleEditContract}
                   >
                     Edit Contract
                   </Button>
@@ -569,25 +663,40 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                                 >
                                   {milestone.title}
                                 </Text>
-                                <Group gap="xs">
-                                  <Badge
-                                    variant="light"
-                                    style={{
-                                      backgroundColor: `${config.color}15`,
-                                      color: config.color,
-                                    }}
-                                    size="sm"
-                                  >
-                                    {milestone.status.replace("_", " ")}
-                                  </Badge>
-                                  {milestone.amount && (
+                                <Group gap="xs" align="center">
+                                  <Group gap="xs">
                                     <Badge
-                                      variant="outline"
-                                      color="gray"
+                                      variant="light"
+                                      style={{
+                                        backgroundColor: `${config.color}15`,
+                                        color: config.color,
+                                      }}
                                       size="sm"
                                     >
-                                      {formatCurrency(milestone.amount)}
+                                      {milestone.status.replace("_", " ")}
                                     </Badge>
+                                    {milestone.amount && (
+                                      <Badge
+                                        variant="outline"
+                                        color="gray"
+                                        size="sm"
+                                      >
+                                        {formatCurrency(milestone.amount)}
+                                      </Badge>
+                                    )}
+                                  </Group>
+                                  {milestone.status.toLowerCase() !==
+                                    "completed" && (
+                                    <ActionIcon
+                                      size="sm"
+                                      variant="light"
+                                      color="gray"
+                                      onClick={() =>
+                                        handleEditMilestone(milestone.id)
+                                      }
+                                    >
+                                      <Edit size={14} />
+                                    </ActionIcon>
                                   )}
                                 </Group>
                               </Group>
@@ -821,6 +930,27 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
           </Grid.Col>
         </Grid>
       </Stack>
+
+      {/* Edit Milestone Modal */}
+      <EditMilestoneModal
+        opened={editModalOpened}
+        onClose={() => {
+          setEditModalOpened(false);
+          setSelectedMilestone(null);
+        }}
+        milestone={selectedMilestone}
+        onSave={handleSaveMilestone}
+      />
+
+      {/* Edit Contract Modal */}
+      <EditContractModal
+        opened={editContractModalOpened}
+        onClose={() => {
+          setEditContractModalOpened(false);
+        }}
+        contract={contract}
+        onSave={handleSaveContract}
+      />
     </Box>
   );
 };

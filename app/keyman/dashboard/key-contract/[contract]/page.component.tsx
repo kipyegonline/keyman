@@ -16,7 +16,12 @@ export default function ClientContractPage({
 }) {
   const [showContract, setShowContract] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
-  const { data, isLoading, error } = useQuery({
+  const {
+    data,
+    isLoading,
+    error,
+    refetch: refetchContract,
+  } = useQuery({
     queryKey: ["contract", contractId],
     queryFn: async () => await getContractDetails(contractId),
   });
@@ -156,6 +161,9 @@ export default function ClientContractPage({
         onShare={() => {
           // Handle share action
           console.log("Share contract:", contract.id);
+        }}
+        refresh={() => {
+          refetchContract();
         }}
         onDownload={handleDownloadContract}
         isDownloading={isDownloading}
