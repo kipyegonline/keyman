@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   Mail,
   Phone,
-  MapPin,
   Clock,
   Send,
   User,
@@ -184,13 +183,10 @@ export default function ContactPage() {
       });
 
       // Replace 'your-email@example.com' with your actual email
-      const response = await fetch(
-        "https://formsubmit.co/your-email@example.com",
-        {
-          method: "POST",
-          body: form,
-        }
-      );
+      const response = await fetch("info@keymanstores.com", {
+        method: "POST",
+        body: form,
+      });
 
       if (response.ok) {
         setSubmitStatus("success");
@@ -267,9 +263,9 @@ export default function ContactPage() {
                 <span className="gradient-text">Get in Touch</span>
               </h1>
               <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Ready to revolutionize your construction projects? We&apos;re
-                here to help you connect with the right suppliers and streamline
-                your procurement process.
+                Need assistance or have questions? Our dedicated team at Keyman
+                Stores, your trusted online construction and hardware platform,
+                is here to help.
               </p>
             </div>
           </div>
@@ -291,30 +287,30 @@ export default function ContactPage() {
                 {[
                   {
                     icon: Mail,
-                    title: "Email Us",
+                    title: "Email Support",
                     info: "info@keymanstores.com",
-                    subinfo: "We'll respond within 24 hours",
+                    subinfo: "keymanstores@gmail.com",
                     color: "from-blue-500 to-blue-600",
                   },
                   {
                     icon: Phone,
-                    title: "Call Us",
-                    info: "+254-721-205-224",
-                    subinfo: "Mon-Fri 9AM-6PM EST",
+                    title: "Call/WhatsApp Orders",
+                    info: "+254 757 539 000",
+                    subinfo: "Mon-Sat 8AM-5PM",
                     color: "from-green-500 to-green-600",
                   },
                   {
-                    icon: MapPin,
-                    title: "Visit Us",
-                    info: "123 Construction Ave",
-                    subinfo: "Building City, BC 12345",
+                    icon: MessageSquare,
+                    title: "Live Chat Support",
+                    info: "Available Now",
+                    subinfo: "Mon-Sun 8AM-5PM",
                     color: "from-orange-500 to-orange-600",
                   },
                   {
                     icon: Clock,
-                    title: "Business Hours",
-                    info: "Monday - Friday",
-                    subinfo: "9:00 AM - 6:00 PM EST",
+                    title: "Support Hours",
+                    info: "Monday - Friday 8AM-5PM",
+                    subinfo: "Saturday 8AM-12PM",
                     color: "from-purple-500 to-purple-600",
                   },
                 ].map((contact, index) => (
@@ -350,10 +346,10 @@ export default function ContactPage() {
                 <div className="h-64 bg-gradient-to-br from-green-400 to-orange-400 relative overflow-hidden">
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center text-white">
-                      <MapPin className="w-16 h-16 mx-auto mb-4 opacity-75 animate-float" />
-                      <p className="text-lg font-medium">Interactive Map</p>
+                      <Building2 className="w-16 h-16 mx-auto mb-4 opacity-75 animate-float" />
+                      <p className="text-lg font-medium">Online Platform</p>
                       <p className="text-sm opacity-75">
-                        Replace with Google Maps or similar
+                        Serving Kenya & Beyond
                       </p>
                     </div>
                   </div>
@@ -369,11 +365,12 @@ export default function ContactPage() {
 
                 <div className="p-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-2">
-                    Our Location
+                    Digital Marketplace
                   </h3>
                   <p className="text-gray-600">
-                    Located in the heart of the construction district, easily
-                    accessible for suppliers and contractors alike.
+                    Your trusted online construction and hardware platform,
+                    connecting buyers with quality materials and verified
+                    service providers across Kenya.
                   </p>
                 </div>
               </div>
@@ -387,16 +384,17 @@ export default function ContactPage() {
 
                 <div className="relative z-10">
                   <h3 className="text-2xl font-bold mb-4">
-                    Need Immediate Help?
+                    Quick Order Support
                   </h3>
                   <p className="text-green-100 mb-6 leading-relaxed">
-                    For urgent construction needs or time-sensitive projects,
-                    our emergency support team is available 24/7.
+                    Need to place an urgent order for construction materials,
+                    hardware supplies, or services? Our team is ready to assist
+                    you.
                   </p>
                   <div className="flex items-center space-x-4">
                     <div className="w-3 h-3 bg-green-300 rounded-full animate-pulse"></div>
                     <span className="font-medium">
-                      Emergency Hotline: +1 (555) 911-HELP
+                      Order Hotline: +254 757 539 000
                     </span>
                   </div>
                 </div>
@@ -419,8 +417,9 @@ export default function ContactPage() {
                       Send us a <span className="gradient-text">Message</span>
                     </h2>
                     <p className="text-gray-600">
-                      Fill out the form below and we&apos;ll get back to you
-                      within 24 hours.
+                      Fill out the form below for detailed inquiries about
+                      construction materials, tools, or services. We provide
+                      fast, reliable, and friendly support.
                     </p>
                   </div>
 
@@ -545,16 +544,19 @@ export default function ContactPage() {
                       >
                         <option value="">Select a subject</option>
                         <option value="General Inquiry">General Inquiry</option>
-                        <option value="Supplier Partnership">
-                          Supplier Partnership
+                        <option value="Construction Materials">
+                          Construction Materials
                         </option>
+                        <option value="Hardware Supplies">
+                          Hardware Supplies
+                        </option>
+                        <option value="Service Provider Partnership">
+                          Service Provider Partnership
+                        </option>
+                        <option value="Order Support">Order Support</option>
                         <option value="Technical Support">
                           Technical Support
                         </option>
-                        <option value="Pricing Information">
-                          Pricing Information
-                        </option>
-                        <option value="Feature Request">Feature Request</option>
                         <option value="Other">Other</option>
                       </select>
                     </div>
@@ -572,7 +574,7 @@ export default function ContactPage() {
                           required
                           rows={6}
                           className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 group-hover:border-gray-400 resize-none"
-                          placeholder="Tell us about your project or how we can help..."
+                          placeholder="Tell us about your construction project, material needs, or how we can help..."
                         />
                       </div>
                     </div>

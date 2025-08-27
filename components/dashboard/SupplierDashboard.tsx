@@ -7,6 +7,7 @@ import {
   Settings,
   DiamondPercent,
   ReceiptText,
+  Wallet,
 } from "lucide-react";
 import {
   Group,
@@ -45,6 +46,7 @@ const Sidebar: React.FC<{
     { id: "requests", label: "Requests near me", icon: ClipboardList },
     { id: "orders", label: "Orders", icon: ShoppingCart },
     { id: "key-contract", label: "My Contracts", icon: ReceiptText },
+    { id: "key-wallet", label: "My Wallet", icon: Wallet },
     { id: "price", label: "Manage my store", icon: DiamondPercent },
     { id: "update", label: "Update profile", icon: Settings },
     { id: "customer", label: "Customer Profile", icon: User },
@@ -90,6 +92,10 @@ const Sidebar: React.FC<{
       case "key-contract":
         navigateTo();
         router.push("/keyman/supplier/key-contract");
+        break;
+      case "key-wallet":
+        navigateTo();
+        router.push("/keyman/supplier/key-wallet");
         break;
       default:
         break;

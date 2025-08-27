@@ -4,7 +4,7 @@ import axios from "axios";
 
 const AxiosClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BASE_URL,
-  timeout: 10000, // Request timeout in milliseconds
+  timeout: 1000 * 60 * 5, // Request timeout in milliseconds
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",

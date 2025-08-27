@@ -17,7 +17,12 @@ export default function ClientContractPage({
 }) {
   const [showContract, setShowContract] = React.useState(false);
   const [isDownloading, setIsDownloading] = React.useState(false);
-  const { data, isLoading, error } = useQuery({
+  const {
+    data,
+    isLoading,
+    error,
+    refetch: refetchContract,
+  } = useQuery({
     queryKey: ["contract", contractId],
     queryFn: async () => await getContractDetails(contractId),
   });
@@ -161,6 +166,9 @@ export default function ClientContractPage({
         isDownloading={isDownloading}
         handleChat={() => {
           setShowContract(true);
+        }}
+        refresh={() => {
+          refetchContract();
         }}
       />
     </Container>

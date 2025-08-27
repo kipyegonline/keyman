@@ -92,4 +92,10 @@ export const ENDPOINTS = {
     DOWNLOAD_CONTRACT: (contract_id: string) =>
       `/api/keyman-contracts/${contract_id}/download`,
   },
+  wallet: {
+    CREATE_WALLET: "/api/user/create-wallet",
+    GET_WALLET: "/api/user/wallet/details",
+    SEND_OTP: "/api/choice/sendOTP",
+    CONFIRM_OTP: "/api/choice/confirmOTP",
+  },
 };

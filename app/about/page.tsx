@@ -207,18 +207,19 @@ export default function AboutPage() {
                 <span className="gradient-text">KEYMAN</span>
               </h1>
               <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                Revolutionizing the construction industry through smart
-                technology, connecting builders with trusted suppliers for
-                seamless project delivery.
+                A purely Kenyan innovation transforming the construction
+                industry through a digital marketplace connecting buyers with
+                quality materials, verified service providers, and skilled
+                professionals across Kenya and beyond.
               </p>
             </div>
 
             {/* Hero Stats */}
             <div className="grid grid-cols-3 gap-8 pt-8 max-w-2xl mx-auto">
               {[
-                { number: "1000+", label: "Happy Builders" },
-                { number: "500+", label: "Trusted Suppliers" },
-                { number: "50K+", label: "Projects Completed" },
+                { number: "100%", label: "Quality Guarantee" },
+                { number: "Kenya", label: "Best Prices" },
+                { number: "24/7", label: "Convenience" },
               ].map((stat, index) => (
                 <div
                   key={index}
@@ -256,26 +257,29 @@ export default function AboutPage() {
                   Our Mission
                 </div>
                 <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight">
-                  Building the Future of
-                  <span className="text-orange-300">
-                    {" "}
-                    Construction Commerce
-                  </span>
+                  Our Vision
+                  <span className="text-orange-300"> & Mission</span>
                 </h2>
+                <p className="text-xl text-green-100 leading-relaxed mb-6">
+                  <strong>Vision:</strong> To bring everything construction—from
+                  quality materials and services to skilled professionals—closer
+                  to you, both in Kenya and globally, making construction easy,
+                  affordable, and efficient.
+                </p>
                 <p className="text-xl text-green-100 leading-relaxed">
-                  We&apos;re on a mission to simplify construction procurement
-                  by creating a transparent, efficient marketplace where
-                  builders can find quality materials and trusted suppliers can
-                  grow their business.
+                  <strong>Mission:</strong> We deliver 100% quality construction
+                  materials and services while sourcing the best prices in Kenya
+                  without compromising quality. We provide convenient shopping
+                  experiences and wider market access for all.
                 </p>
               </div>
 
               <div className="space-y-4">
                 {[
-                  "Streamline procurement processes",
-                  "Connect builders with verified suppliers",
-                  "Ensure quality and competitive pricing",
-                  "Support local construction communities",
+                  "Deliver 100% quality construction materials and services",
+                  "Source the best prices in Kenya without compromising quality",
+                  "Provide convenient shopping experience at the tap of a button",
+                  "Offer wider market access for sellers and service providers",
                 ].map((item, index) => (
                   <div
                     key={index}
@@ -297,10 +301,10 @@ export default function AboutPage() {
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center text-white">
                       <Building2 className="w-24 h-24 mx-auto mb-4 opacity-50" />
-                      <p className="text-lg font-medium">
+                      <p className="text-lg font-medium invisible">
                         Mission Image Placeholder
                       </p>
-                      <p className="text-sm opacity-75">
+                      <p className="text-sm opacity-75 invisible">
                         Replace with construction/team photo
                       </p>
                     </div>
@@ -323,11 +327,12 @@ export default function AboutPage() {
             }`}
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="gradient-text">Our Core Values</span>
+              <span className="gradient-text">Our Code of Business</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              The principles that guide everything we do in revolutionizing
-              construction commerce
+              The Foundational Guide to Marketplace Order, Fair Trade, and
+              Community Trust. At Keyman Stores, trust is our strongest
+              currency.
             </p>
           </div>
 
@@ -335,45 +340,87 @@ export default function AboutPage() {
             {[
               {
                 icon: Heart,
-                title: "Trust & Reliability",
+                title: "Protect Trust",
                 description:
-                  "Building lasting relationships through verified suppliers and quality assurance.",
+                  "Trust is stronger than any currency; without it, trade cannot thrive.",
                 color: "from-red-500 to-pink-500",
               },
               {
-                icon: Zap,
-                title: "Innovation",
+                icon: Users,
+                title: "Safeguard Buyers & Sellers",
                 description:
-                  "Leveraging cutting-edge technology to streamline construction procurement.",
+                  "Ensuring both parties walk away satisfied from every transaction.",
                 color: "from-yellow-500 to-orange-500",
               },
               {
                 icon: Globe,
-                title: "Community",
+                title: "Build Long-Term Relationships",
                 description:
-                  "Supporting local builders and suppliers to strengthen construction ecosystems.",
+                  "Honest dealings today bring repeat customers tomorrow.",
                 color: "from-green-500 to-emerald-500",
               },
               {
-                icon: Award,
-                title: "Excellence",
+                icon: Building2,
+                title: "Protect Store Reputation",
                 description:
-                  "Committed to delivering exceptional service and quality in every interaction.",
+                  "Fairness maintains credibility and integrity in our marketplace.",
                 color: "from-blue-500 to-indigo-500",
               },
               {
-                icon: Users,
-                title: "Collaboration",
+                icon: Sparkles,
+                title: "Strengthen the Marketplace",
                 description:
-                  "Fostering partnerships that drive mutual success and industry growth.",
+                  "Integrity attracts quality clients, suppliers, and opportunities.",
                 color: "from-purple-500 to-violet-500",
               },
               {
-                icon: CheckCircle,
-                title: "Transparency",
+                icon: Award,
+                title: "Honor Commitments",
                 description:
-                  "Clear pricing, honest reviews, and open communication at every step.",
+                  "Every agreement is a promise kept - our word is our bond.",
                 color: "from-teal-500 to-cyan-500",
+              },
+              {
+                icon: CheckCircle,
+                title: "Prevent Exploitation",
+                description:
+                  "Protecting the vulnerable from unfair practices and ensuring fairness for all.",
+                color: "from-red-400 to-pink-400",
+              },
+              {
+                icon: Zap,
+                title: "Encourage Healthy Competition",
+                description:
+                  "Quality and talent determine success, not deception or unfair practices.",
+                color: "from-yellow-400 to-orange-400",
+              },
+              {
+                icon: Globe,
+                title: "Uphold the Law",
+                description:
+                  "Legal compliance is non-negotiable in all our operations and dealings.",
+                color: "from-green-400 to-emerald-400",
+              },
+              {
+                icon: Building2,
+                title: "Empower Growth",
+                description:
+                  "A safe platform enables business expansion and prosperity for all participants.",
+                color: "from-blue-400 to-indigo-400",
+              },
+              {
+                icon: Heart,
+                title: "Protect Community Goodwill",
+                description:
+                  "A trustworthy marketplace is one people recommend to friends and family.",
+                color: "from-purple-400 to-violet-400",
+              },
+              {
+                icon: Sparkles,
+                title: "Honor Goodness",
+                description:
+                  "Guided by honesty, fairness, practicality, and ethical principles in everything we do.",
+                color: "from-teal-400 to-cyan-400",
               },
             ].map((value, index) => (
               <div
@@ -415,69 +462,93 @@ export default function AboutPage() {
             }`}
           >
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
-              <span className="gradient-text">Meet Our Team</span>
+              <span className="gradient-text">Who We Are</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Industry experts passionate about transforming construction
-              through technology
+              Keyman Stores is a purely Kenyan innovation dedicated to
+              transforming the construction industry through digital marketplace
+              solutions.
             </p>
           </div>
 
-          <div className=" hidden grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* History Section */}
+          <div className="text-center mb-12 max-w-4xl mx-auto">
+            <div
+              className={`bg-white rounded-3xl shadow-lg p-8 lg:p-12 ${
+                isVisible ? "animate-fadeInUp" : "opacity-0"
+              }`}
+              style={{ animationDelay: "0.3s" }}
+            >
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                <span className="gradient-text">Our History</span>
+              </h3>
+              <p className="text-lg text-gray-700 leading-relaxed mb-6">
+                Keyman Stores was established to solve common challenges in the
+                Kenyan construction industry. Many homeowners, contractors, and
+                businesses face difficulty accessing reliable materials, fair
+                pricing, and verified service providers.
+              </p>
+              <p className="text-lg text-gray-700 leading-relaxed">
+                We set out to create a digital construction marketplace that
+                addresses these gaps, connecting buyers with verified sellers,
+                tools, and services while ensuring transparency, trust, and
+                convenience for {`Kenya's`} construction sector.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {[
               {
-                name: "Team Member 1",
-                role: "CEO & Founder",
+                icon: CheckCircle,
+                title: "Verified Sellers & Service Providers",
                 description:
-                  "Construction industry veteran with 15+ years experience",
+                  "Trade confidently with trusted professionals who have been thoroughly vetted.",
+                color: "from-green-500 to-emerald-500",
               },
               {
-                name: "Team Member 2",
-                role: "CTO",
+                icon: Award,
+                title: "Competitive Prices & Quality",
                 description:
-                  "Technology leader specializing in marketplace platforms",
+                  "Access the best deals in Kenya without compromising on quality standards.",
+                color: "from-blue-500 to-indigo-500",
               },
               {
-                name: "Team Member 3",
-                role: "Head of Operations",
+                icon: Zap,
+                title: "Convenience at Your Fingertips",
                 description:
-                  "Supply chain expert ensuring seamless transactions",
+                  "Browse, compare, and order materials or services anytime, anywhere.",
+                color: "from-yellow-500 to-orange-500",
               },
-            ].map((member, index) => (
+              {
+                icon: Heart,
+                title: "Safe & Fair Marketplace",
+                description:
+                  "Our principles ensure honest dealings, protecting both buyers and sellers.",
+                color: "from-red-500 to-pink-500",
+              },
+            ].map((benefit, index) => (
               <div
                 key={index}
-                className={`group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden hover:scale-105 ${
+                className={`group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden hover:scale-105 p-8 ${
                   isVisible ? "animate-fadeInUp" : "opacity-0"
                 }`}
                 style={{ animationDelay: `${index * 0.2}s` }}
               >
-                {/* Photo Placeholder */}
-                <div className="relative h-64 bg-gradient-to-br from-green-400 to-orange-400 overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center text-white">
-                      <Users className="w-16 h-16 mx-auto mb-2 opacity-75" />
-                      <p className="text-sm">Photo Placeholder</p>
-                    </div>
-                  </div>
-                  {/* Shimmer Effect */}
-                  <div className="absolute inset-0 shimmer-effect opacity-30"></div>
-
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div
+                  className={`w-16 h-16 bg-gradient-to-r ${benefit.color} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300 shadow-lg`}
+                >
+                  <benefit.icon className="w-8 h-8 text-white" />
                 </div>
 
-                {/* Content */}
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-green-600 group-hover:to-orange-500 transition-all duration-300">
-                    {member.name}
-                  </h3>
-                  <p className="text-orange-500 font-medium mb-3">
-                    {member.role}
-                  </p>
-                  <p className="text-gray-600 leading-relaxed">
-                    {member.description}
-                  </p>
-                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-green-600 group-hover:to-orange-500 transition-all duration-300">
+                  {benefit.title}
+                </h3>
+                <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors">
+                  {benefit.description}
+                </p>
+
+                <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 to-orange-500/5 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
             ))}
           </div>
@@ -498,12 +569,13 @@ export default function AboutPage() {
             }`}
           >
             <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight">
-              Ready to Transform Your
-              <span className="text-orange-300"> Construction Projects?</span>
+              Ready to Experience
+              <span className="text-orange-300"> Keyman Stores?</span>
             </h2>
             <p className="text-xl text-green-100 max-w-3xl mx-auto leading-relaxed">
-              Join thousands of builders and suppliers who trust Keyman for
-              their construction needs. Start building smarter today.
+              Join the growing community of builders, contractors, and suppliers
+              transforming {`Kenya's`} construction industry through our trusted
+              digital marketplace.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">

@@ -73,10 +73,11 @@ export const downloadContract = async (contractId: string) => {
 export const updateMilestone = async (
   milestoneId: string,
   milestoneData: {
-    name: string;
+    name?: string;
     status?: string;
     amount?: number;
-    description: string;
+    description?: string;
+    action?: string;
   }
 ) => {
   try {
@@ -103,12 +104,14 @@ export const updateMilestone = async (
 export const updateContract = async (
   contractId: string,
   contractData: {
-    status: string;
-    contract_amount: number;
-    contract_duration_in_duration: number;
-    contract_json: {
-      title: string;
-      [key: string]: string | number | boolean | object;
+    status?: string;
+    action?: "start" | "complete";
+    contract_amount?: number;
+    contract_mode?: "client" | "service_provider";
+    contract_duration_in_duration?: number;
+    contract_json?: {
+      title?: string;
+      [key: string]: string | number | boolean | object | undefined;
     };
   }
 ) => {
