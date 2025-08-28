@@ -4,7 +4,7 @@ import {
   LayoutDashboard,
   ClipboardList,
   ShoppingCart,
-  Settings,
+  //Settings,
   DiamondPercent,
   ReceiptText,
   Wallet,
@@ -48,7 +48,7 @@ const Sidebar: React.FC<{
     { id: "key-contract", label: "My Contracts", icon: ReceiptText },
     { id: "key-wallet", label: "My Wallet", icon: Wallet },
     { id: "price", label: "Manage my store", icon: DiamondPercent },
-    { id: "update", label: "Update profile", icon: Settings },
+    //{ id: "update", label: "Update profile", icon: Settings },
     { id: "customer", label: "Customer Profile", icon: User },
   ];
   const handleSupplyRoute = () => {

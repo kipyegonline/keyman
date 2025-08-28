@@ -109,6 +109,7 @@ export const updateContract = async (
     contract_amount?: number;
     contract_mode?: "client" | "service_provider";
     contract_duration_in_duration?: number;
+    service_provider_signing_date?: string | null;
     contract_json?: {
       title?: string;
       [key: string]: string | number | boolean | object | undefined;

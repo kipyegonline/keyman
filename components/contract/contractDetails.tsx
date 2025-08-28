@@ -44,6 +44,7 @@ import React, { useState } from "react";
 import EditMilestoneModal from "./EditMilestoneModal";
 import EditContractModal from "./EditContractModal";
 import MilestoneStatusChangeModal from "./MilestoneStatusChangeModal";
+import AcceptContractModal from "./AcceptContractModal";
 import { updateContract, updateMilestone } from "@/api/contract";
 import { notify } from "@/lib/notifications";
 
@@ -76,6 +77,7 @@ interface ContractDetails {
     email?: string;
     phone?: string;
   };
+  service_provider_signing_date: null | string;
   contract_json?: {
     agreement_summary?: string;
     title?: string;
@@ -180,6 +182,9 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const [statusChangeModalOpened, setStatusChangeModalOpened] = useState(false);
   const [milestoneForStatusChange, setMilestoneForStatusChange] =
     useState<Milestone | null>(null);
+  const [acceptContractModalOpened, setAcceptContractModalOpened] =
+    useState(false);
+  const [isAcceptingContract, setIsAcceptingContract] = useState(false);
 
   const handleEditMilestone = (milestoneId: string) => {
     const milestone = contract.milestones?.find((m) => m.id === milestoneId);
@@ -319,6 +324,37 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       // Keep modal open on error
     }
   };
+  const handleAcceptContract = () => {
+    setAcceptContractModalOpened(true);
+  };
+
+  const confirmAcceptContract = async (contractId: string) => {
+    setIsAcceptingContract(true);
+    try {
+      const response = await updateContract(contractId, {
+        // status: "active",
+        //signature: signature,
+        // accepted_by: "service_provider",
+        service_provider_signing_date: new Date().toISOString(),
+        // accepted_at: new Date().toISOString(),
+      });
+
+      if (response.status) {
+        notify.success("Contract accepted successfully!");
+        refresh();
+        setAcceptContractModalOpened(false);
+      } else {
+        notify.error(response.message || "Failed to accept contract");
+        throw new Error(response.message || "Failed to accept contract");
+      }
+    } catch (error) {
+      console.error("Error accepting contract:", error);
+      //  notify.error("An error occurred while accepting the contract");
+      throw error;
+    } finally {
+      setIsAcceptingContract(false);
+    }
+  };
 
   const statusConfig = getStatusConfig(contract.status);
   const completedMilestones =
@@ -328,7 +364,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const totalMilestones = contract.milestones?.length || 0;
   const progressPercentage =
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
-  //console.log(contract, editModalOpened, "con");
+  console.log(contract, "con");
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-UK", {
       year: "numeric",
@@ -454,12 +490,25 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
             <Grid.Col span={{ base: 12, md: 4 }}>
               <Group justify="flex-end" gap="sm">
+                {userType === "supplier" &&
+                  contract?.service_provider_signing_date === null &&
+                  contract.status === "pending" && (
+                    <Button
+                      onClick={handleAcceptContract}
+                      loading={isAcceptingContract}
+                      className="!bg-keyman-orange text-white"
+                      disabled={isAcceptingContract}
+                    >
+                      {isAcceptingContract ? "Accepting..." : "Accept Contract"}
+                    </Button>
+                  )}
                 {userType === "supplier" && (
                   <Button variant="outlined" onClick={handleChat}>
                     {" "}
                     Chat
                   </Button>
                 )}
+
                 {userType === "customer" && false && (
                   <Button
                     variant="light"
@@ -1124,6 +1173,16 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         milestone={milestoneForStatusChange}
         currentStatus={milestoneForStatusChange?.status || ""}
         onConfirm={confirmMilestoneStatusChange}
+      />
+
+      {/* Accept Contract Modal */}
+      <AcceptContractModal
+        opened={acceptContractModalOpened}
+        onClose={() => {
+          setAcceptContractModalOpened(false);
+        }}
+        contract={contract}
+        onAccept={confirmAcceptContract}
       />
     </Box>
   );

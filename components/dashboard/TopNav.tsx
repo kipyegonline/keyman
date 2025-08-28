@@ -8,6 +8,7 @@ import {
   //Share,
   LogOut,
   ReceiptText,
+  Edit,
 } from "lucide-react";
 import {
   Group,
@@ -81,7 +82,7 @@ const TopNavigation: React.FC = () => {
   const hasAccess = checkPath();
 
   const profileMenuItems = [
-    // { label: "Edit Profile", icon: Edit, key: "profile" },
+    { label: "Edit Store Profile", icon: Edit, key: "profile" },
     //{ label: "Hardware/Service Profile", icon: Wrench, key: "hardware" },
     //{ label: "Price List", icon: DollarSign, key: "price" },
     { label: "Delivery Locations", icon: MapPin, key: "delivery" },
@@ -103,7 +104,8 @@ const TopNavigation: React.FC = () => {
     //create a switch statement for each key item from array
     switch (key) {
       case "profile":
-        console.log("profile clicked");
+        navigateTo();
+        router.push("/keyman/supplier/update-profile");
         break;
 
       case "hardware":
@@ -282,6 +284,9 @@ const TopNavigation: React.FC = () => {
 
               {profileMenuItems.map((item, index) => {
                 const Icon = item.icon;
+                if (item.key === "profile") {
+                  if (mainDashboard) return null;
+                }
                 return (
                   <Menu.Item
                     onClick={() => handleClickedItem(item.key)}
