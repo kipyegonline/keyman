@@ -827,7 +827,9 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                                     "pending" ||
                                     milestone.status.toLowerCase() ===
                                       "in_progress") &&
-                                    canEditMileStone && (
+                                    canEditMileStone &&
+                                    contract.service_provider_signing_date ===
+                                      null && (
                                       <Tooltip
                                         label={
                                           milestone.status.toLowerCase() ===
