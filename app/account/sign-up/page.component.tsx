@@ -71,6 +71,8 @@ const KeymanSignupComponent: React.FC = () => {
       confirmPassword: (value, values) =>
         value.trim() !== values.password ? "Passwords did not match" : null,
     },
+    validateInputOnChange: true,
+    validateInputOnBlur: true,
   });
 
   const handleSubmit = async (values: SignupFormValues) => {
