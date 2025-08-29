@@ -165,6 +165,9 @@ export default function ClientContractPage({
         refresh={() => {
           refetchContract();
         }}
+        handleChat={() => {
+          setShowContract(true);
+        }}
         onDownload={handleDownloadContract}
         isDownloading={isDownloading}
       />

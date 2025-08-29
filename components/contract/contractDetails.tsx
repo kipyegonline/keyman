@@ -219,11 +219,11 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
     // Close the modal after saving
   };
-
+  /*
   const handleEditContract = () => {
     setEditContractModalOpened(true);
   };
-
+*/
   const handleSaveContract = async (
     contractId: string,
     data: {
@@ -509,11 +509,11 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   </Button>
                 )}
 
-                {userType === "customer" && false && (
+                {userType === "customer" && (
                   <Button
                     variant="light"
                     style={{ backgroundColor: "#3D6B2C15", color: "#3D6B2C" }}
-                    onClick={handleEditContract}
+                    onClick={handleChat}
                   >
                     Edit Contract
                   </Button>
@@ -826,9 +826,11 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                                   {(milestone.status.toLowerCase() ===
                                     "pending" ||
                                     milestone.status.toLowerCase() ===
-                                      "in_progress") &&
+                                      "in_progress" ||
+                                    milestone.status.toLowerCase() ===
+                                      "failed") &&
                                     canEditMileStone &&
-                                    contract.service_provider_signing_date ===
+                                    contract.service_provider_signing_date !==
                                       null && (
                                       <Tooltip
                                         label={
@@ -851,22 +853,29 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                                             )
                                           }
                                         >
-                                          <Play size={12} />
+                                          {milestone.status.toLowerCase() ===
+                                          "pending" ? (
+                                            <Play size={12} />
+                                          ) : (
+                                            <CheckCircle size={12} />
+                                          )}
                                         </ActionIcon>
                                       </Tooltip>
                                     )}
-                                  {canEditMileStone && (
-                                    <ActionIcon
-                                      size="sm"
-                                      variant="light"
-                                      color="gray"
-                                      onClick={() =>
-                                        handleEditMilestone(milestone.id)
-                                      }
-                                    >
-                                      <Edit size={14} />
-                                    </ActionIcon>
-                                  )}
+                                  {canEditMileStone &&
+                                    contract.service_provider_signing_date ===
+                                      null && (
+                                      <ActionIcon
+                                        size="sm"
+                                        variant="light"
+                                        color="gray"
+                                        onClick={() =>
+                                          handleEditMilestone(milestone.id)
+                                        }
+                                      >
+                                        <Edit size={14} />
+                                      </ActionIcon>
+                                    )}
                                 </Group>
                               </Group>
                             }
