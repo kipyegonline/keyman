@@ -1,7 +1,7 @@
 "use client";
 import { getWallet, initializeWallet } from "@/api/wallet";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { WalletData as WalletDataType } from "@/components/wallet/types";
+//import { WalletData as WalletDataType } from "@/components/wallet/types";
 
 // Import wallet components
 import WalletLoadingComponent from "@/components/wallet/WalletLoadingComponent";
@@ -24,7 +24,11 @@ export default function WalletClientComponent() {
     },
     retry: 2,
   });
-  const { data: user } = useQuery({
+  const {
+    data: userAccount,
+    isLoading: loadingUser,
+    refetch: refresh,
+  } = useQuery({
     queryKey: ["user"],
     queryFn: async () => await getUserDetails(),
   });
@@ -37,6 +41,7 @@ export default function WalletClientComponent() {
     }) => initializeWallet(data),
     onSuccess: (response) => {
       if (response.status) {
+        refresh();
         notify.success(
           "Payment initiated successfully! Please complete the payment on your phone."
         );
@@ -59,19 +64,54 @@ export default function WalletClientComponent() {
     initializeWalletMutation.mutate(data);
   };
 
-  console.log(user, "user loading.....");
+  console.log(userAccount, "user loading.....");
   console.log(wallet, "wl");
-  return (
-    <WalletTypeSelection
-      onTypeSelect={handleWalletTypeSelect}
-      isLoading={initializeWalletMutation.isPending}
-    />
-  );
+
   // Loading state
-  if (loadingWallet) {
+  if (loadingUser) {
     return <WalletLoadingComponent />;
   }
+  // we show user wallet data if wallet_account_id exists
+  if (
+    userAccount &&
+    userAccount?.user?.wallet_account_id !== null &&
+    userAccount?.user?.wallet_account_id !== undefined &&
+    userAccount?.user?.wallet_account_id !== ""
+  ) {
+    return <WalletData walletData={wallet} isLoading={loadingWallet} />;
+  }
+  // If user has no wallet_account_id and no wallet_creation_status, show wallet type selection
+  if (
+    userAccount &&
+    !userAccount?.user?.wallet_account_id &&
+    !userAccount?.user?.wallet_creation_status
+  ) {
+    return (
+      <WalletTypeSelection
+        onTypeSelect={handleWalletTypeSelect}
+        isLoading={initializeWalletMutation.isPending}
+      />
+    );
+  } else if (
+    userAccount?.user?.wallet_creation_status !== null ||
+    userAccount?.user?.wallet_creation_status !== ""
+  ) {
+    const status = userAccount?.user?.wallet_creation_status;
+    const walletAccountId = userAccount?.user?.wallet_account_id;
+    if (status === "Verification Fee Paid") {
+      return <WalletNotFound />;
+    }
+    const onBoardingId = userAccount?.user?.onboardingRequestId;
+    if (onBoardingId || walletAccountId) return <WalletOnboarding />;
+    return (
+      <WalletTypeSelection
+        onTypeSelect={handleWalletTypeSelect}
+        isLoading={initializeWalletMutation.isPending}
+      />
+    );
+  }
 
+  return null;
   // Wallet not found or error states
   if (!wallet?.status) {
     if (wallet?.message === "User not verified") {
@@ -90,14 +130,14 @@ export default function WalletClientComponent() {
   }
 
   // Wallet exists - prepare data
-  const walletData: WalletDataType = wallet.data || {
+  /* const walletData: WalletDataType = wallet.data || {
     balance: 0,
     currency: "KES",
     walletId: "",
     phoneNumber: "",
     isVerified: false,
     transactions: [],
-  };
+  }; */
 
-  return <WalletData walletData={walletData} isLoading={loadingWallet} />;
+  //  return <WalletData walletData={walletData} isLoading={loadingWallet} />;
 }
