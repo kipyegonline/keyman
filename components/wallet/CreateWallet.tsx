@@ -49,6 +49,7 @@ import {
 import { notifications } from "@mantine/notifications";
 import { createWalletWithData } from "@/api/wallet";
 import RegistrationSuccess from "./RegistrationSuccess";
+import { notify } from "@/lib/notifications";
 
 interface CreateWalletFormData {
   firstName: string;
@@ -149,7 +150,7 @@ export default function CreateWallet() {
           mobile: !values.mobile ? "Mobile number is required" : null,
           idType: !values.idType ? "ID type is required" : null,
           idNumber: !values.idNumber ? "ID number is required" : null,
-          kraPin: !values.kraPin
+          kraPin: !values.kraPin?.trim()
             ? "KRA PIN is required"
             : values.kraPin.length !== 11
             ? "KRA PIN must be 11 characters"
@@ -267,6 +268,7 @@ export default function CreateWallet() {
       const formData = new FormData();
 
       // Personal information
+
       formData.append("firstName", form.values.firstName);
       formData.append("lastName", form.values.lastName);
       if (form.values.middleName) {
@@ -285,11 +287,11 @@ export default function CreateWallet() {
         form.values.gender === "male"
           ? "1"
           : form.values.gender === "female"
-          ? "2"
+          ? "0"
           : "3";
       formData.append("gender", genderCode);
 
-      formData.append("countryCode", "KE");
+      formData.append("countryCode", "254");
       formData.append("mobile", form.values.mobile);
       formData.append("idType", form.values.idType);
       formData.append("idNumber", form.values.idNumber);
@@ -335,16 +337,11 @@ export default function CreateWallet() {
       }
 
       const response = await createWalletWithData(formData);
-
+      console.log(response);
       if (response.status) {
         setShowSuccess(true);
       } else {
-        notifications.show({
-          title: "Error",
-          message: response.message || "Failed to submit registration",
-          color: "red",
-          icon: <AlertCircle size={16} />,
-        });
+        notify.error(response.message || "Failed to submit registration");
       }
     } catch (error) {
       notifications.show({
@@ -442,7 +439,7 @@ export default function CreateWallet() {
   }
 
   return (
-    <Container size="lg" py="xl">
+    <Container size="lg" py={{ base: "md", xl: "xl" }}>
       <Paper shadow="md" radius="lg" p="xl" className="bg-white">
         <div className="mb-8 text-center">
           <Title order={2} style={{ color: "#3D6B2C" }} className="mb-2">

@@ -45,7 +45,7 @@ function WalletTypeSelection({
     phone_number: string;
   }) => {
     onTypeSelect(data);
-    setPaymentModalOpened(false);
+    //setPaymentModalOpened(false);
   };
 
   const handleCloseModal = () => {
