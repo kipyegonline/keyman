@@ -24,6 +24,7 @@ interface PaymentDetailsModalProps {
     phone_number: string;
   }) => void;
   isLoading?: boolean;
+  success?: null | number;
 }
 
 const paymentMethods = [
@@ -38,6 +39,7 @@ export default function PaymentDetailsModal({
   walletType,
   onSubmit,
   isLoading = false,
+  success = null,
 }: PaymentDetailsModalProps) {
   const form = useForm({
     initialValues: {
@@ -81,7 +83,10 @@ export default function PaymentDetailsModal({
 
     return value;
   };
-
+  const handleConfirmPayment = () => {
+    onClose();
+    location.reload();
+  };
   return (
     <Modal
       opened={opened}
@@ -192,17 +197,30 @@ export default function PaymentDetailsModal({
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              loading={isLoading}
-              style={{ backgroundColor: "#3D6B2C" }}
-              className="hover:opacity-90"
-              disabled={
-                !form.values.payment_method || !form.values.phone_number
-              }
-            >
-              {isLoading ? "Processing..." : "Proceed with Payment"}
-            </Button>
+
+            {success && success === 1 ? (
+              <Button onClick={handleConfirmPayment}>Complete payment</Button>
+            ) : (
+              <p></p>
+            )}
+            {success && success === 0 && (
+              <Text size="sm" color="red">
+                Failed to trigger payment. Check number and try again.
+              </Text>
+            )}
+            {success !== 1 && (
+              <Button
+                type="submit"
+                loading={isLoading}
+                style={{ backgroundColor: "#3D6B2C" }}
+                className="hover:opacity-90"
+                disabled={
+                  !form.values.payment_method || !form.values.phone_number
+                }
+              >
+                {isLoading ? "Processing..." : "Proceed with Payment"}
+              </Button>
+            )}
           </Group>
         </Stack>
       </form>

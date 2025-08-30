@@ -33,6 +33,7 @@ import {
   Clock,
 } from "lucide-react";
 import { notifications } from "@mantine/notifications";
+import LoadingComponent from "@/lib/LoadingComponent";
 
 interface AccountDetails {
   accountId: string;
@@ -188,7 +189,7 @@ export default function WalletData({
     }
     confirmOtpMutation.mutate({ phone: phoneNumber, otp });
   };
-
+  if (isLoading) return <LoadingComponent message="Preparing wallet data..." />;
   return (
     <Container size="lg" py="xl">
       <Stack gap="lg">

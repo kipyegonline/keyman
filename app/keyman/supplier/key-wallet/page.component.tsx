@@ -13,9 +13,12 @@ import WalletTypeSelection from "@/components/wallet/WalletTypeSelection";
 //import { getUserDetails } from "@/api/registration";
 import { notify } from "@/lib/notifications";
 import { getUserDetails } from "@/api/registration";
+import React from "react";
 
 export default function WalletClientComponent() {
   const queryClient = useQueryClient();
+
+  const [success, setSuccess] = React.useState<null | number>(null);
 
   const { data: wallet, isLoading: loadingWallet } = useQuery({
     queryKey: ["wallet"],
@@ -45,12 +48,15 @@ export default function WalletClientComponent() {
         notify.success(
           "Payment initiated successfully! Please complete the payment on your phone."
         );
+        setSuccess(1);
         queryClient.invalidateQueries({ queryKey: ["wallet"] });
       } else {
+        setSuccess(0);
         notify.error(response.message || "Failed to initialize wallet");
       }
     },
     onError: (error) => {
+      setSuccess(0);
       console.error("Error initializing wallet:", error);
       notify.error("An error occurred while initializing wallet");
     },
@@ -64,8 +70,8 @@ export default function WalletClientComponent() {
     initializeWalletMutation.mutate(data);
   };
 
-  console.log(userAccount, "user loading.....");
-  console.log(wallet, "wl");
+  //console.log(userAccount, "user loading.....");
+  //console.log(wallet, "wl");
 
   // Loading state
   if (loadingUser) {
@@ -90,6 +96,7 @@ export default function WalletClientComponent() {
       <WalletTypeSelection
         onTypeSelect={handleWalletTypeSelect}
         isLoading={initializeWalletMutation.isPending}
+        success={success}
       />
     );
   } else if (
@@ -102,16 +109,19 @@ export default function WalletClientComponent() {
       return <WalletNotFound />;
     }
     const onBoardingId = userAccount?.user?.onboardingRequestId;
-    if (onBoardingId || walletAccountId) return <WalletOnboarding />;
+    if (onBoardingId || walletAccountId)
+      return <WalletOnboarding onboardingRequestId={onBoardingId} />;
     return (
       <WalletTypeSelection
         onTypeSelect={handleWalletTypeSelect}
         isLoading={initializeWalletMutation.isPending}
+        success={success}
       />
     );
   }
 
   return null;
+  /*
   // Wallet not found or error states
   if (!wallet?.status) {
     if (wallet?.message === "User not verified") {
@@ -125,9 +135,9 @@ export default function WalletClientComponent() {
     if (wallet?.message === "Wallet not found") {
       return <WalletNotFound />;
     } else {
-      return <WalletOnboarding />;
-    }
-  }
+      return <WalletOnboarding onboardingRequestId={onBoardingId} />;
+    } 
+  }*/
 
   // Wallet exists - prepare data
   /* const walletData: WalletDataType = wallet.data || {

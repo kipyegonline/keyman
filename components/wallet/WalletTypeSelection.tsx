@@ -23,11 +23,13 @@ interface WalletTypeSelectionProps {
     phone_number: string;
   }) => void;
   isLoading?: boolean;
+  success?: null | number;
 }
 
 function WalletTypeSelection({
   onTypeSelect,
   isLoading = false,
+  success = null,
 }: WalletTypeSelectionProps) {
   const [selectedType, setSelectedType] = useState<
     "personal" | "business" | null
@@ -54,8 +56,13 @@ function WalletTypeSelection({
   };
 
   return (
-    <Container size="md" py="xl">
-      <Paper shadow="md" radius="lg" p="xl" className="bg-white">
+    <Container size="md" py={{ base: "md", md: "xl" }}>
+      <Paper
+        shadow="md"
+        radius="lg"
+        p={{ base: "md", md: "xl" }}
+        className="bg-white"
+      >
         <div className="text-center mb-8">
           <ThemeIcon
             size={80}
@@ -81,7 +88,7 @@ function WalletTypeSelection({
             <Card
               className="h-full border-2 border-gray-200 hover:border-green-400 hover:shadow-lg transition-all duration-300 cursor-pointer"
               radius="lg"
-              p="xl"
+              p={{ base: "md", md: "xl" }}
               onClick={() => !isLoading && handleTypeSelect("personal")}
               style={{
                 borderColor:
@@ -90,7 +97,11 @@ function WalletTypeSelection({
                   selectedType === "personal" ? "#3D6B2C05" : "white",
               }}
             >
-              <Flex gap="lg" align="flex-start">
+              <Flex
+                gap="lg"
+                align={{ base: "center", md: "flex-start" }}
+                direction={{ base: "column", md: "row" }}
+              >
                 {/* Left side - Icon and Features */}
                 <div className="flex-shrink-0">
                   <ThemeIcon
@@ -157,7 +168,11 @@ function WalletTypeSelection({
                   selectedType === "business" ? "#F08C2305" : "white",
               }}
             >
-              <Flex gap="lg" align="flex-start">
+              <Flex
+                gap="lg"
+                align={{ base: "center", md: "flex-start" }}
+                direction={{ base: "column", md: "row" }}
+              >
                 {/* Left side - Icon and Features */}
                 <div className="flex-shrink-0">
                   <ThemeIcon
@@ -234,6 +249,7 @@ function WalletTypeSelection({
         walletType={selectedType || "personal"}
         onSubmit={handlePaymentSubmit}
         isLoading={isLoading}
+        success={success}
       />
     </Container>
   );

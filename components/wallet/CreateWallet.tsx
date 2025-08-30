@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { useForm } from "@mantine/form";
 import { DateInput } from "@mantine/dates";
 import {
@@ -242,7 +242,10 @@ export default function CreateWallet() {
       setCameraStream(null);
     }
   };
-
+  React.useEffect(() => {
+    // Effect to run when 'active' changes
+    if (active > 0) window.scrollTo(0, 0);
+  }, [active]);
   const nextStep = () => {
     if (active === 0) {
       const validation = form.validate();
