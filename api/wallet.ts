@@ -44,6 +44,56 @@ export const createWallet = async () => {
   }
 };
 
+export const createWalletWithData = async (formData: FormData) => {
+  try {
+    const endpoint = ENDPOINTS.wallet.CREATE_WALLET;
+    const response = await AxiosClient.post(endpoint, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while creating wallet",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};
+
+export const initializeWallet = async (data: {
+  type: "personal" | "business";
+  payment_method: string;
+  phone_number: string;
+}) => {
+  try {
+    const endpoint = ENDPOINTS.wallet.VERIFICATION_FEE;
+    const response = await AxiosClient.post(endpoint, data);
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while initializing wallet",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};
+
 export const sendOTP = async (phoneNumber: string) => {
   try {
     const endpoint = ENDPOINTS.wallet.SEND_OTP;
