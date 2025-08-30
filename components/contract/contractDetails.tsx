@@ -256,10 +256,14 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       // Keep modal open on error so user can retry
     }
   };
-  const notifyProvider = async (role: "client" | "service_provider") => {
-    if (!confirm(`Notify ${role}?`)) return;
+  const notifyProvider = async (
+    role: "client" | "service_provider",
+    isSilent = false
+  ) => {
+    if (!isSilent && !confirm(`Notify ${role}?`)) return;
     setNotifying(true);
     const response = await updateContract(contract.id, { contract_mode: role });
+    if (isSilent) return;
     if (response.status) {
       refresh();
       if (role === "client") {
@@ -297,7 +301,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       if (currentStatus.toLowerCase() === "pending") {
         newStatus = "start";
       } else if (currentStatus.toLowerCase() === "in_progress") {
-        newStatus = "completed";
+        newStatus = "complete";
       } else {
         return; // Already completed or other status
       }
@@ -342,6 +346,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       if (response.status) {
         notify.success("Contract accepted successfully!");
         refresh();
+        await notifyProvider("client");
         setAcceptContractModalOpened(false);
       } else {
         notify.error(response.message || "Failed to accept contract");
@@ -364,7 +369,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const totalMilestones = contract.milestones?.length || 0;
   const progressPercentage =
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
-  console.log(contract, "con");
+  //console.log(contract, "con");
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-UK", {
       year: "numeric",
@@ -438,6 +443,13 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     }
     return false;
   }, [userType, contract.status]);
+  const inProgress = React.useMemo(() => {
+    return contract.milestones?.some(
+      (milestone) =>
+        milestone.status.toLowerCase() === "in_progress" ||
+        milestone.status.toLowerCase() === "completed"
+    );
+  }, [contract?.milestones]);
 
   return (
     <Box>
@@ -920,25 +932,27 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                 </Card>
               )}
               {/**Actions */}
-              {userType === "customer" ? (
-                canEditMileStone && (
+              {!inProgress ? (
+                userType === "customer" ? (
+                  canEditMileStone && (
+                    <Button
+                      loading={notifying}
+                      onClick={() => notifyProvider("service_provider")}
+                      className="bg-keyman-orange text-white"
+                    >
+                      Notify Provider
+                    </Button>
+                  )
+                ) : (
                   <Button
                     loading={notifying}
-                    onClick={() => notifyProvider("service_provider")}
+                    onClick={() => notifyProvider("client")}
                     className="bg-keyman-orange text-white"
                   >
-                    Notify Provider
+                    Notify Client
                   </Button>
                 )
-              ) : (
-                <Button
-                  loading={notifying}
-                  onClick={() => notifyProvider("client")}
-                  className="bg-keyman-orange text-white"
-                >
-                  Notify Client
-                </Button>
-              )}
+              ) : null}
             </Stack>
           </Grid.Col>
 
