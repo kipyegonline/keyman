@@ -340,7 +340,7 @@ export default function CreateWallet() {
       }
 
       const response = await createWalletWithData(formData);
-      console.log(response);
+      //console.log(response);
       if (response.status) {
         setShowSuccess(true);
       } else {
