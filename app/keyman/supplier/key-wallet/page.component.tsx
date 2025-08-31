@@ -71,7 +71,7 @@ export default function WalletClientComponent() {
   };
 
   //console.log(userAccount, "user loading.....");
-  //console.log(wallet, "wl");
+  ////console.log(wallet, "wl");
 
   // Loading state
   if (loadingUser) {

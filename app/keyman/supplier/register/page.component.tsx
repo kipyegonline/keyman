@@ -37,6 +37,7 @@ export default function SupplierComponent() {
     router.push(`/keyman/supplier`);
   };
   const isNotRegistered = _user && _user?.supplier_details === null;
+
   if (isLoading) return <SupplierRegistrationLoading />;
   return (
     <div className="">

@@ -150,12 +150,12 @@ export default function CreateWallet() {
           mobile: !values.mobile ? "Mobile number is required" : null,
           idType: !values.idType ? "ID type is required" : null,
           idNumber: !values.idNumber ? "ID number is required" : null,
-          kraPin: !values.kraPin?.trim()
+          /* kraPin: !values.kraPin?.trim()
             ? "KRA PIN is required"
             : values.kraPin.length !== 11
             ? "KRA PIN must be 11 characters"
             : null,
-          address: !values.address ? "Address is required" : null,
+          address: !values.address ? "Address is required" : null,*/
           frontSidePhoto: !values.frontSidePhoto
             ? "Front side photo is required"
             : null,

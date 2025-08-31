@@ -71,6 +71,7 @@ interface ContractDetails {
   contract_amount: number;
   payment_status?: "paid" | "pending" | "partial";
   initiator: { id: string; name: string; email?: string; phone?: string };
+  service_provider_id: string;
   service_provider: {
     id: string;
     name: string;
@@ -78,6 +79,7 @@ interface ContractDetails {
     phone?: string;
   };
   service_provider_signing_date: null | string;
+
   contract_json?: {
     agreement_summary?: string;
     title?: string;
@@ -185,6 +187,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const [acceptContractModalOpened, setAcceptContractModalOpened] =
     useState(false);
   const [isAcceptingContract, setIsAcceptingContract] = useState(false);
+  const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
 
   const handleEditMilestone = (milestoneId: string) => {
     const milestone = contract.milestones?.find((m) => m.id === milestoneId);
@@ -219,11 +222,11 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
     // Close the modal after saving
   };
-  /*
+
   const handleEditContract = () => {
     setEditContractModalOpened(true);
   };
-*/
+
   const handleSaveContract = async (
     contractId: string,
     data: {
@@ -426,7 +429,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     projectDates.startDate,
     projectDates.endDate
   );
-
+  const isOwner = supplierId === contract?.service_provider_id;
   const canEditMileStone = React.useMemo(() => {
     if (contract.status.toLowerCase() !== "completed") {
       if (
@@ -436,7 +439,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         return true;
       } else if (
         userType === "supplier" &&
-        contract.contract_mode === "service_provider"
+        contract.contract_mode === "service_provider" &&
+        isOwner
       ) {
         return true;
       }
@@ -457,7 +461,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         {/* Header Section */}
         <Card
           shadow="sm"
-          padding="xl"
+          p={{ base: "md", md: "xl" }}
           radius="md"
           className="bg-gradient-to-r from-gray-50 to-white"
         >
@@ -503,6 +507,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
             <Grid.Col span={{ base: 12, md: 4 }}>
               <Group justify="flex-end" gap="sm">
                 {userType === "supplier" &&
+                  isOwner &&
                   contract?.service_provider_signing_date === null &&
                   contract.status === "pending" && (
                     <Button
@@ -525,7 +530,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   <Button
                     variant="light"
                     style={{ backgroundColor: "#3D6B2C15", color: "#3D6B2C" }}
-                    onClick={handleChat}
+                    onClick={handleEditContract}
                   >
                     Edit Contract
                   </Button>
@@ -932,7 +937,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                 </Card>
               )}
               {/**Actions */}
-              {!inProgress ? (
+              {!inProgress && isOwner ? (
                 userType === "customer" ? (
                   canEditMileStone && (
                     <Button
@@ -940,7 +945,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                       onClick={() => notifyProvider("service_provider")}
                       className="bg-keyman-orange text-white"
                     >
-                      Notify Provider
+                      Notify Provider of changes
                     </Button>
                   )
                 ) : (
@@ -949,7 +954,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                     onClick={() => notifyProvider("client")}
                     className="bg-keyman-orange text-white"
                   >
-                    Notify Client
+                    Notify Client of changes
                   </Button>
                 )
               ) : null}

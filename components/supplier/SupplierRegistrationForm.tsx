@@ -77,6 +77,7 @@ export interface SupplierInfo {
   is_escrow_only?: boolean;
   photo?: File | null;
   comments?: string;
+  referred_by?: string;
   "categories[0]"?: string;
   "categories[1]"?: string;
 }
@@ -343,6 +344,7 @@ const SupplierRegistrationForm: React.FC<{
       is_escrow_only: false,
       photo: null,
       comments: "",
+      referred_by: "",
     },
     validate: {
       name: (value) =>
@@ -422,7 +424,6 @@ const SupplierRegistrationForm: React.FC<{
       const file64 = await toDataUrlFromFile(values.photo);
 
       const file_ = DataURIToBlob(file64 as string);
-      console.log(file_);
 
       formData.append("photo", file_, values.photo.name);
     }
@@ -524,6 +525,18 @@ const SupplierRegistrationForm: React.FC<{
                         className="transition-all duration-300 hover:scale-[1.02]"
                         {...form.getInputProps("name")}
                         required
+                      />
+                    </Grid.Col>
+
+                    <Grid.Col span={12}>
+                      <TextInput
+                        label="Referred By"
+                        placeholder="Enter KS Number or name of referrer (optional)"
+                        leftSection={
+                          <User size={16} className="text-[#3D6B2C]" />
+                        }
+                        className="transition-all duration-300 hover:scale-[1.02]"
+                        {...form.getInputProps("referred_by")}
                       />
                     </Grid.Col>
 
@@ -639,7 +652,7 @@ const SupplierRegistrationForm: React.FC<{
                     </Grid.Col>
 
                     <Grid.Col span={12}>
-                      {supplierTypes && form.values.type.length > 0 && (
+                      {supplierTypes && form.values?.type?.length > 0 && (
                         <CategorySelector
                           supplierTypes={supplierTypes}
                           mainCategory={form.values.type}

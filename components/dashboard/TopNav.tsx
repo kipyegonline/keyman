@@ -82,7 +82,7 @@ const TopNavigation: React.FC = () => {
   const hasAccess = checkPath();
 
   const profileMenuItems = [
-    { label: "Edit Store Profile", icon: Edit, key: "profile" },
+    { label: "Update Store Profile", icon: Edit, key: "profile" },
     //{ label: "Hardware/Service Profile", icon: Wrench, key: "hardware" },
     //{ label: "Price List", icon: DollarSign, key: "price" },
     { label: "Delivery Locations", icon: MapPin, key: "delivery" },
