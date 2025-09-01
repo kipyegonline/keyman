@@ -52,7 +52,7 @@ export const createWalletWithData = async (formData: FormData) => {
         "Content-Type": "multipart/form-data",
       },
     });
-
+    console.log(response, "wallet creation response....");
     return response.data;
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -94,10 +94,13 @@ export const initializeWallet = async (data: {
   }
 };
 
-export const sendOTP = async (phoneNumber: string) => {
+export const sendOTP = async (phoneNumber: string, otpType: "email" | "sms" = "email") => {
   try {
     const endpoint = ENDPOINTS.wallet.SEND_OTP;
-    const response = await AxiosClient.post(endpoint, { phoneNumber });
+    const response = await AxiosClient.post(endpoint, {
+      phoneNumber,
+      otp_type: otpType,
+    });
 
     return response.data;
   } catch (error) {
@@ -118,7 +121,10 @@ export const sendOTP = async (phoneNumber: string) => {
 export const confirmOTP = async (phoneNumber: string, otp: string) => {
   try {
     const endpoint = ENDPOINTS.wallet.CONFIRM_OTP;
-    const response = await AxiosClient.post(endpoint, { phoneNumber, otp });
+    const response = await AxiosClient.post(endpoint, {
+      phoneNumber,
+      otp_code: otp,
+    });
 
     return response.data;
   } catch (error) {

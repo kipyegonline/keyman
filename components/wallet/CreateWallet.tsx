@@ -50,6 +50,7 @@ import { notifications } from "@mantine/notifications";
 import { createWalletWithData } from "@/api/wallet";
 import RegistrationSuccess from "./RegistrationSuccess";
 import { notify } from "@/lib/notifications";
+import { toDataUrlFromFile } from "@/lib/FileHandlers";
 
 interface CreateWalletFormData {
   firstName: string;
@@ -127,7 +128,7 @@ export default function CreateWallet() {
         return {
           firstName: !values.firstName ? "First name is required" : null,
           lastName: !values.lastName ? "Last name is required" : null,
-          phoneNumber: !values.phoneNumber ? "Phone number is required" : null,
+          //phoneNumber: !values.phoneNumber ? "Phone number is required" : null,
           email: !/^\S+@\S+$/.test(values.email || "") ? "Invalid email" : null,
           birthday: !values.birthday
             ? "Birthday is required"
@@ -277,7 +278,7 @@ export default function CreateWallet() {
       if (form.values.middleName) {
         formData.append("middleName", form.values.middleName);
       }
-      formData.append("phoneNumber", form.values.phoneNumber);
+      // formData.append("phoneNumber", form.values.phoneNumber.slice(-9));
       formData.append(
         "birthday",
         form.values?.birthday
@@ -295,7 +296,7 @@ export default function CreateWallet() {
       formData.append("gender", genderCode);
 
       formData.append("countryCode", "254");
-      formData.append("mobile", form.values.mobile);
+      formData.append("mobile", form.values.mobile.slice(-9));
       formData.append("idType", form.values.idType);
       formData.append("idNumber", form.values.idNumber);
       formData.append("kraPin", form.values.kraPin);
@@ -304,13 +305,26 @@ export default function CreateWallet() {
 
       // Required photos
       if (form.values.frontSidePhoto) {
-        formData.append("frontSidePhoto", form.values.frontSidePhoto);
+        const base64 = await toDataUrlFromFile(form.values.frontSidePhoto);
+
+        formData.append("frontSidePhoto", (base64 as string).split(",")[1]);
+        //formData.append("frontSidePhoto", smallest);
       }
       if (form.values.backSidePhoto) {
-        formData.append("backSidePhoto", form.values.backSidePhoto);
+        const base64 = await toDataUrlFromFile(form.values.backSidePhoto);
+        formData.append(
+          "backSidePhoto",
+          (base64 as string).split(",")[1] as string
+        );
+        // formData.append("backSidePhoto", smallest);
       }
       if (form.values.selfiePhoto) {
-        formData.append("selfiePhoto", form.values.selfiePhoto);
+        const base64 = await toDataUrlFromFile(form.values.selfiePhoto);
+        formData.append(
+          "selfiePhoto",
+          (base64 as string).split(",")[1] as string
+        );
+        // formData.append("selfiePhoto", smallest);
       }
 
       // Optional documents
@@ -341,8 +355,10 @@ export default function CreateWallet() {
 
       const response = await createWalletWithData(formData);
       //console.log(response);
-      if (response.status) {
-        setShowSuccess(true);
+      if (response.success) {
+        if (response.message.includes("successfully")) {
+          setShowSuccess(true);
+        } else notify.error(response.message);
       } else {
         notify.error(response.message || "Failed to submit registration");
       }
@@ -438,7 +454,12 @@ export default function CreateWallet() {
   };
 
   if (showSuccess) {
-    return <RegistrationSuccess onClose={handleResetForm} />;
+    return (
+      <RegistrationSuccess
+        onClose={handleResetForm}
+        phoneNumber={form.values.mobile}
+      />
+    );
   }
 
   return (
@@ -526,10 +547,10 @@ export default function CreateWallet() {
                     placeholder="+254 700 000 000"
                     leftSection={<Phone size={16} />}
                     required
-                    {...form.getInputProps("phoneNumber")}
+                    {...form.getInputProps("mobile")}
                   />
                 </Grid.Col>
-                <Grid.Col span={{ base: 12, sm: 6 }}>
+                <Grid.Col span={{ base: 12, sm: 6 }} display={"none"}>
                   <TextInput
                     label="Mobile Number"
                     placeholder="+254 700 000 000"

@@ -71,7 +71,7 @@ export default function WalletClientComponent() {
   };
 
   //console.log(userAccount, "user loading.....");
-  ////console.log(wallet, "wl");
+  // console.log(wallet, "wl");
 
   // Loading state
   if (loadingUser) {
@@ -110,7 +110,13 @@ export default function WalletClientComponent() {
     }
     const onBoardingId = userAccount?.user?.onboardingRequestId;
     if (onBoardingId || walletAccountId)
-      return <WalletOnboarding onboardingRequestId={onBoardingId} />;
+      return (
+        <WalletOnboarding
+          refresh={() => refresh()}
+          onboardingRequestId={onBoardingId}
+          otpConfirmed={!!userAccount?.user?.onboarding_otp_confirmation}
+        />
+      );
     return (
       <WalletTypeSelection
         onTypeSelect={handleWalletTypeSelect}

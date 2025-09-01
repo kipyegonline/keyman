@@ -1,7 +1,6 @@
+import { nprogress } from "@mantine/nprogress";
 
-import { nprogress } from '@mantine/nprogress';
-
-export const navigateTo=()=>{
-    nprogress.start();   
-    setTimeout(()=> nprogress.complete(),1000)
-}
+export const navigateTo = () => {
+  nprogress.start();
+  setTimeout(() => nprogress.complete(), 3000);
+};
