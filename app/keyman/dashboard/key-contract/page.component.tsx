@@ -14,7 +14,7 @@ export default function CustomerContract() {
   const { data, isLoading } = useQuery({
     queryKey: ["customerContracts"],
     queryFn: async () => {
-      const contracts = await getContracts();
+      const contracts = await getContracts("");
       return contracts;
     },
   });
