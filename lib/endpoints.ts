@@ -76,7 +76,8 @@ export const ENDPOINTS = {
   },
   banners: { BANNERS_NEAR_ME: "/api/banners/close-by" },
   contracts: {
-    GET_CONTRACTS: "/api/keyman-contracts",
+    GET_CONTRACTS: (supplierId: string) =>
+      `/api/keyman-contracts?supplier_detail_id=${supplierId}`,
     CREATE_CONTRACT: "/api/keyman-contracts",
     GET_CONTRACT_DETAILS: (contract_id: string) =>
       `/api/keyman-contracts/${contract_id}`,

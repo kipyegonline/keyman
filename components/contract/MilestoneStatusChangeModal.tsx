@@ -29,6 +29,8 @@ interface MilestoneStatusChangeModalProps {
   milestone: Milestone | null;
   currentStatus: string;
   onConfirm: (milestoneId: string, signature: string) => Promise<void>;
+  providerName?: string;
+  initiatorName?: string;
 }
 
 const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
@@ -37,6 +39,8 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
   milestone,
   currentStatus,
   onConfirm,
+  providerName,
+  initiatorName,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [agreed, setAgreed] = useState(false);
@@ -104,9 +108,9 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
       return "I confirm that I am ready to begin work on this milestone and understand the requirements and timeline.";
     }
     if (isCompleting) {
-      return "I confirm that all work for this milestone has been completed according to the specified requirements and is ready for review.";
+      return `I, ${providerName}, confirm that all work for this milestone has been completed according to the specified requirements and is ready for review.`;
     }
-    return "I confirm that I want to update the status of this milestone.";
+    return `I, ${initiatorName}, confirm that the milestone has been completed as per my requirements.`;
   };
 
   const getCurrentDate = () => {

@@ -83,7 +83,7 @@ export default function RegistrationSuccess({
   const handleOTPVerificationError = (error: string) => {
     notify.error(error);
   };
-  if (loadingUser) return <LoadingComponent message="verifying wallet" />;
+  if (loadingUser) return <LoadingComponent message="verifying wallet..." />;
   if (!!userAccount?.user?.onboarding_otp_confirmation) {
     return (
       <Container size="sm" py="xl">

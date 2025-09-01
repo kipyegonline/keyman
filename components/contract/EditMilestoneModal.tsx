@@ -29,7 +29,15 @@ interface EditMilestoneModalProps {
   opened: boolean;
   onClose: () => void;
   milestone: Milestone | null;
-  onSave: (milestoneId: string, data: { name: string; description: string; amount?: number }) => Promise<void>;
+  onSave: (
+    milestoneId: string,
+    data: {
+      name: string;
+      description: string;
+      amount?: number;
+      action?: string;
+    }
+  ) => Promise<void>;
 }
 
 const EditMilestoneModal: React.FC<EditMilestoneModalProps> = ({
@@ -163,7 +171,10 @@ const EditMilestoneModal: React.FC<EditMilestoneModalProps> = ({
             placeholder="Enter milestone description"
             value={formData.description}
             onChange={(event) =>
-              setFormData({ ...formData, description: event.currentTarget.value })
+              setFormData({
+                ...formData,
+                description: event.currentTarget.value,
+              })
             }
             error={errors.description}
             required

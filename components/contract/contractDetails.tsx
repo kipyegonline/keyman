@@ -13,21 +13,14 @@ import {
   Button,
   Progress,
   Divider,
-  Timeline,
-  ScrollArea,
   ActionIcon,
   Title,
   Alert,
-  Tooltip,
 } from "@mantine/core";
 import {
-  Calendar,
   FileText,
-  Clock,
-  CheckCircle,
   User,
   DollarSign,
-  Target,
   Building2,
   Phone,
   Mail,
@@ -37,14 +30,13 @@ import {
   AlertCircle,
   Activity,
   MoreVertical,
-  Edit,
-  Play,
 } from "lucide-react";
 import React, { useState } from "react";
 import EditMilestoneModal from "./EditMilestoneModal";
 import EditContractModal from "./EditContractModal";
 import MilestoneStatusChangeModal from "./MilestoneStatusChangeModal";
 import AcceptContractModal from "./AcceptContractModal";
+import MilestoneTimeline from "./MilestoneTimeline";
 import { updateContract, updateMilestone } from "@/api/contract";
 import { notify } from "@/lib/notifications";
 
@@ -113,6 +105,8 @@ interface Milestone {
   completion_date?: string;
   start_date?: string;
   end_date?: string;
+  client_completion_date?: string;
+  service_provider_completion_date?: string;
 }
 
 interface ContractDetailsProps {
@@ -138,22 +132,6 @@ const getStatusConfig = (status: string) => {
       on_hold: { color: "#FF9800", bg: "#FF980015", label: "On Hold" },
     };
   return configs[status] || configs.pending;
-};
-
-const getMilestoneStatusConfig = (status: string) => {
-  const configs: Record<
-    string,
-    {
-      color: string;
-      icon: React.ComponentType<{ size: number; color?: string }>;
-    }
-  > = {
-    completed: { color: "#388E3C", icon: CheckCircle },
-    in_progress: { color: "#F08C23", icon: Clock },
-    pending: { color: "#9E9E9E", icon: Clock },
-    overdue: { color: "#D32F2F", icon: AlertCircle },
-  };
-  return configs[status.toLowerCase()] || configs.pending;
 };
 
 const formatCurrency = (amount: number) => {
@@ -187,7 +165,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const [acceptContractModalOpened, setAcceptContractModalOpened] =
     useState(false);
   const [isAcceptingContract, setIsAcceptingContract] = useState(false);
-  const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
+  //const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
 
   const handleEditMilestone = (milestoneId: string) => {
     const milestone = contract.milestones?.find((m) => m.id === milestoneId);
@@ -199,14 +177,23 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
   const handleSaveMilestone = async (
     milestoneId: string,
-    data: { name: string; description: string; amount?: number }
+    data: {
+      name: string;
+      description: string;
+      amount?: number;
+      action?: string;
+    }
   ) => {
     // This function will be called when the user saves the milestone
     // You can implement the API call logic here
 
     const response = await updateMilestone(milestoneId, data);
     if (response.status) {
-      notify.success("Milestone updated successfully");
+      notify.success(
+        `Milestone updated, ${
+          data.action === "start" ? "started, awaiting payment" : "updated"
+        }`
+      );
       refresh();
       setEditModalOpened(false);
       setSelectedMilestone(null);
@@ -239,7 +226,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       const payload = {
         ...data,
         status: "pending",
-        contract_json: { title: data.title },
+        contract_json: JSON.stringify({ title: data.title }),
       };
 
       const response = await updateContract(contractId, payload);
@@ -263,10 +250,15 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     role: "client" | "service_provider",
     isSilent = false
   ) => {
-    if (!isSilent && !confirm(`Notify ${role}?`)) return;
+    if (!isSilent) {
+      if (!confirm(`Notify ${role}?`)) return;
+    }
     setNotifying(true);
     const response = await updateContract(contract.id, { contract_mode: role });
-    if (isSilent) return;
+    if (isSilent) {
+      setNotifying(false);
+      return;
+    }
     if (response.status) {
       refresh();
       if (role === "client") {
@@ -303,8 +295,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
       if (currentStatus.toLowerCase() === "pending") {
         newStatus = "start";
-      } else if (currentStatus.toLowerCase() === "in_progress") {
-        newStatus = "complete";
+      } else if (
+        currentStatus.toLowerCase() === "in_progress" ||
+        currentStatus.toLowerCase() === "supplier_completed"
+      ) {
+        if (userType === "supplier") newStatus = "service_provider_complete";
+        else newStatus = "complete";
       } else {
         return; // Already completed or other status
       }
@@ -349,7 +345,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       if (response.status) {
         notify.success("Contract accepted successfully!");
         refresh();
-        await notifyProvider("client");
+        await notifyProvider("client", true);
         setAcceptContractModalOpened(false);
       } else {
         notify.error(response.message || "Failed to accept contract");
@@ -372,7 +368,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const totalMilestones = contract.milestones?.length || 0;
   const progressPercentage =
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
-  //console.log(contract, "con");
+  // console.log(contract, "con----");
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-UK", {
       year: "numeric",
@@ -429,9 +425,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     projectDates.startDate,
     projectDates.endDate
   );
-  const isOwner = supplierId === contract?.service_provider_id;
+
   const canEditMileStone = React.useMemo(() => {
-    if (contract.status.toLowerCase() !== "completed") {
+    if (
+      contract.status.toLowerCase() !== "completed" ||
+      contract.status.toLowerCase() !== "supplier_completed"
+    ) {
       if (
         userType === "customer" &&
         (contract.contract_mode === "client" || contract.contract_mode === null)
@@ -439,19 +438,19 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         return true;
       } else if (
         userType === "supplier" &&
-        contract.contract_mode === "service_provider" &&
-        isOwner
+        contract.contract_mode === "service_provider"
       ) {
         return true;
       }
     }
     return false;
   }, [userType, contract.status]);
-  const inProgress = React.useMemo(() => {
+  const inNegotiation = React.useMemo(() => {
     return contract.milestones?.some(
       (milestone) =>
-        milestone.status.toLowerCase() === "in_progress" ||
-        milestone.status.toLowerCase() === "completed"
+        // milestone.status.toLowerCase() === "in_progress" ||
+        milestone.status.toLowerCase() === "pending"
+      // milestone.status.toLowerCase() === "failed"
     );
   }, [contract?.milestones]);
 
@@ -507,7 +506,6 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
             <Grid.Col span={{ base: 12, md: 4 }}>
               <Group justify="flex-end" gap="sm">
                 {userType === "supplier" &&
-                  isOwner &&
                   contract?.service_provider_signing_date === null &&
                   contract.status === "pending" && (
                     <Button
@@ -519,12 +517,11 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                       {isAcceptingContract ? "Accepting..." : "Accept Contract"}
                     </Button>
                   )}
-                {userType === "supplier" && (
-                  <Button variant="outlined" onClick={handleChat}>
-                    {" "}
-                    Chat
-                  </Button>
-                )}
+
+                <Button variant="outlined" onClick={handleChat}>
+                  {" "}
+                  Chat
+                </Button>
 
                 {userType === "customer" && (
                   <Button
@@ -767,188 +764,43 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
               {/* Milestones Timeline */}
               {contract.milestones && contract.milestones.length > 0 && (
-                <Card shadow="sm" padding="lg" radius="md">
-                  <Group gap="xs" mb="md">
-                    <ThemeIcon
-                      size="lg"
-                      style={{ backgroundColor: "#F08C2315" }}
-                      variant="light"
-                    >
-                      <Target size={20} style={{ color: "#F08C23" }} />
-                    </ThemeIcon>
-                    <Text fw={600} size="lg" className="text-gray-800">
-                      Project Milestones
-                    </Text>
-                  </Group>
-
-                  <ScrollArea.Autosize mah={400}>
-                    <Timeline
-                      active={completedMilestones}
-                      bulletSize={24}
-                      lineWidth={2}
-                    >
-                      {contract.milestones.map((milestone) => {
-                        const config = getMilestoneStatusConfig(
-                          milestone.status
-                        );
-                        const IconComponent = config.icon;
-
-                        return (
-                          <Timeline.Item
-                            key={milestone.id}
-                            bullet={
-                              <ThemeIcon
-                                size={24}
-                                radius="xl"
-                                style={{ backgroundColor: config.color }}
-                              >
-                                <IconComponent size={14} color="white" />
-                              </ThemeIcon>
-                            }
-                            title={
-                              <Group justify="space-between" align="center">
-                                <Text fw={600} size="sm">
-                                  {milestone.name}
-                                </Text>
-                                <Text
-                                  fw={600}
-                                  size="sm"
-                                  className="text-gray-800"
-                                >
-                                  {milestone.title}
-                                </Text>
-                                <Group gap="xs" align="center">
-                                  <Group gap="xs">
-                                    <Badge
-                                      variant="light"
-                                      style={{
-                                        backgroundColor: `${config.color}15`,
-                                        color: config.color,
-                                      }}
-                                      size="sm"
-                                    >
-                                      {milestone.status.replace("_", " ")}
-                                    </Badge>
-
-                                    {milestone.amount && (
-                                      <Badge
-                                        variant="outline"
-                                        color="gray"
-                                        size="sm"
-                                      >
-                                        {formatCurrency(milestone.amount)}
-                                      </Badge>
-                                    )}
-                                  </Group>
-                                  {(milestone.status.toLowerCase() ===
-                                    "pending" ||
-                                    milestone.status.toLowerCase() ===
-                                      "in_progress" ||
-                                    milestone.status.toLowerCase() ===
-                                      "failed") &&
-                                    canEditMileStone &&
-                                    contract.service_provider_signing_date !==
-                                      null && (
-                                      <Tooltip
-                                        label={
-                                          milestone.status.toLowerCase() ===
-                                          "pending"
-                                            ? "Start milestone"
-                                            : "Complete milestone"
-                                        }
-                                        position="top"
-                                        withArrow
-                                      >
-                                        <ActionIcon
-                                          size="sm"
-                                          variant="light"
-                                          color="green"
-                                          onClick={() =>
-                                            handleMilestoneStatusChange(
-                                              milestone.id
-                                              //milestone.status
-                                            )
-                                          }
-                                        >
-                                          {milestone.status.toLowerCase() ===
-                                          "pending" ? (
-                                            <Play size={12} />
-                                          ) : (
-                                            <CheckCircle size={12} />
-                                          )}
-                                        </ActionIcon>
-                                      </Tooltip>
-                                    )}
-                                  {canEditMileStone &&
-                                    contract.service_provider_signing_date ===
-                                      null && (
-                                      <ActionIcon
-                                        size="sm"
-                                        variant="light"
-                                        color="gray"
-                                        onClick={() =>
-                                          handleEditMilestone(milestone.id)
-                                        }
-                                      >
-                                        <Edit size={14} />
-                                      </ActionIcon>
-                                    )}
-                                </Group>
-                              </Group>
-                            }
-                          >
-                            <Stack gap="xs" mt="xs">
-                              <Text
-                                size="sm"
-                                c="dimmed"
-                                className="leading-relaxed"
-                              >
-                                {milestone.description}
-                              </Text>
-                              {milestone.due_date && (
-                                <Group gap="xs">
-                                  <Calendar
-                                    size={14}
-                                    className="text-gray-500"
-                                  />
-                                  <Text size="xs" c="dimmed">
-                                    Due: {formatDate(milestone.due_date)}
-                                  </Text>
-                                </Group>
-                              )}
-                              {milestone.completion_date && (
-                                <Group gap="xs">
-                                  <CheckCircle
-                                    size={14}
-                                    className="text-green-600"
-                                  />
-                                  <Text size="xs" className="text-green-600">
-                                    Completed:{" "}
-                                    {formatDate(milestone.completion_date)}
-                                  </Text>
-                                </Group>
-                              )}
-                            </Stack>
-                          </Timeline.Item>
-                        );
-                      })}
-                    </Timeline>
-                  </ScrollArea.Autosize>
-                </Card>
+                <MilestoneTimeline
+                  milestones={contract.milestones}
+                  canEditMileStone={canEditMileStone}
+                  serviceProviderSigningDate={
+                    contract.service_provider_signing_date
+                  }
+                  onEditMilestone={handleEditMilestone}
+                  onStatusChange={handleMilestoneStatusChange}
+                  userType={userType}
+                  mode={contract?.contract_mode ?? "client"}
+                />
               )}
               {/**Actions */}
-              {!inProgress && isOwner ? (
-                userType === "customer" ? (
-                  canEditMileStone && (
-                    <Button
-                      loading={notifying}
-                      onClick={() => notifyProvider("service_provider")}
-                      className="bg-keyman-orange text-white"
-                    >
-                      Notify Provider of changes
-                    </Button>
-                  )
-                ) : (
+              {inNegotiation && userType === "customer" ? (
+                canEditMileStone && contract?.contract_mode === "client" ? (
+                  <Button
+                    loading={notifying}
+                    onClick={() => notifyProvider("service_provider")}
+                    className="bg-keyman-orange text-white"
+                  >
+                    Notify Provider of changes
+                  </Button>
+                ) : contract.contract_mode === "service_provider" ? (
+                  <Alert
+                    icon={<AlertCircle size={16} />}
+                    title="Action Required"
+                    color="orange"
+                    radius="md"
+                  >
+                    <Text size="sm">
+                      This contract is in review by the service provider
+                    </Text>
+                  </Alert>
+                ) : null
+              ) : null}
+              {inNegotiation && userType === "supplier" ? (
+                canEditMileStone ? (
                   <Button
                     loading={notifying}
                     onClick={() => notifyProvider("client")}
@@ -956,7 +808,18 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   >
                     Notify Client of changes
                   </Button>
-                )
+                ) : contract.contract_mode === "client" ? (
+                  <Alert
+                    icon={<AlertCircle size={16} />}
+                    title="Action Required"
+                    color="orange"
+                    radius="md"
+                  >
+                    <Text size="sm">
+                      The contract is in review by the client
+                    </Text>
+                  </Alert>
+                ) : null
               ) : null}
             </Stack>
           </Grid.Col>
@@ -1031,6 +894,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                     p="sm"
                     className="bg-white border border-green-100"
                     radius="md"
+                    display={"none"}
                   >
                     <Group justify="space-between">
                       <Text size="sm" c="dimmed">
@@ -1203,6 +1067,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         milestone={milestoneForStatusChange}
         currentStatus={milestoneForStatusChange?.status || ""}
         onConfirm={confirmMilestoneStatusChange}
+        providerName={contract?.service_provider?.name}
+        initiatorName={contract?.initiator?.name}
       />
 
       {/* Accept Contract Modal */}

@@ -1,12 +1,17 @@
 import AxiosClient from "@/config/axios";
 import { ENDPOINTS } from "@/lib/endpoints";
 import { AxiosError } from "axios";
-export const getContracts = async () => {
+export const getContracts = async (supplierId: string) => {
   try {
-    const endpoint = ENDPOINTS.contracts.GET_CONTRACTS;
-    const response = await AxiosClient.get(endpoint);
-
-    return response.data;
+    if (supplierId) {
+      const endpoint = ENDPOINTS.contracts.GET_CONTRACTS(supplierId);
+      const response = await AxiosClient.get(endpoint);
+      return response.data;
+    } else {
+      const endpoint = "/api/keyman-contracts";
+      const response = await AxiosClient.get(endpoint);
+      return response.data;
+    }
   } catch (error) {
     if (error instanceof AxiosError) {
       return (
@@ -110,10 +115,7 @@ export const updateContract = async (
     contract_mode?: "client" | "service_provider";
     contract_duration_in_duration?: number;
     service_provider_signing_date?: string | null;
-    contract_json?: {
-      title?: string;
-      [key: string]: string | number | boolean | object | undefined;
-    };
+    contract_json?: string;
   }
 ) => {
   try {

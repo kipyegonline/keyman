@@ -92,7 +92,11 @@ export default function AcceptContractModal({
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
           {/* Contract Summary */}
-          <Paper p="md" className="bg-blue-50 border border-blue-200" radius="md">
+          <Paper
+            p="md"
+            className="bg-blue-50 border border-blue-200"
+            radius="md"
+          >
             <Text fw={600} size="sm" className="text-blue-800 mb-2">
               Contract Summary
             </Text>
@@ -131,13 +135,19 @@ export default function AcceptContractModal({
               <li>Deliver work according to the agreed timeline</li>
               <li>Maintain professional standards throughout the project</li>
               <li>Communicate promptly regarding any issues or changes</li>
-              <li>Comply with all terms and conditions outlined in the contract</li>
+              <li>
+                Comply with all terms and conditions outlined in the contract
+              </li>
             </ul>
           </Alert>
 
           {/* Agreement Summary */}
           {contract.contract_json?.agreement_summary && (
-            <Paper p="md" className="bg-gray-50 border border-gray-200" radius="md">
+            <Paper
+              p="md"
+              className="bg-gray-50 border border-gray-200"
+              radius="md"
+            >
               <Text fw={600} size="sm" className="text-gray-800 mb-2">
                 Project Description
               </Text>
@@ -157,7 +167,7 @@ export default function AcceptContractModal({
                 Digital Signature Required
               </Text>
             </Group>
-            
+
             <TextInput
               label="Full Name (Digital Signature)"
               placeholder="Enter your full name to sign this agreement"
