@@ -129,7 +129,7 @@ const LocationSelector: React.FC<{
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 15000,
         maximumAge: 0,
       }
     );
@@ -186,8 +186,8 @@ const LocationSelector: React.FC<{
               size="xs"
               className={`mt-2 ${
                 locationStatus.includes("Error")
-                  ? "text-red-500"
-                  : "text-green-600"
+                  ? "!text-red-500"
+                  : "!text-green-600"
               }`}
               style={styles}
             >
@@ -198,7 +198,7 @@ const LocationSelector: React.FC<{
       )}
 
       {error && (
-        <Text size="xs" className="text-red-500 mt-1">
+        <Text size="xs" className="!text-red-500 mt-1">
           {error}
         </Text>
       )}
@@ -444,7 +444,7 @@ const SupplierRegistrationForm: React.FC<{
         notify.error("Something went wrong. Try again later.");
       }
 
-      setTimeout(() => setShowSuccess(false), 5000);
+      //setTimeout(() => setShowSuccess(false), 5000);
     } catch (error) {
       if (error instanceof Error) {
         console.error(error);
@@ -465,6 +465,7 @@ const SupplierRegistrationForm: React.FC<{
       )}
     </>
   );
+
   return (
     <Container
       size="fluid"
@@ -625,6 +626,23 @@ const SupplierRegistrationForm: React.FC<{
                         />
                       )}
                     </Grid.Col>
+                    <Grid.Col span={12}>
+                      {supplierTypes && form.values?.type?.length > 0 && (
+                        <CategorySelector
+                          supplierTypes={supplierTypes}
+                          mainCategory={form.values.type}
+                          subCategory={subCategory}
+                          onMainCategoryChange={setMainCategory}
+                          onSubCategoryChange={handleSubCategory}
+                          error={
+                            !mainCategory && form.errors.categories
+                              ? "Please select a category"
+                              : ""
+                          }
+                        />
+                      )}
+                      {categoriesError}
+                    </Grid.Col>
 
                     <Grid.Col span={12}>
                       <TextInput
@@ -649,24 +667,6 @@ const SupplierRegistrationForm: React.FC<{
                         }}
                         error={form.errors.latitude as string}
                       />
-                    </Grid.Col>
-
-                    <Grid.Col span={12}>
-                      {supplierTypes && form.values?.type?.length > 0 && (
-                        <CategorySelector
-                          supplierTypes={supplierTypes}
-                          mainCategory={form.values.type}
-                          subCategory={subCategory}
-                          onMainCategoryChange={setMainCategory}
-                          onSubCategoryChange={handleSubCategory}
-                          error={
-                            !mainCategory && form.errors.categories
-                              ? "Please select a category"
-                              : ""
-                          }
-                        />
-                      )}
-                      {categoriesError}
                     </Grid.Col>
                   </Grid>
                 </div>
@@ -878,13 +878,30 @@ const SupplierRegistrationForm: React.FC<{
                       <br />
                       Type: {form.values.type || "Not specified"}
                       <br />
-                      Category:{" "}
-                      {mainCategory
-                        ? mainCategory.replace("_", " ").toUpperCase()
+                      Categories:{" "}
+                      {form.values.categories &&
+                      form.values.categories.length > 0
+                        ? form.values.categories.length + " categories selected"
                         : "Not selected"}
                       <br />
-                      Location: {form.values.address || "Not specified"}
+                      Location:{" "}
+                      {form.values.latitude ? "selected" : "Not specified"}
+                      <br />
+                      Address: {form.values.address || "Not specified"}
                     </Text>
+                    <Box className="flex justify-center">
+                      <div>
+                        {" "}
+                        {form.values.photo && (
+                          <Avatar
+                            size="lg"
+                            radius="md"
+                            src={URL.createObjectURL(form.values.photo)}
+                            alt="Item preview"
+                          ></Avatar>
+                        )}
+                      </div>
+                    </Box>
                   </Card>
                 </div>
               )}

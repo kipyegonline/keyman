@@ -23,7 +23,6 @@ export default function CustomerContract() {
     return [];
   }, [data]);
   const handleCreateContract = () => {
-    console.log("Create new contract......");
     setShowContract(true);
     // Navigate to contract creation page
   };
