@@ -884,10 +884,7 @@ const SupplierRegistrationForm: React.FC<{
                         ? form.values.categories.length + " categories selected"
                         : "Not selected"}
                       <br />
-                      Location:{" "}
-                      {form.values.latitude ? "selected" : "Not specified"}
-                      <br />
-                      Address: {form.values.address || "Not specified"}
+                      Location: {form.values.address || "Not specified"}
                     </Text>
                     <Box className="flex justify-center">
                       <div>
