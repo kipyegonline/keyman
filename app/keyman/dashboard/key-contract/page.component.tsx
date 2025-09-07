@@ -2,7 +2,7 @@
 import { getContracts } from "@/api/contract";
 import { ContractChatBot } from "@/components/contract";
 
-import ContractList from "@/components/contract/Contractlist";
+import ContractList from "@/components/contract/ContractList";
 
 import { getToken } from "@/providers/AppContext";
 import { Container } from "@mantine/core";
@@ -23,8 +23,11 @@ export default function CustomerContract() {
     return [];
   }, [data]);
   const handleCreateContract = () => {
+    // This will be handled by the modal now
+  };
+
+  const handleCreateWithAI = () => {
     setShowContract(true);
-    // Navigate to contract creation page
   };
   const handleViewContract = (contractId: string) => {
     console.log("View contract:", contractId);
@@ -56,6 +59,7 @@ export default function CustomerContract() {
         userType="customer"
         isLoading={isLoading}
         onCreateContract={handleCreateContract}
+        onCreateWithAI={handleCreateWithAI}
         onViewContract={handleViewContract}
         onDownloadContract={handleDownloadContract}
         onShareContract={handleShareContract}

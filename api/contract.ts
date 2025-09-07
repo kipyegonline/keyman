@@ -138,3 +138,61 @@ export const updateContract = async (
     }
   }
 };
+
+export const createContract = async (contractData: {
+  service_provider_id: string;
+  status: string;
+  contract_duration_in_duration: number;
+  contract_amount: number;
+  contract_json: string;
+}) => {
+  try {
+    const response = await AxiosClient.post(
+      ENDPOINTS.contracts.CREATE_CONTRACT,
+      contractData
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while creating the contract",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};
+
+export const createMilestone = async (milestoneData: {
+  keyman_contract_id: string;
+  name: string;
+  description: string;
+  status: string;
+  start_date: string;
+  end_date: string;
+  amount: number;
+}) => {
+  try {
+    const response = await AxiosClient.post(
+      ENDPOINTS.contracts.CREATE_MILESTONE,
+      milestoneData
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while creating the milestone",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};

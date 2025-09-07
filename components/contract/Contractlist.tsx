@@ -18,6 +18,7 @@ import {
   ThemeIcon,
   Title,
 } from "@mantine/core";
+import CreateContractModal from "./CreateContractModal";
 import {
   FileText,
   Plus,
@@ -65,6 +66,7 @@ interface ContractListProps {
   userType?: "customer" | "supplier";
   isLoading?: boolean;
   onCreateContract?: () => void;
+  onCreateWithAI?: () => void;
   onViewContract?: (contractId: string) => void;
   onDownloadContract?: (contractId: string) => void;
   onShareContract?: (contractId: string) => void;
@@ -75,6 +77,7 @@ const ContractList: React.FC<ContractListProps> = ({
   userType = "customer",
   isLoading = false,
   onCreateContract,
+  onCreateWithAI,
   onViewContract,
   onDownloadContract,
   onShareContract,
@@ -82,6 +85,7 @@ const ContractList: React.FC<ContractListProps> = ({
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [selectedContract] = useState<Contract | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
+  const [createModalOpened, setCreateModalOpened] = useState(false);
   const router = useRouter();
 
   const getStatusColor = (status: string) => {
@@ -205,7 +209,7 @@ const ContractList: React.FC<ContractListProps> = ({
                 radius="xl"
                 className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                 leftSection={<Plus size={20} />}
-                onClick={onCreateContract}
+                onClick={() => setCreateModalOpened(true)}
               >
                 Create Your First Contract
               </Button>
@@ -281,7 +285,7 @@ const ContractList: React.FC<ContractListProps> = ({
               radius="lg"
               className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 transition-all duration-300"
               leftSection={<Plus size={18} />}
-              onClick={onCreateContract}
+              onClick={() => setCreateModalOpened(true)}
             >
               New Contract
             </Button>
@@ -600,6 +604,13 @@ const ContractList: React.FC<ContractListProps> = ({
           </div>
         )}
       </Modal>
+
+      {/* Create Contract Modal */}
+      <CreateContractModal
+        opened={createModalOpened}
+        onClose={() => setCreateModalOpened(false)}
+        onCreateWithAI={() => onCreateWithAI?.()}
+      />
     </Container>
   );
 };

@@ -73,7 +73,7 @@ export default function RequestClientComponent() {
           <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
 
           {/* Animated Plus Icon */}
-          <div className="flex items-center justify-center w-full h-full">
+          <div className="flexx items-center justify-center w-full h-full hidden">
             <Plus
               size={24}
               className="text-white transform transition-transform duration-300 group-hover:rotate-90"

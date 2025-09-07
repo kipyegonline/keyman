@@ -726,9 +726,11 @@ const RequestChat: React.FC<RequestChatProps> = ({
 
   // Item interaction functions
   const toggleItemSelection = (messageId: string, itemIndex: number): void => {
+    console.log("Toggling item", messageId, itemIndex);
+
     setMessages((prev) =>
       prev.map((message) => {
-        if (message.id === messageId && message.items?.[itemIndex]) {
+        if (message.id === messageId && message.items) {
           const updatedItems = [...message.items];
           updatedItems[itemIndex].selected = !updatedItems[itemIndex].selected;
           return {
@@ -742,33 +744,34 @@ const RequestChat: React.FC<RequestChatProps> = ({
     );
   };
 
-  const adjustItemQuantity = (
-    messageId: string,
-    itemIndex: number,
-    delta: number
-  ): void => {
-    setMessages((prev) =>
-      prev.map((message) => {
-        if (message.id === messageId && message.items?.[itemIndex]) {
-          const updatedItems = [...message.items];
-          const item = updatedItems[itemIndex];
-          item.desiredQuantity = Math.max(
-            1,
-            (item.desiredQuantity || 1) + delta
-          );
-          if (item.selected) {
-            return {
-              ...message,
-              items: updatedItems,
-              selectedItems: updatedItems.filter((i) => i.selected),
-            };
+  const adjustItemQuantity = React.useCallback(
+    (messageId: string, itemIndex: number, delta: number): void => {
+      setMessages((prev) =>
+        prev.map((message) => {
+          if (message.id === messageId && message.items?.[itemIndex]) {
+            const updatedItems = [...message.items];
+            const item = updatedItems[itemIndex];
+
+            item.desiredQuantity = Math.max(
+              1,
+              (item.desiredQuantity || 1) + delta
+            );
+            console.log(item.desiredQuantity, delta, "delta");
+            if (item.selected) {
+              return {
+                ...message,
+                items: updatedItems,
+                selectedItems: updatedItems.filter((i) => i.selected),
+              };
+            }
+            return { ...message, items: updatedItems };
           }
-          return { ...message, items: updatedItems };
-        }
-        return message;
-      })
-    );
-  };
+          return message;
+        })
+      );
+    },
+    [messages]
+  );
 
   const sendSelectedItems = (messageId: string): void => {
     const message = messages.find((m) => m.id === messageId);
@@ -843,7 +846,7 @@ const RequestChat: React.FC<RequestChatProps> = ({
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end">
+    <div className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end ">
       {/* Chat Widget */}
       {isOpen && (
         <div className="mb-4 w-80 sm:w-96 h-[450px] sm:h-[500px] max-h-[calc(100vh-120px)] rounded-2xl border border-gray-200 bg-white shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom-2 fade-in-0 duration-300">
@@ -1018,7 +1021,7 @@ const RequestChat: React.FC<RequestChatProps> = ({
                                 key={idx}
                                 className={`border rounded-xl p-3 transition-all duration-200 cursor-pointer hover:shadow-md ${
                                   item.selected
-                                    ? "border-keyman-green bg-keyman-green-50"
+                                    ? "border-keyman-green 0"
                                     : "border-gray-200 hover:border-gray-300 bg-white"
                                 }`}
                                 onClick={() =>
@@ -1082,7 +1085,7 @@ const RequestChat: React.FC<RequestChatProps> = ({
                                         </span>
                                         <button
                                           onClick={(e) => {
-                                            e.stopPropagation();
+                                            // e.stopPropagation();
                                             adjustItemQuantity(
                                               message.id,
                                               idx,

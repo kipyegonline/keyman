@@ -30,14 +30,20 @@ import {
   AlertCircle,
   Activity,
   MoreVertical,
+  Plus,
 } from "lucide-react";
 import React, { useState } from "react";
 import EditMilestoneModal from "./EditMilestoneModal";
+import CreateMilestoneModal from "./CreateMilestoneModal";
 import EditContractModal from "./EditContractModal";
 import MilestoneStatusChangeModal from "./MilestoneStatusChangeModal";
 import AcceptContractModal from "./AcceptContractModal";
 import MilestoneTimeline from "./MilestoneTimeline";
-import { updateContract, updateMilestone } from "@/api/contract";
+import {
+  updateContract,
+  updateMilestone,
+  createMilestone,
+} from "@/api/contract";
 import { notify } from "@/lib/notifications";
 
 // Use the actual API response structure
@@ -154,6 +160,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   //onEditMilestone,
 }) => {
   const [editModalOpened, setEditModalOpened] = useState(false);
+  const [createMilestoneModalOpened, setCreateMilestoneModalOpened] =
+    useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(
     null
   );
@@ -208,6 +216,29 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     }*/
 
     // Close the modal after saving
+  };
+
+  const handleCreateMilestone = () => {
+    setCreateMilestoneModalOpened(true);
+  };
+
+  const handleSaveNewMilestone = async (data: {
+    keyman_contract_id: string;
+    name: string;
+    description: string;
+    status: string;
+    start_date: string;
+    end_date: string;
+    amount: number;
+  }) => {
+    const response = await createMilestone(data);
+    if (response.status) {
+      notify.success("Milestone created successfully");
+      refresh();
+      setCreateMilestoneModalOpened(false);
+    } else {
+      notify.error(response.message);
+    }
   };
 
   const handleEditContract = () => {
@@ -453,7 +484,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       // milestone.status.toLowerCase() === "failed"
     );
   }, [contract?.milestones]);
-
+  //console.log(contract, "tract");
   return (
     <Box>
       <Stack gap="xl">
@@ -762,6 +793,22 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                 </Grid>
               </Card>
 
+              {/* Create Milestone Button */}
+              {canEditMileStone && (
+                <Card shadow="sm" padding="lg" radius="md">
+                  <Group justify="space-between" align="center">
+                    <div>
+                      <Text fw={600} size="lg" className="text-gray-800">
+                        Project Milestones
+                      </Text>
+                      <Text size="sm" c="dimmed">
+                        Add and manage project milestones
+                      </Text>
+                    </div>
+                  </Group>
+                </Card>
+              )}
+
               {/* Milestones Timeline */}
               {contract.milestones && contract.milestones.length > 0 && (
                 <MilestoneTimeline
@@ -776,6 +823,13 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   mode={contract?.contract_mode ?? "client"}
                 />
               )}
+              <Button
+                leftSection={<Plus size={16} />}
+                onClick={handleCreateMilestone}
+                style={{ backgroundColor: "#3D6B2C", color: "white" }}
+              >
+                Create Milestone
+              </Button>
               {/**Actions */}
               {inNegotiation && userType === "customer" ? (
                 canEditMileStone && contract?.contract_mode === "client" ? (
@@ -1079,6 +1133,16 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         }}
         contract={contract}
         onAccept={confirmAcceptContract}
+      />
+
+      {/* Create Milestone Modal */}
+      <CreateMilestoneModal
+        opened={createMilestoneModalOpened}
+        onClose={() => {
+          setCreateMilestoneModalOpened(false);
+        }}
+        contractId={contract.id}
+        onSave={handleSaveNewMilestone}
       />
     </Box>
   );
