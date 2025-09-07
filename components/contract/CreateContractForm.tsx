@@ -72,28 +72,12 @@ const CreateContractForm: React.FC = () => {
       if (response.status) {
         notify.success("Contract created successfully");
 
-        /*notifications.show({
-          title: "Success!",
-          message: "Contract created successfully",
-          color: "green",
-          icon: <CheckCircle size={16} />,
-        });*/
-
         // Redirect back to contracts list
-        router.push(`/keyman/dashboard/key-contract/${response.contract_id}`);
+        router.push(`/keyman/dashboard/key-contract/${response?.contract?.id}`);
       } else {
         notify.error(
           response.message || "Failed to create contract. Please try again."
         );
-
-        /*
-        notifications.show({
-          title: "Error",
-          message:
-            response.message || "Failed to create contract. Please try again.",
-          color: "red",
-          icon: <AlertCircle size={16} />,
-        });*/
       }
     } catch (error) {
       console.error("Error creating contract:", error);
