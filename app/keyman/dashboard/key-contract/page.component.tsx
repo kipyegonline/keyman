@@ -2,7 +2,7 @@
 import { getContracts } from "@/api/contract";
 import { ContractChatBot } from "@/components/contract";
 
-import ContractList from "@/components/contract/ContractList";
+import ContractList from "@/components/contract/Contractlist";
 
 import { getToken } from "@/providers/AppContext";
 import { Container } from "@mantine/core";
