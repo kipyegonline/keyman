@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import RequestChat from "./RequestChat";
 
 interface RequestChatWidgetProps {
-  userToken: string;
+  userToken?: string;
   sessionId?: string;
   userType?: "user" | "supplier";
   isOpen?: boolean;
@@ -16,7 +16,7 @@ interface RequestChatWidgetProps {
  * of the RequestChat component and provides a complete chatbot widget experience
  */
 const RequestChatWidget: React.FC<RequestChatWidgetProps> = ({
-  userToken,
+  userToken = globalThis?.window?.localStorage?.getItem("auth_token") || "",
   sessionId,
   userType = "user",
   isOpen = false,

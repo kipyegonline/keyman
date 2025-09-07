@@ -16,7 +16,9 @@ import "@mantine/carousel/styles.css";
 import AnalyticsScripts from "@/components/ui/AnalyticsScript";
 import { Footer } from "@/components/ui/Footer";
 //import ChatBot from "@/components/keyman-bot";
-import ChatBot from "@/components/keyman-bot/v2";
+//import ChatBot from "@/components/keyman-bot/v2";
+import RequestChatWidget from "@/components/requests/RequestChatWidget";
+import React from "react";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -30,6 +32,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [isOpen, setIsOpen] = React.useState(false);
   return (
     <html lang="en">
       <body className={`${poppins.variable}  antialiased`}>
@@ -38,7 +41,11 @@ export default function RootLayout({
           <Footer />
           <AnalyticsScripts />
           <GoogleAnalytics gaId={TrackingId} />
-          <ChatBot />
+
+          <RequestChatWidget
+            isOpen={isOpen}
+            handleToggle={() => setIsOpen((prev) => !prev)}
+          />
 
           <ProgressBar
             height="4px"

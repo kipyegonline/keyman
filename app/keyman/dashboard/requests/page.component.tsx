@@ -36,11 +36,13 @@ export default function RequestClientComponent() {
   if (isLoading) return <LoadingComponent message="Getting your requests" />;
   return (
     <Container size="lg">
-      <RequestChatWidget
-        userToken={token ?? ""}
-        isOpen={isOpen}
-        handleToggle={() => setIsOpen((prev) => !prev)}
-      />
+      {false ? (
+        <RequestChatWidget
+          userToken={token ?? ""}
+          isOpen={isOpen}
+          handleToggle={() => setIsOpen((prev) => !prev)}
+        />
+      ) : null}
       {_requests?.length > 0 ? (
         <RequestsTable requests={_requests} />
       ) : (
