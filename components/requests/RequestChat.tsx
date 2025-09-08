@@ -1021,7 +1021,7 @@ const RequestChat: React.FC<RequestChatProps> = ({
                                 key={idx}
                                 className={`border rounded-xl p-3 transition-all duration-200 cursor-pointer hover:shadow-md ${
                                   item.selected
-                                    ? "border-keyman-green 0"
+                                    ? "border border-keyman-green "
                                     : "border-gray-200 hover:border-gray-300 bg-white"
                                 }`}
                                 onClick={() =>

@@ -14,9 +14,9 @@ import {
   Loader,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { notifications } from "@mantine/notifications";
+//import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
-import { CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
+import { CheckCircle, ArrowLeft } from "lucide-react";
 import { createContract } from "@/api/contract";
 import { notify } from "@/lib/notifications";
 
@@ -81,12 +81,7 @@ const CreateContractForm: React.FC = () => {
       }
     } catch (error) {
       console.error("Error creating contract:", error);
-      notifications.show({
-        title: "Error",
-        message: "Failed to create contract. Please try again.",
-        color: "red",
-        icon: <AlertCircle size={16} />,
-      });
+      notify.error("Failed to create contract. Please try again.");
     } finally {
       setIsLoading(false);
     }
