@@ -196,7 +196,7 @@ const ContractList: React.FC<ContractListProps> = ({
                 ? "No Contracts Yet"
                 : "No Contracts Available"}
             </Title>
-            <Text size="lg" c="gray.6" className="mb-6 leading-relaxed">
+            <Text size="lg" c="gray.6" className="mb-6 pb-4 leading-relaxed">
               {userType === "customer"
                 ? "You haven't created any contracts yet. Start by creating your first contract to streamline your construction projects."
                 : "No contracts have been created yet. You will see contracts here when customers create them and assign you as a service provider."}
@@ -260,6 +260,12 @@ const ContractList: React.FC<ContractListProps> = ({
             </div>
           </div>
         </div>
+        {/* Create Contract Modal */}
+        <CreateContractModal
+          opened={createModalOpened}
+          onClose={() => setCreateModalOpened(false)}
+          onCreateWithAI={() => onCreateWithAI?.()}
+        />
       </Container>
     );
   }

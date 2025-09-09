@@ -994,7 +994,20 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   >
                     View Documents
                   </Button>
-
+                  {userType === "supplier" &&
+                    contract?.service_provider_signing_date === null &&
+                    contract.status === "pending" && (
+                      <Button
+                        onClick={handleAcceptContract}
+                        loading={isAcceptingContract}
+                        className="!bg-keyman-orange text-white"
+                        disabled={isAcceptingContract}
+                      >
+                        {isAcceptingContract
+                          ? "Accepting..."
+                          : "Accept Contract"}
+                      </Button>
+                    )}
                   <Button
                     fullWidth
                     variant="outline"
@@ -1010,6 +1023,21 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   >
                     {isDownloading ? "Downloading..." : "Download Contract"}
                   </Button>
+                  <Box>
+                    <Text size="sm" c="dimmed">
+                      Contract Status
+                    </Text>
+                    <Badge
+                      variant="filled"
+                      style={{
+                        backgroundColor: statusConfig.bg,
+                        color: statusConfig.color,
+                      }}
+                    >
+                      {statusConfig.label}
+                    </Badge>
+                  </Box>
+
                   {/**Actions */}
                   {/* userType === "customer" ? (
                     canEditMileStone && (
