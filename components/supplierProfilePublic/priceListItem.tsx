@@ -192,29 +192,27 @@ export const PublicPricelistItem: React.FC<{
             {/* Item Header */}
             <Box
               style={{
-                //minWidth: "100px",
-                // width: "100px",
-                // height: "100px",
                 height: 200,
                 alignSelf: "center",
+                overflow: "hidden",
+                borderRadius: "12px",
+                maxWidth: "100%",
               }}
-              // className="border-red "
             >
               <Image
                 src={item?.item?.photo?.[0]}
-                alt={item.name}
-                fit="fill"
+                alt={`${item.name} image`}
+                fit="cover"
                 radius="lg"
                 fallbackSrc="/placeholder-image.png"
                 style={{
-                  objectFit: "cover",
                   border: "2px solid #f0f0f0",
                   boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
                   height: "100%",
-                  //width: 320,
-                  width: 380,
+                  width: "100%",
+                  objectFit: "cover",
+                  maxWidth: "100%",
                 }}
-                // className="w-full "
               />
             </Box>
             <Flex

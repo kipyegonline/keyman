@@ -1514,13 +1514,18 @@ export const PricelistItem: React.FC<{
                   </Text>
                 </Box>
 
-                <Box className="w-full md:w-24 h-auto md:h-24 mt-2">
+                <Box className="w-full md:w-24 h-auto md:h-24 mt-2 overflow-hidden rounded-lg">
                   <Image
                     src={getRightImage(item)}
-                    alt={""}
-                    height={100}
-                    width={100}
-                    className="h-full w-full"
+                    alt={`${item.name} image`}
+                    fit="cover"
+                    radius="lg"
+                    className="h-full w-full object-cover"
+                    style={{
+                      aspectRatio: '1/1',
+                      maxWidth: '100%',
+                      maxHeight: '100%'
+                    }}
                   />
                 </Box>
               </Box>
