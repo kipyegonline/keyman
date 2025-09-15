@@ -17,7 +17,11 @@ import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
 import { navigateTo } from "@/lib/helpers";
 
-export default function WalletNotFound() {
+export default function WalletNotFound({
+  accountType,
+}: {
+  accountType: "personal" | "business" | null;
+}) {
   const [createWalletModalOpen, setCreateWalletModalOpen] = useState(false);
   //const queryClient = useQueryClient();
   const router = useRouter();
@@ -42,7 +46,13 @@ export default function WalletNotFound() {
   });
 
   const handleCreateWallet = () => {
-    createWalletMutation.mutate();
+    //createWalletMutation.mutate();
+    navigateTo();
+    if (accountType === "personal")
+      router.push("/keyman/supplier/key-wallet/create-personal");
+    else if (accountType === "business")
+      router.push("/keyman/supplier/key-wallet/create-business");
+    // router.push("/keyman/supplier/key-wallet/create");
   };
 
   return (

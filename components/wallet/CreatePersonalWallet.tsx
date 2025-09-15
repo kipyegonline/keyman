@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState } from "react";
 import { useForm } from "@mantine/form";
 import { DateInput } from "@mantine/dates";
 import {
@@ -9,7 +9,7 @@ import {
   Group,
   TextInput,
   Select,
-  Textarea,
+  //Textarea,
   FileInput,
   Paper,
   Title,
@@ -19,9 +19,9 @@ import {
   Badge,
   Card,
   Image,
-  Modal,
+  //Modal,
   ActionIcon,
-  Divider,
+  //Divider,
   Alert,
   Progress,
   Box,
@@ -30,11 +30,11 @@ import {
   User,
   Phone,
   Mail,
-  MapPin,
+  //MapPin,
   Calendar,
   CreditCard,
   FileText,
-  Camera,
+  //Camera,
   Upload,
   Eye,
   CheckCircle,
@@ -45,15 +45,16 @@ import {
   Building,
   Award,
   FileCheck,
-  Video,
-  Square,
+  Briefcase,
+  DollarSign,
+  Factory,
 } from "lucide-react";
-import { createWalletWithData } from "@/api/wallet";
+import { createCurrentAccount } from "@/api/wallet";
 import RegistrationSuccess from "./RegistrationSuccess";
 import { notify } from "@/lib/notifications";
-import { toDataUrlFromFile } from "@/lib/FileHandlers";
+//import { toDataUrlFromFile } from "@/lib/FileHandlers";
 
-interface CreateWalletFormData {
+interface CreatePersonalWalletFormData {
   firstName: string;
   lastName: string;
   middleName?: string;
@@ -63,12 +64,12 @@ interface CreateWalletFormData {
   mobile: string;
   idType: string;
   idNumber: string;
-  frontSidePhoto: File | null;
-  backSidePhoto: File | null;
-  selfiePhoto: File | null;
   kraPin: string;
-  address: string;
   email: string;
+  employmentStatus: string;
+  monthlyIncome: string;
+  businessIndustry: string;
+  specifyIndustry: string;
   // Optional documents
   certificateOfGoodConduct?: File | null;
   businessRegistrationCert?: File | null;
@@ -89,23 +90,55 @@ const genderOptions = [
   { value: "other", label: "Other" },
 ];
 
-export default function CreateWallet() {
+const employmentStatusOptions = [
+  { value: "A", label: "Employee" },
+  { value: "B", label: "Self employed" },
+  { value: "C", label: "Unemployed" },
+  { value: "D", label: "Employer" },
+];
+
+const monthlyIncomeOptions = [
+  { value: "A", label: "Less than Ksh. 14,999" },
+  { value: "B", label: "Ksh. 15,000-24,999" },
+  { value: "C", label: "Ksh. 25,000-39,999" },
+  { value: "D", label: "Ksh. 40,000-59,999" },
+  { value: "E", label: "Ksh. 60,000-84,999" },
+  { value: "F", label: "Above Ksh. 85,000" },
+];
+
+const businessIndustryOptions = [
+  { value: "1", label: "Agriculture and Agribusiness" },
+  { value: "2", label: "Manufacturing and Processing" },
+  { value: "3", label: "Construction and Engineering" },
+  { value: "4", label: "Retail and Wholesale Trade" },
+  { value: "5", label: "Information and Communication Technology" },
+  { value: "6", label: "Tourism and Hospitality" },
+  { value: "7", label: "Health and Wellness Services" },
+  { value: "8", label: "Education and Training" },
+  { value: "9", label: "Financial Services" },
+  { value: "10", label: "Professional Services" },
+  { value: "11", label: "Creative Industries" },
+  { value: "12", label: "Renewable Energy and Environmental Conservation" },
+  { value: "13", label: "Transport and Logistics" },
+  { value: "14", label: "Food and Beverage" },
+  { value: "15", label: "Textiles and Apparel" },
+  { value: "16", label: "Automotive and Engineering Services" },
+  { value: "17", label: "Beauty and Personal Care" },
+  { value: "18", label: "Real Estate and Property Development" },
+  { value: "19", label: "Consulting and Business Services" },
+  { value: "20", label: "Social Enterprises and NGOs" },
+  { value: "21", label: "Others, please specify" },
+];
+
+export default function CreatePersonalWallet() {
   const [active, setActive] = useState(0);
-  const [cameraModalOpen, setCameraModalOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<{ [key: string]: string }>(
     {}
   );
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  const form = useForm<CreateWalletFormData>({
+  const form = useForm<CreatePersonalWalletFormData>({
     initialValues: {
       firstName: "",
       lastName: "",
@@ -116,12 +149,12 @@ export default function CreateWallet() {
       mobile: "",
       idType: "",
       idNumber: "",
-      frontSidePhoto: null,
-      backSidePhoto: null,
-      selfiePhoto: null,
       kraPin: "",
-      address: "",
       email: "",
+      employmentStatus: "",
+      monthlyIncome: "",
+      businessIndustry: "",
+      specifyIndustry: "",
       certificateOfGoodConduct: null,
       businessRegistrationCert: null,
       businessPermit: null,
@@ -156,145 +189,30 @@ export default function CreateWallet() {
           mobile: !values.mobile ? "Mobile number is required" : null,
           idType: !values.idType ? "ID type is required" : null,
           idNumber: !values.idNumber ? "ID number is required" : null,
-          /* kraPin: !values.kraPin?.trim()
+          employmentStatus: !values.employmentStatus
+            ? "Employment status is required"
+            : null,
+          monthlyIncome: !values.monthlyIncome
+            ? "Monthly income is required"
+            : null,
+          businessIndustry: !values.businessIndustry
+            ? "Business industry is required"
+            : null,
+          specifyIndustry:
+            values.businessIndustry === "21" && !values.specifyIndustry
+              ? "Please specify the industry"
+              : null,
+          kraPin: !values.kraPin?.trim()
             ? "KRA PIN is required"
             : values.kraPin.length !== 11
             ? "KRA PIN must be 11 characters"
             : null,
-          address: !values.address ? "Address is required" : null,*/
-          frontSidePhoto: !values.frontSidePhoto
-            ? "Front side photo is required"
-            : null,
-          backSidePhoto: !values.backSidePhoto
-            ? "Back side photo is required"
-            : null,
-          selfiePhoto: !values.selfiePhoto ? "Selfie video is required" : null,
         };
       }
       return {};
     },
   });
 
-  const handleFilePreview = (file: File | null, fieldName: string) => {
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPhotoPreview((prev) => ({
-          ...prev,
-          [fieldName]: e.target?.result as string,
-        }));
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setPhotoPreview((prev) => {
-        const newPreview = { ...prev };
-        delete newPreview[fieldName];
-        return newPreview;
-      });
-    }
-  };
-
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "user" },
-        audio: true,
-      });
-      setCameraStream(stream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setCameraModalOpen(true);
-    } catch (error) {
-      console.error(error);
-      notify.error("Unable to access camera and microphone. Please use file upload instead.");
-    }
-  };
-
-  const startRecording = useCallback(() => {
-    if (!cameraStream) return;
-
-    try {
-      // Try MP4 format first, fallback to WebM if not supported
-      let mimeType = 'video/mp4';
-      let fileExtension = 'mp4';
-      let fileName = 'selfie-video.mp4';
-
-      // Check if MP4 is supported
-      if (!MediaRecorder.isTypeSupported('video/mp4')) {
-        // Fallback to WebM if MP4 is not supported
-        mimeType = 'video/webm;codecs=vp8,opus';
-        fileExtension = 'webm';
-        fileName = 'selfie-video.webm';
-        console.log('MP4 not supported, using WebM format');
-      } else {
-        console.log('Recording in MP4 format');
-      }
-
-      const mediaRecorder = new MediaRecorder(cameraStream, {
-        mimeType: mimeType
-      });
-
-      const chunks: BlobPart[] = [];
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunks.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: mimeType });
-        const file = new File([blob], fileName, { type: mimeType });
-        form.setFieldValue("selfiePhoto", file);
-        handleFilePreview(file, "selfiePhoto");
-        stopRecording();
-        stopCamera();
-        setCameraModalOpen(false);
-      };
-
-      mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
-
-      // Start recording timer
-      recordingIntervalRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
-
-      // Auto-stop recording after 10 seconds
-      setTimeout(() => {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-          mediaRecorderRef.current.stop();
-        }
-      }, 10000);
-
-    } catch (error) {
-      console.error('Error starting recording:', error);
-      notify.error("Unable to start video recording. Please try again.");
-    }
-  }, [cameraStream, form]);
-
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-    }
-    setIsRecording(false);
-    setRecordingTime(0);
-    if (recordingIntervalRef.current) {
-      clearInterval(recordingIntervalRef.current);
-      recordingIntervalRef.current = null;
-    }
-  }, []);
-
-  const stopCamera = () => {
-    stopRecording();
-    if (cameraStream) {
-      cameraStream.getTracks().forEach((track) => track.stop());
-      setCameraStream(null);
-    }
-  };
   React.useEffect(() => {
     // Effect to run when 'active' changes
     if (active > 0) window.scrollTo(0, 0);
@@ -347,31 +265,12 @@ export default function CreateWallet() {
       formData.append("idType", form.values.idType);
       formData.append("idNumber", form.values.idNumber);
       formData.append("kraPin", form.values.kraPin);
-      formData.append("address", form.values.address);
       formData.append("email", form.values.email);
-
-      // Required photos
-      if (form.values.frontSidePhoto) {
-        const base64 = await toDataUrlFromFile(form.values.frontSidePhoto);
-
-        formData.append("frontSidePhoto", (base64 as string).split(",")[1]);
-        //formData.append("frontSidePhoto", smallest);
-      }
-      if (form.values.backSidePhoto) {
-        const base64 = await toDataUrlFromFile(form.values.backSidePhoto);
-        formData.append(
-          "backSidePhoto",
-          (base64 as string).split(",")[1] as string
-        );
-        // formData.append("backSidePhoto", smallest);
-      }
-      if (form.values.selfiePhoto) {
-        const base64 = await toDataUrlFromFile(form.values.selfiePhoto);
-        formData.append(
-          "selfiePhoto",
-          (base64 as string).split(",")[1] as string
-        );
-        // formData.append("selfiePhoto", smallest);
+      formData.append("employmentStatus", form.values.employmentStatus);
+      formData.append("monthlyIncome", form.values.monthlyIncome);
+      formData.append("businessIndustry", form.values.businessIndustry);
+      if (form.values.specifyIndustry) {
+        formData.append("specifyIndustry", form.values.specifyIndustry);
       }
 
       // Optional documents
@@ -400,7 +299,7 @@ export default function CreateWallet() {
         formData.append("portfolio", form.values.portfolio);
       }
 
-      const response = await createWalletWithData(formData);
+      const response = await createCurrentAccount(formData);
       //console.log(response);
       if (response.success) {
         if (response.message.includes("successfully")) {
@@ -417,101 +316,82 @@ export default function CreateWallet() {
     }
   };
 
+  const handleFilePreview = (file: File | null, fieldName: string) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview((prev) => ({
+          ...prev,
+          [fieldName]: e.target?.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPhotoPreview((prev) => {
+        const newPreview = { ...prev };
+        delete newPreview[fieldName];
+        return newPreview;
+      });
+    }
+  };
+
   const PhotoUploadField = ({
     fieldName,
     label,
     required = false,
-    allowCamera = false,
   }: {
-    fieldName: keyof CreateWalletFormData;
+    fieldName: keyof CreatePersonalWalletFormData;
     label: string;
     required?: boolean;
     allowCamera?: boolean;
-  }) => {
-    const isVideoField = fieldName === "selfiePhoto";
-    const acceptedTypes = isVideoField ? "video/*" : "image/*";
-    const file = form.values[fieldName] as File | null;
-    const isVideo = file?.type.startsWith('video/');
+  }) => (
+    <div className="space-y-3">
+      <Text size="sm" fw={500} className="flex items-center gap-2">
+        <Upload size={16} />
+        {label} {required && <span className="text-red-500">*</span>}
+      </Text>
 
-    return (
-      <div className="space-y-3">
-        <Text size="sm" fw={500} className="flex items-center gap-2">
-          <Upload size={16} />
-          {label} {required && <span className="text-red-500">*</span>}
-        </Text>
-
-        {isVideoField && (
-          <Alert color="blue" className="mb-3">
-            <Text size="xs">
-              📹 Upload a video file or record a 10-second selfie video using your camera.
-              Please ensure good lighting and speak clearly during recording.
-            </Text>
-          </Alert>
-        )}
-
-        <div className="flex gap-3">
-          <FileInput
-            placeholder={isVideoField ? "Choose video file" : "Choose file"}
-            accept={acceptedTypes}
-            value={file}
-            onChange={(file) => {
-              form.setFieldValue(fieldName, file);
-              handleFilePreview(file, fieldName);
-            }}
-            className="flex-1"
-            leftSection={<Upload size={16} />}
-            error={form.errors[fieldName]}
-          />
-
-          {allowCamera && (
-            <ActionIcon
-              variant="light"
-              size="lg"
-              onClick={startCamera}
-              style={{ backgroundColor: "#3D6B2C", color: "white" }}
-              className="hover:opacity-80 transition-opacity"
-              title={isVideoField ? "Record Video" : "Take Photo"}
-            >
-              <Camera size={18} />
-            </ActionIcon>
-          )}
-        </div>
-
-        {photoPreview[fieldName] && (
-          <Card className="p-3 border border-gray-200">
-            <div className="flex items-center justify-between mb-2">
-              <Text size="xs" c="dimmed">
-                Preview
-              </Text>
-              <ActionIcon
-                size="sm"
-                variant="subtle"
-                onClick={() => {
-                  form.setFieldValue(fieldName, null);
-                  handleFilePreview(null, fieldName);
-                }}
-              >
-                <X size={14} />
-              </ActionIcon>
-            </div>
-            {isVideo ? (
-              <video
-                src={photoPreview[fieldName]}
-                controls
-                className="max-h-32 w-auto mx-auto rounded"
-              />
-            ) : (
-              <Image
-                src={photoPreview[fieldName]}
-                alt="Preview"
-                className="max-h-32 w-auto mx-auto rounded"
-              />
-            )}
-          </Card>
-        )}
+      <div className="flex gap-3">
+        <FileInput
+          placeholder="Choose file"
+          accept="image/*"
+          value={form.values[fieldName] as File | null}
+          onChange={(file) => {
+            form.setFieldValue(fieldName, file);
+            handleFilePreview(file, fieldName);
+          }}
+          className="flex-1"
+          leftSection={<Upload size={16} />}
+          error={form.errors[fieldName]}
+        />
       </div>
-    );
-  };
+
+      {photoPreview[fieldName] && (
+        <Card className="p-3 border border-gray-200">
+          <div className="flex items-center justify-between mb-2">
+            <Text size="xs" c="dimmed">
+              Preview
+            </Text>
+            <ActionIcon
+              size="sm"
+              variant="subtle"
+              onClick={() => {
+                form.setFieldValue(fieldName, null);
+                handleFilePreview(null, fieldName);
+              }}
+            >
+              <X size={14} />
+            </ActionIcon>
+          </div>
+          <Image
+            src={photoPreview[fieldName]}
+            alt="Preview"
+            className="max-h-32 w-auto mx-auto rounded"
+          />
+        </Card>
+      )}
+    </div>
+  );
 
   const handleResetForm = () => {
     form.reset();
@@ -534,7 +414,7 @@ export default function CreateWallet() {
       <Paper shadow="md" radius="lg" p="xl" className="bg-white">
         <div className="mb-8 text-center">
           <Title order={2} style={{ color: "#3D6B2C" }} className="mb-2">
-            Create Your Keyman Wallet
+            Create Your Personal Current Account
           </Title>
           <Text size="lg" c="dimmed">
             Complete your registration to start using digital payments
@@ -617,6 +497,47 @@ export default function CreateWallet() {
                     {...form.getInputProps("mobile")}
                   />
                 </Grid.Col>
+                <Grid.Col span={{ base: 12, sm: 6 }}>
+                  <Select
+                    label="Employment Status"
+                    placeholder="Select employment status"
+                    data={employmentStatusOptions}
+                    leftSection={<Briefcase size={16} />}
+                    required
+                    {...form.getInputProps("employmentStatus")}
+                  />
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, sm: 6 }}>
+                  <Select
+                    label="Monthly Income"
+                    placeholder="Select monthly income range"
+                    data={monthlyIncomeOptions}
+                    leftSection={<DollarSign size={16} />}
+                    required
+                    {...form.getInputProps("monthlyIncome")}
+                  />
+                </Grid.Col>
+                <Grid.Col span={{ base: 12, sm: 6 }}>
+                  <Select
+                    label="Business Industry"
+                    placeholder="Select business industry"
+                    data={businessIndustryOptions}
+                    leftSection={<Factory size={16} />}
+                    required
+                    {...form.getInputProps("businessIndustry")}
+                  />
+                </Grid.Col>
+                {form.values.businessIndustry === "21" && (
+                  <Grid.Col span={{ base: 12, sm: 6 }}>
+                    <TextInput
+                      label="Specify Industry"
+                      placeholder="Please specify your industry"
+                      leftSection={<Building size={16} />}
+                      required
+                      {...form.getInputProps("specifyIndustry")}
+                    />
+                  </Grid.Col>
+                )}
                 <Grid.Col span={{ base: 12, sm: 6 }} display={"none"}>
                   <TextInput
                     label="Mobile Number"
@@ -653,48 +574,6 @@ export default function CreateWallet() {
                     leftSection={<FileText size={16} />}
                     required
                     {...form.getInputProps("kraPin")}
-                  />
-                </Grid.Col>
-                <Grid.Col span={12}>
-                  <Textarea
-                    label="Address"
-                    placeholder="Enter your full address"
-                    leftSection={<MapPin size={16} />}
-                    minRows={3}
-                    required
-                    {...form.getInputProps("address")}
-                  />
-                </Grid.Col>
-
-                <Grid.Col span={12}>
-                  <Divider
-                    label="Required Photos"
-                    labelPosition="center"
-                    className="my-6"
-                    color="#3D6B2C"
-                  />
-                </Grid.Col>
-
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <PhotoUploadField
-                    fieldName="frontSidePhoto"
-                    label="ID Front Side Photo"
-                    required
-                  />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <PhotoUploadField
-                    fieldName="backSidePhoto"
-                    label="ID Back Side Photo"
-                    required
-                  />
-                </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <PhotoUploadField
-                    fieldName="selfiePhoto"
-                    label="Selfie Video"
-                    required
-                    allowCamera
                   />
                 </Grid.Col>
               </Grid>
@@ -841,11 +720,39 @@ export default function CreateWallet() {
                           ? new Date(form.values.birthday)?.toLocaleDateString()
                           : null}
                       </div>
+                      <div>
+                        <strong>Employment Status:</strong>{" "}
+                        {
+                          employmentStatusOptions.find(
+                            (e) => e.value === form.values.employmentStatus
+                          )?.label
+                        }
+                      </div>
+                      <div>
+                        <strong>Monthly Income:</strong>{" "}
+                        {
+                          monthlyIncomeOptions.find(
+                            (m) => m.value === form.values.monthlyIncome
+                          )?.label
+                        }
+                      </div>
+                      <div>
+                        <strong>Business Industry:</strong>{" "}
+                        {
+                          businessIndustryOptions.find(
+                            (b) => b.value === form.values.businessIndustry
+                          )?.label
+                        }
+                      </div>
+                      {form.values.businessIndustry === "21" &&
+                        form.values.specifyIndustry && (
+                          <div>
+                            <strong>Specified Industry:</strong>{" "}
+                            {form.values.specifyIndustry}
+                          </div>
+                        )}
                     </div>
                     <div className="mt-3">
-                      <div className="text-sm">
-                        <strong>Address:</strong> {form.values.address}
-                      </div>
                       <div className="text-sm">
                         <strong>KRA PIN:</strong> {form.values.kraPin}
                       </div>
@@ -872,62 +779,6 @@ export default function CreateWallet() {
                       <div>
                         <strong>ID Number:</strong> {form.values.idNumber}
                       </div>
-                    </div>
-                  </Card>
-
-                  <Card className="bg-green-50 p-4" radius="md">
-                    <Text
-                      fw={600}
-                      style={{ color: "#3D6B2C" }}
-                      className="mb-3"
-                    >
-                      Uploaded Documents
-                    </Text>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {photoPreview.frontSidePhoto && (
-                        <div className="text-center">
-                          <Text size="xs" c="dimmed" mb="xs">
-                            Front ID Photo
-                          </Text>
-                          <Image
-                            src={photoPreview.frontSidePhoto}
-                            alt="Front ID"
-                            className="max-h-24 w-auto mx-auto rounded shadow-sm"
-                          />
-                        </div>
-                      )}
-                      {photoPreview.backSidePhoto && (
-                        <div className="text-center">
-                          <Text size="xs" c="dimmed" mb="xs">
-                            Back ID Photo
-                          </Text>
-                          <Image
-                            src={photoPreview.backSidePhoto}
-                            alt="Back ID"
-                            className="max-h-24 w-auto mx-auto rounded shadow-sm"
-                          />
-                        </div>
-                      )}
-                      {photoPreview.selfiePhoto && (
-                        <div className="text-center">
-                          <Text size="xs" c="dimmed" mb="xs">
-                            Selfie Video
-                          </Text>
-                          {form.values.selfiePhoto?.type.startsWith('video/') ? (
-                            <video
-                              src={photoPreview.selfiePhoto}
-                              controls
-                              className="max-h-24 w-auto mx-auto rounded shadow-sm"
-                            />
-                          ) : (
-                            <Image
-                              src={photoPreview.selfiePhoto}
-                              alt="Selfie"
-                              className="max-h-24 w-auto mx-auto rounded shadow-sm"
-                            />
-                          )}
-                        </div>
-                      )}
                     </div>
                   </Card>
 
@@ -1039,85 +890,6 @@ export default function CreateWallet() {
             )}
           </div>
         </Group>
-
-        {/* Camera Modal */}
-        <Modal
-          opened={cameraModalOpen}
-          onClose={() => {
-            stopCamera();
-            setCameraModalOpen(false);
-          }}
-          title={
-            <div className="flex items-center gap-2">
-              <Video size={20} />
-              Record Selfie Video
-            </div>
-          }
-          centered
-          size="md"
-        >
-          <div className="text-center">
-            <Alert color="blue" className="mb-4">
-              <Text size="sm">
-                📹 Position yourself clearly in the frame and speak your full name.
-                Recording will automatically stop after 10 seconds.
-              </Text>
-            </Alert>
-
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full max-w-sm mx-auto rounded-lg mb-4 shadow-lg"
-            />
-            <canvas ref={canvasRef} style={{ display: "none" }} />
-
-            {isRecording && (
-              <div className="mb-4">
-                <Text size="sm" color="red" className="font-semibold">
-                  🔴 Recording... {recordingTime}s / 10s
-                </Text>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                  <div
-                    className="bg-red-500 h-2 rounded-full transition-all duration-1000"
-                    style={{ width: `${(recordingTime / 10) * 100}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
-            <Group justify="center" gap="md">
-              <Button
-                variant="light"
-                onClick={() => {
-                  stopCamera();
-                  setCameraModalOpen(false);
-                }}
-                disabled={isRecording}
-              >
-                Cancel
-              </Button>
-              {!isRecording ? (
-                <Button
-                  onClick={startRecording}
-                  style={{ backgroundColor: "#3D6B2C" }}
-                  leftSection={<Video size={16} />}
-                >
-                  Start Recording
-                </Button>
-              ) : (
-                <Button
-                  onClick={stopRecording}
-                  color="red"
-                  leftSection={<Square size={16} />}
-                >
-                  Stop Recording
-                </Button>
-              )}
-            </Group>
-          </div>
-        </Modal>
 
         {isSubmitting && (
           <Box className="mt-4">

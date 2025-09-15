@@ -69,6 +69,31 @@ export const createWalletWithData = async (formData: FormData) => {
   }
 };
 
+export const createCurrentAccount = async (formData: FormData) => {
+  try {
+    const endpoint = ENDPOINTS.wallet.CREATE_CURRENT_ACCOUNT;
+    const response = await AxiosClient.post(endpoint, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    console.log(response, "current account creation response....");
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while creating current account",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};
+
 export const initializeWallet = async (data: {
   type: "personal" | "business";
   payment_method: string;

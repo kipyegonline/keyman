@@ -70,9 +70,9 @@ export default function WalletClientComponent() {
     initializeWalletMutation.mutate(data);
   };
 
-  //console.log(userAccount, "user loading.....");
-  // console.log(wallet, "wl");
+  console.log(userAccount, wallet, "user loading.....");
 
+  return <WalletNotFound accountType={"personal"} />;
   // Loading state
   if (loadingUser) {
     return <WalletLoadingComponent />;
@@ -106,7 +106,7 @@ export default function WalletClientComponent() {
     const status = userAccount?.user?.wallet_creation_status;
     const walletAccountId = userAccount?.user?.wallet_account_id;
     if (status === "Verification Fee Paid") {
-      return <WalletNotFound />;
+      return <WalletNotFound accountType={userAccount?.user?.account_type} />;
     }
     const onBoardingId = userAccount?.user?.onboardingRequestId;
     if (onBoardingId || walletAccountId)
@@ -127,33 +127,4 @@ export default function WalletClientComponent() {
   }
 
   return null;
-  /*
-  // Wallet not found or error states
-  if (!wallet?.status) {
-    if (wallet?.message === "User not verified") {
-      return (
-        <WalletTypeSelection
-          onTypeSelect={handleWalletTypeSelect}
-          isLoading={initializeWalletMutation.isPending}
-        />
-      );
-    }
-    if (wallet?.message === "Wallet not found") {
-      return <WalletNotFound />;
-    } else {
-      return <WalletOnboarding onboardingRequestId={onBoardingId} />;
-    } 
-  }*/
-
-  // Wallet exists - prepare data
-  /* const walletData: WalletDataType = wallet.data || {
-    balance: 0,
-    currency: "KES",
-    walletId: "",
-    phoneNumber: "",
-    isVerified: false,
-    transactions: [],
-  }; */
-
-  //  return <WalletData walletData={walletData} isLoading={loadingWallet} />;
 }

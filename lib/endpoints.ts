@@ -99,5 +99,6 @@ export const ENDPOINTS = {
     SEND_OTP: "/api/choice/sendOTP",
     CONFIRM_OTP: "/api/choice/confirmOTP",
     VERIFICATION_FEE: "/api/verification/fee",
+    CREATE_CURRENT_ACCOUNT: "/api/user/create-current-account",
   },
 };
