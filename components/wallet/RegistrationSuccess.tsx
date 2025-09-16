@@ -18,22 +18,26 @@ import { notify } from "@/lib/notifications";
 import { getUserDetails } from "@/api/registration";
 import { useQuery } from "@tanstack/react-query";
 import LoadingComponent from "@/lib/LoadingComponent";
+import KYCResubmissionModal from "./KYCResubmissionModal";
 
 interface RegistrationSuccessProps {
   onClose?: () => void;
   phoneNumber?: string;
   resubmit?: () => void;
+  idType?: string;
 }
 
 export default function RegistrationSuccess({
   onClose,
   phoneNumber,
   resubmit,
+  idType = "101",
 }: RegistrationSuccessProps) {
   const router = useRouter();
   const [, setShowOTPInput] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [, setWalletActivated] = useState(false);
+  const [showKYCModal, setShowKYCModal] = useState(false);
 
   const {
     data: userAccount,
@@ -168,16 +172,85 @@ export default function RegistrationSuccess({
       userAccount?.user?.kyc_documents_okay?.toLowerCase() === "failed"
     ) {
       return (
-        <Box p="xl">
-          <Box>
-            <Text mb="md">
-              Dear {userAccount?.user?.name}, Your KYC verification has failed.
-            </Text>
-            <Text>Please resubmit request again</Text>
-          </Box>
+        <>
+          <Container size="sm" py="xl">
+            <Paper
+              shadow="md"
+              radius="lg"
+              p="xl"
+              className="bg-white text-center"
+            >
+              <Stack gap="lg" align="center">
+                <div className="w-20 h-20 mx-auto rounded-full bg-orange-100 flex items-center justify-center">
+                  <CheckCircle size={48} className="text-orange-600" />
+                </div>
 
-          <Button onClick={resubmit}>Resubmit</Button>
-        </Box>
+                <div>
+                  <Title
+                    order={2}
+                    style={{ color: "#F08C23" }}
+                    className="mb-3"
+                  >
+                    KYC Documents Required
+                  </Title>
+                  <Text size="lg" c="dimmed" className="max-w-md mx-auto">
+                    Dear {userAccount?.user?.name}, your KYC verification
+                    failed. Please upload new documents to continue.
+                  </Text>
+                </div>
+
+                <Card
+                  className="w-full max-w-md bg-orange-50 border border-orange-200"
+                  radius="md"
+                >
+                  <Text
+                    size="sm"
+                    fw={500}
+                    style={{ color: "#F08C23" }}
+                    className="mb-2"
+                  >
+                    Document Upload Required
+                  </Text>
+                  <Text size="sm" c="dimmed">
+                    Upload clear, high-quality photos of your identification
+                    documents to complete verification.
+                  </Text>
+                </Card>
+
+                <Stack gap="sm" className="w-full max-w-sm">
+                  <Button
+                    size="lg"
+                    onClick={() => setShowKYCModal(true)}
+                    style={{ backgroundColor: "#F08C23" }}
+                    className="hover:opacity-90 w-full"
+                  >
+                    Upload Documents
+                  </Button>
+
+                  {onClose && (
+                    <Button
+                      variant="light"
+                      size="md"
+                      onClick={onClose}
+                      className="w-full"
+                    >
+                      Go Back
+                    </Button>
+                  )}
+                </Stack>
+              </Stack>
+            </Paper>
+          </Container>
+
+          <KYCResubmissionModal
+            opened={showKYCModal}
+            onClose={() => {
+              setShowKYCModal(false);
+              refresh(); // Refresh user data after upload
+            }}
+            idType={idType}
+          />
+        </>
       );
     } else {
       return (

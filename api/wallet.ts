@@ -119,7 +119,10 @@ export const initializeWallet = async (data: {
   }
 };
 
-export const sendOTP = async (phoneNumber: string, otpType: "email" | "sms" = "email") => {
+export const sendOTP = async (
+  phoneNumber: string,
+  otpType: "email" | "sms" = "email"
+) => {
   try {
     const endpoint = ENDPOINTS.wallet.SEND_OTP;
     const response = await AxiosClient.post(endpoint, {
@@ -157,6 +160,31 @@ export const confirmOTP = async (phoneNumber: string, otp: string) => {
       return (
         error.response?.data || {
           message: "An error occurred while confirming OTP",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};
+
+export const sendKYC = async (formData: FormData) => {
+  try {
+    const endpoint = ENDPOINTS.wallet.UPLOAD_KYC_DOCUMENTS;
+    const response = await AxiosClient.post(endpoint, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while uploading KYC documents",
           status: false,
         }
       );

@@ -650,6 +650,7 @@ export default function CreatePersonalWallet() {
         onClose={handleResetForm}
         phoneNumber={form.values.mobile}
         resubmit={() => setShowSuccess(false)}
+        idType={form.values.idType}
       />
     );
   }

@@ -520,6 +520,7 @@ export default function CreateWallet() {
       <RegistrationSuccess
         onClose={handleResetForm}
         phoneNumber={form.values.mobile}
+        idType={form.values.idType}
       />
     );
   }

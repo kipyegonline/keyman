@@ -1,0 +1,313 @@
+"use client";
+import React, { useState } from "react";
+import { useForm } from "@mantine/form";
+import {
+  Modal,
+  Button,
+  Group,
+  //TextInput,
+  FileInput,
+  //Paper,
+  //Title,
+  Text,
+  Grid,
+  Card,
+  Image,
+  ActionIcon,
+  Alert,
+  Progress,
+  Box,
+} from "@mantine/core";
+import {
+  Upload,
+  X,
+  //CheckCircle,
+  AlertCircle,
+  FileText,
+  Send,
+} from "lucide-react";
+import { sendKYC } from "@/api/wallet";
+import { notify } from "@/lib/notifications";
+import { toDataUrlFromFile } from "@/lib/FileHandlers";
+
+interface KYCResubmissionModalProps {
+  opened: boolean;
+  onClose: () => void;
+  idType?: string;
+}
+
+interface KYCFormData {
+  frontSidePhoto: File | null;
+  backSidePhoto: File | null;
+  selfiePhoto: File | null;
+}
+
+const getIdLabels = (idType: string) => {
+  switch (idType) {
+    case "101": // National ID
+      return {
+        idNumber: "National ID Number",
+        frontPhoto: "National ID Front Side Photo",
+        backPhoto: "National ID Back Side Photo",
+        showBackPhoto: true,
+      };
+    case "102": // Alien ID
+      return {
+        idNumber: "Alien ID Number",
+        frontPhoto: "Alien ID Front Side Photo",
+        backPhoto: "Alien ID Back Side Photo",
+        showBackPhoto: true,
+      };
+    case "103": // Passport
+      return {
+        idNumber: "Passport Number",
+        frontPhoto: "Passport Photo",
+        backPhoto: "",
+        showBackPhoto: false,
+      };
+    default:
+      return {
+        idNumber: "ID Number",
+        frontPhoto: "ID Front Side Photo",
+        backPhoto: "ID Back Side Photo",
+        showBackPhoto: true,
+      };
+  }
+};
+
+export default function KYCResubmissionModal({
+  opened,
+  onClose,
+  idType = "101",
+}: KYCResubmissionModalProps) {
+  const [photoPreview, setPhotoPreview] = useState<{ [key: string]: string }>(
+    {}
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const idLabels = getIdLabels(idType);
+
+  const form = useForm<KYCFormData>({
+    initialValues: {
+      frontSidePhoto: null,
+      backSidePhoto: null,
+      selfiePhoto: null,
+    },
+    validate: {
+      frontSidePhoto: (value) =>
+        !value ? "Front side photo is required" : null,
+      backSidePhoto: (value) =>
+        idType !== "103" && !value ? "Back side photo is required" : null,
+      selfiePhoto: (value) => (!value ? "Selfie photo is required" : null),
+    },
+  });
+
+  const handleFilePreview = (file: File | null, fieldName: string) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview((prev) => ({
+          ...prev,
+          [fieldName]: e.target?.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPhotoPreview((prev) => {
+        const newPreview = { ...prev };
+        delete newPreview[fieldName];
+        return newPreview;
+      });
+    }
+  };
+
+  const PhotoUploadField = ({
+    fieldName,
+    label,
+    required = false,
+  }: {
+    fieldName: keyof KYCFormData;
+    label: string;
+    required?: boolean;
+  }) => {
+    const file = form.values[fieldName] as File | null;
+
+    return (
+      <div className="space-y-3">
+        <Text size="sm" fw={500} className="flex items-center gap-2">
+          <Upload size={16} />
+          {label} {required && <span className="text-red-500">*</span>}
+        </Text>
+
+        <div className="flex gap-3">
+          <FileInput
+            placeholder="Choose file"
+            accept="image/*"
+            value={file}
+            onChange={(file) => {
+              form.setFieldValue(fieldName, file);
+              handleFilePreview(file, fieldName);
+            }}
+            className="flex-1"
+            leftSection={<Upload size={16} />}
+            error={form.errors[fieldName]}
+          />
+        </div>
+
+        {photoPreview[fieldName] && (
+          <Card className="p-3 border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <Text size="xs" c="dimmed">
+                Preview
+              </Text>
+              <ActionIcon
+                size="sm"
+                variant="subtle"
+                onClick={() => {
+                  form.setFieldValue(fieldName, null);
+                  handleFilePreview(null, fieldName);
+                }}
+              >
+                <X size={14} />
+              </ActionIcon>
+            </div>
+            <Image
+              src={photoPreview[fieldName]}
+              alt="Preview"
+              className="max-h-32 w-auto mx-auto rounded"
+            />
+          </Card>
+        )}
+      </div>
+    );
+  };
+
+  const handleSubmit = async () => {
+    const validation = form.validate();
+    if (validation.hasErrors) {
+      notify.error("Please upload all required documents");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const formData = new FormData();
+
+      formData.append("idType", idType);
+
+      // Add required photos
+      if (form.values.frontSidePhoto) {
+        const base64 = await toDataUrlFromFile(form.values.frontSidePhoto);
+        formData.append("frontSidePhoto", (base64 as string).split(",")[1]);
+      }
+
+      if (form.values.backSidePhoto && idType !== "103") {
+        const base64 = await toDataUrlFromFile(form.values.backSidePhoto);
+        formData.append("backSidePhoto", (base64 as string).split(",")[1]);
+      }
+
+      if (form.values.selfiePhoto) {
+        const base64 = await toDataUrlFromFile(form.values.selfiePhoto);
+        formData.append("selfiePhoto", (base64 as string).split(",")[1]);
+      }
+
+      const response = await sendKYC(formData);
+
+      if (response.success) {
+        notify.success("KYC documents uploaded successfully");
+        form.reset();
+        setPhotoPreview({});
+        onClose();
+      } else {
+        notify.error(response.message || "Failed to upload KYC documents");
+      }
+    } catch (error) {
+      notify.error("Failed to upload KYC documents");
+      console.error(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    form.reset();
+    setPhotoPreview({});
+    onClose();
+  };
+
+  return (
+    <Modal
+      opened={opened}
+      onClose={handleClose}
+      title={
+        <div className="flex items-center gap-2">
+          <FileText size={20} />
+          Upload KYC Documents
+        </div>
+      }
+      centered
+      size="lg"
+    >
+      <div className="space-y-6">
+        <Alert icon={<AlertCircle size={16} />} color="orange">
+          <Text size="sm">
+            Your previous KYC documents were not accepted. Please upload new,
+            clear photos of your identification documents.
+          </Text>
+        </Alert>
+
+        <Grid gutter="lg">
+          <Grid.Col span={idLabels.showBackPhoto ? 6 : 12}>
+            <PhotoUploadField
+              fieldName="frontSidePhoto"
+              label={idLabels.frontPhoto}
+              required
+            />
+          </Grid.Col>
+
+          {idLabels.showBackPhoto && (
+            <Grid.Col span={6}>
+              <PhotoUploadField
+                fieldName="backSidePhoto"
+                label={idLabels.backPhoto}
+                required
+              />
+            </Grid.Col>
+          )}
+
+          <Grid.Col span={12}>
+            <PhotoUploadField
+              fieldName="selfiePhoto"
+              label="Selfie Photo"
+              required
+            />
+          </Grid.Col>
+        </Grid>
+
+        {isSubmitting && (
+          <Box>
+            <Progress value={100} animated color="#3D6B2C" />
+            <Text size="sm" c="dimmed" ta="center" mt="xs">
+              Uploading documents...
+            </Text>
+          </Box>
+        )}
+
+        <Group justify="space-between" mt="xl">
+          <Button variant="light" onClick={handleClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            loading={isSubmitting}
+            leftSection={<Send size={16} />}
+            style={{ backgroundColor: "#3D6B2C" }}
+            className="hover:opacity-90"
+          >
+            Upload Documents
+          </Button>
+        </Group>
+      </div>
+    </Modal>
+  );
+}
