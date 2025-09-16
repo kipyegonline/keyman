@@ -49,9 +49,10 @@ export default function WalletNotFound({
     //createWalletMutation.mutate();
     navigateTo();
     if (accountType === "personal")
-      router.push("/keyman/supplier/key-wallet/create-personal");
+      router.push("/keyman/supplier/key-wallet/create-personal-wallet");
     else if (accountType === "business")
-      router.push("/keyman/supplier/key-wallet/create-business");
+      router.push("/keyman/supplier/key-wallet/create-current-account");
+
     // router.push("/keyman/supplier/key-wallet/create");
   };
 
@@ -64,7 +65,8 @@ export default function WalletNotFound({
           style={{ margin: "0 auto 20px" }}
         />
         <Title order={2} mb="md">
-          Create Your Wallet
+          Create Your{" "}
+          {accountType === "personal" ? "Personal" : "current account"} Wallet
         </Title>
         <Text size="lg" c="dimmed" mb="xl">
           Get started with Keyman Stores digital wallet to manage your payments
@@ -73,7 +75,7 @@ export default function WalletNotFound({
         <Button
           size="lg"
           leftSection={<Plus size={16} />}
-          onClick={() => setCreateWalletModalOpen(true)}
+          onClick={handleCreateWallet}
           loading={createWalletMutation.isPending}
         >
           Create Wallet

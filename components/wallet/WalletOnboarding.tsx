@@ -29,7 +29,10 @@ import {
   User,
   LucideProps,
 } from "lucide-react";
-import OTPInput from "./OTPInput";
+
+import RegistrationSuccess from "./RegistrationSuccess";
+import { useRouter } from "next/navigation";
+import { navigateTo } from "@/lib/helpers";
 
 interface WalletOnboardingProps {
   onboardingRequestId: string;
@@ -40,7 +43,6 @@ interface WalletOnboardingProps {
 export default function WalletOnboarding({
   onboardingRequestId,
   otpConfirmed,
-  refresh,
 }: WalletOnboardingProps) {
   const onboardingSteps = [
     { icon: User, label: "Identity Verification", status: "completed" },
@@ -48,7 +50,7 @@ export default function WalletOnboarding({
     { icon: Shield, label: "Security Setup", status: "pending" },
     { icon: Wallet, label: "Wallet Activation", status: "pending" },
   ];
-
+  const router = useRouter();
   const getStepIcon = (
     status: string,
     IconComponent: React.FC<LucideProps>
@@ -278,9 +280,11 @@ export default function WalletOnboarding({
       </Container>
     );
   return (
-    <OTPInput
-      onVerificationSuccess={() => refresh()}
-      onVerificationError={() => {}}
+    <RegistrationSuccess
+      resubmit={() => {
+        navigateTo();
+        router.push("/keyman/supplier/key-wallet/create-current-account");
+      }}
     />
   );
 }

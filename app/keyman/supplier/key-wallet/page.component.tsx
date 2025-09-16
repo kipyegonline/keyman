@@ -72,7 +72,6 @@ export default function WalletClientComponent() {
 
   console.log(userAccount, wallet, "user loading.....");
 
-  return <WalletNotFound accountType={"personal"} />;
   // Loading state
   if (loadingUser) {
     return <WalletLoadingComponent />;
@@ -106,7 +105,11 @@ export default function WalletClientComponent() {
     const status = userAccount?.user?.wallet_creation_status;
     const walletAccountId = userAccount?.user?.wallet_account_id;
     if (status === "Verification Fee Paid") {
-      return <WalletNotFound accountType={userAccount?.user?.account_type} />;
+      return (
+        <WalletNotFound
+          accountType={userAccount?.user?.account_type?.toLowerCase()}
+        />
+      );
     }
     const onBoardingId = userAccount?.user?.onboardingRequestId;
     if (onBoardingId || walletAccountId)

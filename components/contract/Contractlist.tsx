@@ -395,12 +395,12 @@ const ContractList: React.FC<ContractListProps> = ({
                         size="lg"
                         fw={600}
                         className="text-gray-900 truncate"
-                        title={contract.contract_json.title}
+                        title={contract?.contract_json?.title}
                       >
-                        {contract.contract_json.title}
+                        {contract?.contract_json?.title}
                       </Text>
                       <Text size="sm" c="gray.6" className="truncate">
-                        {contract.contract_json.scope}
+                        {contract?.contract_json?.scope}
                       </Text>
                     </div>
                   </div>
@@ -411,7 +411,7 @@ const ContractList: React.FC<ContractListProps> = ({
                     <Group gap="xs">
                       <Calendar size={14} className="text-gray-500" />
                       <Text size="sm" c="gray.6">
-                        Created {formatDate(contract.created_at)}
+                        Created {formatDate(contract?.created_at)}
                       </Text>
                     </Group>
 
@@ -419,7 +419,7 @@ const ContractList: React.FC<ContractListProps> = ({
                     <Group gap="xs">
                       <Clock size={14} className="text-gray-500" />
                       <Text size="sm" c="gray.6">
-                        Duration: {contract.contract_duration_in_duration} days
+                        Duration: {contract?.contract_duration_in_duration} days
                       </Text>
                     </Group>
 

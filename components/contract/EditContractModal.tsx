@@ -16,6 +16,7 @@ interface ContractData {
   title: string;
   contract_amount: number;
   contract_duration_in_duration: number;
+  service_provider_id?: string;
   contract_json?: {
     title?: string;
   };
@@ -25,11 +26,15 @@ interface EditContractModalProps {
   opened: boolean;
   onClose: () => void;
   contract: ContractData | null;
-  onSave: (contractId: string, data: { 
-    title: string; 
-    contract_amount: number; 
-    contract_duration_in_duration: number;
-  }) => Promise<void>;
+  onSave: (
+    contractId: string,
+    data: {
+      title: string;
+      contract_amount: number;
+      contract_duration_in_duration: number;
+      service_provider_id?: string;
+    }
+  ) => Promise<void>;
 }
 
 const EditContractModal: React.FC<EditContractModalProps> = ({
@@ -42,6 +47,7 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
     title: "",
     contract_amount: 0,
     contract_duration_in_duration: 0,
+    service_provider_id: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
@@ -56,9 +62,15 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
       setFormData({
         title: contract.contract_json?.title || contract.title || "",
         contract_amount: contract.contract_amount || 0,
-        contract_duration_in_duration: contract.contract_duration_in_duration || 0,
+        contract_duration_in_duration:
+          contract.contract_duration_in_duration || 0,
+        service_provider_id: "",
       });
-      setErrors({ title: "", contract_amount: "", contract_duration_in_duration: "" });
+      setErrors({
+        title: "",
+        contract_amount: "",
+        contract_duration_in_duration: "",
+      });
     }
   }, [contract, opened]);
 
@@ -78,7 +90,8 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
     }
 
     if (formData.contract_duration_in_duration <= 0) {
-      newErrors.contract_duration_in_duration = "Duration must be greater than 0 months";
+      newErrors.contract_duration_in_duration =
+        "Duration must be greater than 0 months";
     }
 
     setErrors(newErrors);
@@ -90,11 +103,17 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
 
     setIsLoading(true);
     try {
-      await onSave(contract.id, {
+      const payload = {
         title: formData.title.trim(),
         contract_amount: formData.contract_amount,
         contract_duration_in_duration: formData.contract_duration_in_duration,
-      });
+      };
+      if (formData.service_provider_id?.trim() === "") {
+        //eslint-disable-next-line
+        //@ts-expect-error
+        payload?.service_provider_id = formData.service_provider_id?.trim();
+      }
+      await onSave(contract.id, payload);
       // Don't automatically close the modal here
       // Let the parent component handle closing on success
     } catch (error) {
@@ -126,7 +145,9 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
       if (remainingMonths === 0) {
         return `${years} year${years !== 1 ? "s" : ""}`;
       }
-      return `${years} year${years !== 1 ? "s" : ""} ${remainingMonths} month${remainingMonths !== 1 ? "s" : ""}`;
+      return `${years} year${years !== 1 ? "s" : ""} ${remainingMonths} month${
+        remainingMonths !== 1 ? "s" : ""
+      }`;
     }
   };
 
@@ -197,9 +218,9 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
             placeholder="Enter duration in months"
             value={formData.contract_duration_in_duration}
             onChange={(value) =>
-              setFormData({ 
-                ...formData, 
-                contract_duration_in_duration: Number(value) || 0 
+              setFormData({
+                ...formData,
+                contract_duration_in_duration: Number(value) || 0,
               })
             }
             error={errors.contract_duration_in_duration}
@@ -209,8 +230,22 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
             disabled={isLoading}
             description={
               formData.contract_duration_in_duration > 0
-                ? `Duration: ${formatDuration(formData.contract_duration_in_duration)}`
+                ? `Duration: ${formatDuration(
+                    formData.contract_duration_in_duration
+                  )}`
                 : "Enter duration in months (e.g., 12 for 1 year)"
+            }
+          />
+          <TextInput
+            disabled={isLoading}
+            label="Enter service provider number (KS number)"
+            value={formData.service_provider_id}
+            placeholder="Enter service provider number"
+            onChange={(event) =>
+              setFormData({
+                ...formData,
+                service_provider_id: event.currentTarget.value,
+              })
             }
           />
 
@@ -231,8 +266,8 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
               onClick={handleSubmit}
               loading={isLoading}
               disabled={
-                !formData.title.trim() || 
-                formData.contract_amount <= 0 || 
+                !formData.title.trim() ||
+                formData.contract_amount <= 0 ||
                 formData.contract_duration_in_duration <= 0
               }
             >

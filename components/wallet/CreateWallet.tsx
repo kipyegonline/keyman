@@ -45,8 +45,6 @@ import {
   Building,
   Award,
   FileCheck,
-  Video,
-  Square,
 } from "lucide-react";
 import { createWalletWithData } from "@/api/wallet";
 import RegistrationSuccess from "./RegistrationSuccess";
@@ -89,6 +87,39 @@ const genderOptions = [
   { value: "other", label: "Other" },
 ];
 
+const getIdLabels = (idType: string) => {
+  switch (idType) {
+    case "101": // National ID
+      return {
+        idNumber: "National ID Number",
+        frontPhoto: "National ID Front Side Photo",
+        backPhoto: "National ID Back Side Photo",
+        showBackPhoto: true,
+      };
+    case "102": // Alien ID
+      return {
+        idNumber: "Alien ID Number",
+        frontPhoto: "Alien ID Front Side Photo",
+        backPhoto: "Alien ID Back Side Photo",
+        showBackPhoto: true,
+      };
+    case "103": // Passport
+      return {
+        idNumber: "Passport Number",
+        frontPhoto: "Passport Photo",
+        backPhoto: "",
+        showBackPhoto: false,
+      };
+    default:
+      return {
+        idNumber: "ID Number",
+        frontPhoto: "ID Front Side Photo",
+        backPhoto: "ID Back Side Photo",
+        showBackPhoto: true,
+      };
+  }
+};
+
 export default function CreateWallet() {
   const [active, setActive] = useState(0);
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
@@ -97,11 +128,7 @@ export default function CreateWallet() {
   );
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordingTime, setRecordingTime] = useState(0);
-  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -165,15 +192,30 @@ export default function CreateWallet() {
           frontSidePhoto: !values.frontSidePhoto
             ? "Front side photo is required"
             : null,
-          backSidePhoto: !values.backSidePhoto
+          backSidePhoto: values.idType !== "103" && !values.backSidePhoto
             ? "Back side photo is required"
             : null,
-          selfiePhoto: !values.selfiePhoto ? "Selfie video is required" : null,
+          selfiePhoto: !values.selfiePhoto ? "Selfie photo is required" : null,
         };
       }
       return {};
     },
   });
+
+  // Get dynamic labels based on selected ID type
+  const idLabels = getIdLabels(form.values.idType);
+
+  // Clear backSidePhoto when passport is selected
+  React.useEffect(() => {
+    if (form.values.idType === "103" && form.values.backSidePhoto) {
+      form.setFieldValue("backSidePhoto", null);
+      setPhotoPreview((prev) => {
+        const newPreview = { ...prev };
+        delete newPreview["backSidePhoto"];
+        return newPreview;
+      });
+    }
+  }, [form.values.idType]);
 
   const handleFilePreview = (file: File | null, fieldName: string) => {
     if (file) {
@@ -198,7 +240,6 @@ export default function CreateWallet() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user" },
-        audio: true,
       });
       setCameraStream(stream);
       if (videoRef.current) {
@@ -207,89 +248,53 @@ export default function CreateWallet() {
       setCameraModalOpen(true);
     } catch (error) {
       console.error(error);
-      notify.error("Unable to access camera and microphone. Please use file upload instead.");
+      notify.error("Unable to access camera. Please use file upload instead.");
     }
   };
 
-  const startRecording = useCallback(() => {
-    if (!cameraStream) return;
+  const takePhoto = useCallback(() => {
+    if (!cameraStream || !videoRef.current || !canvasRef.current) return;
 
     try {
-      // Try MP4 format first, fallback to WebM if not supported
-      let mimeType = 'video/mp4';
-      let fileExtension = 'mp4';
-      let fileName = 'selfie-video.mp4';
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
 
-      // Check if MP4 is supported
-      if (!MediaRecorder.isTypeSupported('video/mp4')) {
-        // Fallback to WebM if MP4 is not supported
-        mimeType = 'video/webm;codecs=vp8,opus';
-        fileExtension = 'webm';
-        fileName = 'selfie-video.webm';
-        console.log('MP4 not supported, using WebM format');
-      } else {
-        console.log('Recording in MP4 format');
+      if (!context) {
+        notify.error("Unable to capture photo. Please try again.");
+        return;
       }
 
-      const mediaRecorder = new MediaRecorder(cameraStream, {
-        mimeType: mimeType
-      });
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
 
-      const chunks: BlobPart[] = [];
+      // Draw the video frame to canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunks.push(event.data);
-        }
-      };
-
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunks, { type: mimeType });
-        const file = new File([blob], fileName, { type: mimeType });
-        form.setFieldValue("selfiePhoto", file);
-        handleFilePreview(file, "selfiePhoto");
-        stopRecording();
-        stopCamera();
-        setCameraModalOpen(false);
-      };
-
-      mediaRecorderRef.current = mediaRecorder;
-      mediaRecorder.start();
-      setIsRecording(true);
-      setRecordingTime(0);
-
-      // Start recording timer
-      recordingIntervalRef.current = setInterval(() => {
-        setRecordingTime(prev => prev + 1);
-      }, 1000);
-
-      // Auto-stop recording after 10 seconds
-      setTimeout(() => {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-          mediaRecorderRef.current.stop();
-        }
-      }, 10000);
-
+      // Convert canvas to blob and create file
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            const file = new File([blob], "selfie-photo.jpg", {
+              type: "image/jpeg",
+            });
+            form.setFieldValue("selfiePhoto", file);
+            handleFilePreview(file, "selfiePhoto");
+            stopCamera();
+            setCameraModalOpen(false);
+          }
+        },
+        "image/jpeg",
+        0.8
+      );
     } catch (error) {
-      console.error('Error starting recording:', error);
-      notify.error("Unable to start video recording. Please try again.");
+      console.error("Error taking photo:", error);
+      notify.error("Unable to capture photo. Please try again.");
     }
   }, [cameraStream, form]);
 
-  const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-    }
-    setIsRecording(false);
-    setRecordingTime(0);
-    if (recordingIntervalRef.current) {
-      clearInterval(recordingIntervalRef.current);
-      recordingIntervalRef.current = null;
-    }
-  }, []);
-
   const stopCamera = () => {
-    stopRecording();
     if (cameraStream) {
       cameraStream.getTracks().forEach((track) => track.stop());
       setCameraStream(null);
@@ -428,10 +433,8 @@ export default function CreateWallet() {
     required?: boolean;
     allowCamera?: boolean;
   }) => {
-    const isVideoField = fieldName === "selfiePhoto";
-    const acceptedTypes = isVideoField ? "video/*" : "image/*";
+    const acceptedTypes = "image/*";
     const file = form.values[fieldName] as File | null;
-    const isVideo = file?.type.startsWith('video/');
 
     return (
       <div className="space-y-3">
@@ -440,18 +443,18 @@ export default function CreateWallet() {
           {label} {required && <span className="text-red-500">*</span>}
         </Text>
 
-        {isVideoField && (
+        {fieldName === "selfiePhoto" && (
           <Alert color="blue" className="mb-3">
             <Text size="xs">
-              📹 Upload a video file or record a 10-second selfie video using your camera.
-              Please ensure good lighting and speak clearly during recording.
+              📷 Upload an image file or take a selfie photo using your camera.
+              Please ensure good lighting and look directly at the camera.
             </Text>
           </Alert>
         )}
 
         <div className="flex gap-3">
           <FileInput
-            placeholder={isVideoField ? "Choose video file" : "Choose file"}
+            placeholder="Choose file"
             accept={acceptedTypes}
             value={file}
             onChange={(file) => {
@@ -470,7 +473,7 @@ export default function CreateWallet() {
               onClick={startCamera}
               style={{ backgroundColor: "#3D6B2C", color: "white" }}
               className="hover:opacity-80 transition-opacity"
-              title={isVideoField ? "Record Video" : "Take Photo"}
+              title="Take Photo"
             >
               <Camera size={18} />
             </ActionIcon>
@@ -494,19 +497,11 @@ export default function CreateWallet() {
                 <X size={14} />
               </ActionIcon>
             </div>
-            {isVideo ? (
-              <video
-                src={photoPreview[fieldName]}
-                controls
-                className="max-h-32 w-auto mx-auto rounded"
-              />
-            ) : (
-              <Image
-                src={photoPreview[fieldName]}
-                alt="Preview"
-                className="max-h-32 w-auto mx-auto rounded"
-              />
-            )}
+            <Image
+              src={photoPreview[fieldName]}
+              alt="Preview"
+              className="max-h-32 w-auto mx-auto rounded"
+            />
           </Card>
         )}
       </div>
@@ -638,8 +633,8 @@ export default function CreateWallet() {
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, sm: 6 }}>
                   <TextInput
-                    label="ID Number"
-                    placeholder="Enter ID number"
+                    label={idLabels.idNumber}
+                    placeholder={`Enter ${idLabels.idNumber.toLowerCase()}`}
                     leftSection={<FileText size={16} />}
                     required
                     {...form.getInputProps("idNumber")}
@@ -678,21 +673,23 @@ export default function CreateWallet() {
                 <Grid.Col span={{ base: 12, md: 4 }}>
                   <PhotoUploadField
                     fieldName="frontSidePhoto"
-                    label="ID Front Side Photo"
+                    label={idLabels.frontPhoto}
                     required
                   />
                 </Grid.Col>
-                <Grid.Col span={{ base: 12, md: 4 }}>
-                  <PhotoUploadField
-                    fieldName="backSidePhoto"
-                    label="ID Back Side Photo"
-                    required
-                  />
-                </Grid.Col>
+                {idLabels.showBackPhoto && (
+                  <Grid.Col span={{ base: 12, md: 4 }}>
+                    <PhotoUploadField
+                      fieldName="backSidePhoto"
+                      label={idLabels.backPhoto}
+                      required
+                    />
+                  </Grid.Col>
+                )}
                 <Grid.Col span={{ base: 12, md: 4 }}>
                   <PhotoUploadField
                     fieldName="selfiePhoto"
-                    label="Selfie Video"
+                    label="Selfie Photo"
                     required
                     allowCamera
                   />
@@ -887,23 +884,23 @@ export default function CreateWallet() {
                       {photoPreview.frontSidePhoto && (
                         <div className="text-center">
                           <Text size="xs" c="dimmed" mb="xs">
-                            Front ID Photo
+                            {idLabels.frontPhoto}
                           </Text>
                           <Image
                             src={photoPreview.frontSidePhoto}
-                            alt="Front ID"
+                            alt={idLabels.frontPhoto}
                             className="max-h-24 w-auto mx-auto rounded shadow-sm"
                           />
                         </div>
                       )}
-                      {photoPreview.backSidePhoto && (
+                      {photoPreview.backSidePhoto && idLabels.showBackPhoto && (
                         <div className="text-center">
                           <Text size="xs" c="dimmed" mb="xs">
-                            Back ID Photo
+                            {idLabels.backPhoto}
                           </Text>
                           <Image
                             src={photoPreview.backSidePhoto}
-                            alt="Back ID"
+                            alt={idLabels.backPhoto}
                             className="max-h-24 w-auto mx-auto rounded shadow-sm"
                           />
                         </div>
@@ -911,21 +908,13 @@ export default function CreateWallet() {
                       {photoPreview.selfiePhoto && (
                         <div className="text-center">
                           <Text size="xs" c="dimmed" mb="xs">
-                            Selfie Video
+                            Selfie Photo
                           </Text>
-                          {form.values.selfiePhoto?.type.startsWith('video/') ? (
-                            <video
-                              src={photoPreview.selfiePhoto}
-                              controls
-                              className="max-h-24 w-auto mx-auto rounded shadow-sm"
-                            />
-                          ) : (
-                            <Image
-                              src={photoPreview.selfiePhoto}
-                              alt="Selfie"
-                              className="max-h-24 w-auto mx-auto rounded shadow-sm"
-                            />
-                          )}
+                          <Image
+                            src={photoPreview.selfiePhoto}
+                            alt="Selfie"
+                            className="max-h-24 w-auto mx-auto rounded shadow-sm"
+                          />
                         </div>
                       )}
                     </div>
@@ -1049,8 +1038,8 @@ export default function CreateWallet() {
           }}
           title={
             <div className="flex items-center gap-2">
-              <Video size={20} />
-              Record Selfie Video
+              <Camera size={20} />
+              Take Selfie Photo
             </div>
           }
           centered
@@ -1059,8 +1048,8 @@ export default function CreateWallet() {
           <div className="text-center">
             <Alert color="blue" className="mb-4">
               <Text size="sm">
-                📹 Position yourself clearly in the frame and speak your full name.
-                Recording will automatically stop after 10 seconds.
+                📷 Position yourself clearly in the frame and look directly at
+                the camera. Click the capture button when {`you're`} ready.
               </Text>
             </Alert>
 
@@ -1073,20 +1062,6 @@ export default function CreateWallet() {
             />
             <canvas ref={canvasRef} style={{ display: "none" }} />
 
-            {isRecording && (
-              <div className="mb-4">
-                <Text size="sm" color="red" className="font-semibold">
-                  🔴 Recording... {recordingTime}s / 10s
-                </Text>
-                <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                  <div
-                    className="bg-red-500 h-2 rounded-full transition-all duration-1000"
-                    style={{ width: `${(recordingTime / 10) * 100}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
             <Group justify="center" gap="md">
               <Button
                 variant="light"
@@ -1094,27 +1069,16 @@ export default function CreateWallet() {
                   stopCamera();
                   setCameraModalOpen(false);
                 }}
-                disabled={isRecording}
               >
                 Cancel
               </Button>
-              {!isRecording ? (
-                <Button
-                  onClick={startRecording}
-                  style={{ backgroundColor: "#3D6B2C" }}
-                  leftSection={<Video size={16} />}
-                >
-                  Start Recording
-                </Button>
-              ) : (
-                <Button
-                  onClick={stopRecording}
-                  color="red"
-                  leftSection={<Square size={16} />}
-                >
-                  Stop Recording
-                </Button>
-              )}
+              <Button
+                onClick={takePhoto}
+                style={{ backgroundColor: "#3D6B2C" }}
+                leftSection={<Camera size={16} />}
+              >
+                Take Photo
+              </Button>
             </Group>
           </div>
         </Modal>

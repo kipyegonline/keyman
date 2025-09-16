@@ -9,6 +9,7 @@ import {
   Alert,
   Modal,
   Group,
+  TextInput,
 } from "@mantine/core";
 import { Shield, RefreshCw, Mail, MessageSquare } from "lucide-react";
 import { sendOTP, confirmOTP } from "@/api/wallet";
@@ -31,6 +32,8 @@ export default function OTPInput({
   const [resendCountdown, setResendCountdown] = useState(0);
   const [error, setError] = useState("");
   const [showResendModal, setShowResendModal] = useState(false);
+  const [phone, setphone] = useState(phoneNumber);
+  const [showPhone, setShowPhone] = useState(false);
 
   useEffect(() => {
     if (resendCountdown > 0) {
@@ -77,7 +80,7 @@ export default function OTPInput({
     setShowResendModal(false);
 
     try {
-      const response = await sendOTP(phoneNumber ?? "", otpType);
+      const response = await sendOTP(phoneNumber ?? (phone as string), otpType);
 
       if (response.success) {
         notify.success(`OTP sent successfully via ${otpType.toUpperCase()}!`);
@@ -161,13 +164,28 @@ export default function OTPInput({
           </Button>
 
           <div className="text-center">
+            <div>
+              {showPhone && (
+                <TextInput
+                  placeholder="Enter phone number"
+                  value={phone}
+                  onChange={(e) => setphone(e.target.value)}
+                />
+              )}
+            </div>
             <Text size="xs" c="dimmed" className="mb-2">
               {`Didn't receive the code?`}
             </Text>
+
             <Button
               variant="subtle"
               size="sm"
-              onClick={() => setShowResendModal(true)}
+              onClick={() => {
+                if (!phone) setShowPhone(true);
+                else {
+                  setShowResendModal(true);
+                }
+              }}
               loading={resendLoading}
               disabled={resendCountdown > 0}
               leftSection={<RefreshCw size={14} />}

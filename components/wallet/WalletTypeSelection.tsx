@@ -131,7 +131,7 @@ function WalletTypeSelection({
                         className="mb-2"
                         style={{ color: "#3D6B2C" }}
                       >
-                        Service Provider Wallet
+                        Services Wallet
                       </Title>
                       <Text size="sm" c="dimmed">
                         Perfect for individual contractors, freelancers, and
@@ -202,7 +202,7 @@ function WalletTypeSelection({
                         className="mb-2"
                         style={{ color: "#F08C23" }}
                       >
-                        Business and Professionals Wallet
+                        Business and Professionals services Wallet
                       </Title>
                       <Text size="sm" c="dimmed">
                         Ideal for companies, registered businesses, and
