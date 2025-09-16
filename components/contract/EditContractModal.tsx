@@ -103,15 +103,18 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
 
     setIsLoading(true);
     try {
-      const payload = {
+      const payload: {
+        title: string;
+        contract_amount: number;
+        contract_duration_in_duration: number;
+        service_provider_id?: string;
+      } = {
         title: formData.title.trim(),
         contract_amount: formData.contract_amount,
         contract_duration_in_duration: formData.contract_duration_in_duration,
       };
-      if (formData.service_provider_id?.trim() === "") {
-        //eslint-disable-next-line
-        //@ts-expect-error
-        payload?.service_provider_id = formData.service_provider_id?.trim();
+      if (formData.service_provider_id?.trim() !== "") {
+        payload.service_provider_id = formData.service_provider_id?.trim();
       }
       await onSave(contract.id, payload);
       // Don't automatically close the modal here

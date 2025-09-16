@@ -100,5 +100,6 @@ export const ENDPOINTS = {
     CONFIRM_OTP: "/api/choice/confirmOTP",
     VERIFICATION_FEE: "/api/verification/fee",
     CREATE_CURRENT_ACCOUNT: "/api/user/create-current-account",
+    UPLOAD_KYC_DOCUMENTS: "/api/user/upload-kyc-documents",
   },
 };
