@@ -218,6 +218,7 @@ export default function KYCResubmissionModal({
         form.reset();
         setPhotoPreview({});
         onClose();
+        location.pathname = "/keyman/supplier/key-wallet";
       } else {
         notify.error(response.message || "Failed to upload KYC documents");
       }

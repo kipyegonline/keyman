@@ -252,6 +252,17 @@ export default function RegistrationSuccess({
           />
         </>
       );
+    } else if (
+      userAccount?.user?.kyc_documents_okay?.toLowerCase() === "pending"
+    ) {
+      return (
+        <Box p="xl">
+          <Text>Dear {userAccount?.user?.name},</Text>
+          <Text>
+            Your KYC documents are under review. Please wait for approval.
+          </Text>
+        </Box>
+      );
     } else {
       return (
         <Box p="xl">
