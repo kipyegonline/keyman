@@ -194,3 +194,28 @@ export const sendKYC = async (formData: FormData) => {
     }
   }
 };
+
+export const upgradeWalletAccount = async (formData: FormData) => {
+  try {
+    const endpoint = ENDPOINTS.wallet.UPGRADE_ACCOUNT;
+    const response = await AxiosClient.post(endpoint, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while upgrading wallet account",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};

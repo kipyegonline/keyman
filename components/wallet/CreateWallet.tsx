@@ -131,6 +131,7 @@ export default function CreateWallet() {
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<CreateWalletFormData>({
     initialValues: {
@@ -192,9 +193,10 @@ export default function CreateWallet() {
           frontSidePhoto: !values.frontSidePhoto
             ? "Front side photo is required"
             : null,
-          backSidePhoto: values.idType !== "103" && !values.backSidePhoto
-            ? "Back side photo is required"
-            : null,
+          backSidePhoto:
+            values.idType !== "103" && !values.backSidePhoto
+              ? "Back side photo is required"
+              : null,
           selfiePhoto: !values.selfiePhoto ? "Selfie photo is required" : null,
         };
       }
@@ -320,6 +322,7 @@ export default function CreateWallet() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setSubmitError(null); // Clear any previous errors
     try {
       const formData = new FormData();
 
@@ -410,12 +413,19 @@ export default function CreateWallet() {
       if (response.success) {
         if (response.message.includes("successfully")) {
           setShowSuccess(true);
-        } else notify.error(response.message);
+        } else {
+          notify.error(response.message);
+          setSubmitError(response.message || "Registration failed. Please try again.");
+        }
       } else {
-        notify.error(response.message || "Failed to submit registration");
+        const errorMessage = response.error || response.message || "Failed to submit registration. Please try again.";
+        notify.error(errorMessage);
+        setSubmitError(errorMessage);
       }
     } catch (error) {
+      const errorMessage = "Failed to submit registration. Please check your information and try again.";
       notify.error("Failed to submit registration");
+      setSubmitError(errorMessage);
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -1029,6 +1039,24 @@ export default function CreateWallet() {
             )}
           </div>
         </Group>
+
+        {/* Error Alert */}
+        {submitError && (
+          <Alert
+            color="red"
+            mt="md"
+            icon={<AlertCircle size={16} />}
+            withCloseButton
+            onClose={() => setSubmitError(null)}
+          >
+            <Text size="sm" fw={500}>
+              Registration Error
+            </Text>
+            <Text size="sm" mt="xs">
+              {submitError}
+            </Text>
+          </Alert>
+        )}
 
         {/* Camera Modal */}
         <Modal

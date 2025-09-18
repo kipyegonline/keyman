@@ -1,5 +1,5 @@
 "use client";
-import { sendOTP, confirmOTP } from "@/api/wallet";
+import { sendOTP, confirmOTP, upgradeWalletAccount } from "@/api/wallet";
 import {
   Container,
   Card,
@@ -17,6 +17,8 @@ import {
   Title,
   ActionIcon,
   ThemeIcon,
+  FileInput,
+  Alert,
 } from "@mantine/core";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -31,9 +33,16 @@ import {
   ArrowUpRight,
   Shield,
   Clock,
+  TrendingUp,
+  Upload,
+  X,
+  Camera,
+  FileText,
 } from "lucide-react";
 import { notifications } from "@mantine/notifications";
 import LoadingComponent from "@/lib/LoadingComponent";
+import { toDataUrlFromFile } from "@/lib/FileHandlers";
+import { notify } from "@/lib/notifications";
 
 interface AccountDetails {
   accountId: string;
@@ -62,6 +71,17 @@ export default function WalletData({
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [showBalance, setShowBalance] = useState(true);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeForm, setUpgradeForm] = useState({
+    kraPin: "",
+    selfiePhoto: null as File | null,
+    frontSidePhoto: null as File | null,
+    backSidePhoto: null as File | null,
+  });
+  const [photoPreview, setPhotoPreview] = useState<{ [key: string]: string }>(
+    {}
+  );
+  const [isUpgrading, setIsUpgrading] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -166,13 +186,37 @@ export default function WalletData({
     },
   });
 
+  const upgradeMutation = useMutation({
+    mutationFn: (formData: FormData) => upgradeWalletAccount(formData),
+    onSuccess: (data) => {
+      if (data.status || data.success) {
+        notifications.show({
+          title: "Success",
+          message: "Wallet account upgrade submitted successfully!",
+          color: "green",
+        });
+        setUpgradeModalOpen(false);
+        setUpgradeForm({
+          kraPin: "",
+          selfiePhoto: null,
+          frontSidePhoto: null,
+          backSidePhoto: null,
+        });
+        setPhotoPreview({});
+        queryClient.invalidateQueries({ queryKey: ["wallet"] });
+      } else {
+        notify.error(data.message || "Failed to upgrade account");
+      }
+    },
+    onError: (error) => {
+      console.error("Upgrade error:", error);
+      notify.error("Failed to upgrade account. Please try again.");
+    },
+  });
+
   const handleSendOTP = () => {
     if (!phoneNumber) {
-      notifications.show({
-        title: "Error",
-        message: "Please enter your phone number",
-        color: "red",
-      });
+      notify.error("Please enter your phone number");
       return;
     }
     sendOtpMutation.mutate(phoneNumber);
@@ -180,14 +224,70 @@ export default function WalletData({
 
   const handleConfirmOTP = () => {
     if (!otp) {
+      notify.error("Please enter the OTP");
+
+      return;
+    }
+    confirmOtpMutation.mutate({ phone: phoneNumber, otp });
+  };
+
+  const handleFilePreview = (file: File | null, fieldName: string) => {
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setPhotoPreview((prev) => ({
+          ...prev,
+          [fieldName]: e.target?.result as string,
+        }));
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPhotoPreview((prev) => {
+        const newPreview = { ...prev };
+        delete newPreview[fieldName];
+        return newPreview;
+      });
+    }
+  };
+
+  const handleUpgradeSubmit = async () => {
+    if (!upgradeForm.kraPin || !upgradeForm.selfiePhoto) {
       notifications.show({
         title: "Error",
-        message: "Please enter the OTP",
+        message: "Please fill in all required fields",
         color: "red",
       });
       return;
     }
-    confirmOtpMutation.mutate({ phone: phoneNumber, otp });
+
+    setIsUpgrading(true);
+    try {
+      const formData = new FormData();
+      formData.append("kraPin", upgradeForm.kraPin);
+
+      if (upgradeForm.selfiePhoto) {
+        const base64 = await toDataUrlFromFile(upgradeForm.selfiePhoto);
+        formData.append("selfiePhoto", (base64 as string).split(",")[1]);
+      }
+
+      if (upgradeForm.frontSidePhoto) {
+        const base64 = await toDataUrlFromFile(upgradeForm.frontSidePhoto);
+        formData.append("frontSidePhoto", (base64 as string).split(",")[1]);
+      }
+
+      if (upgradeForm.backSidePhoto) {
+        const base64 = await toDataUrlFromFile(upgradeForm.backSidePhoto);
+        formData.append("backSidePhoto", (base64 as string).split(",")[1]);
+      }
+
+      upgradeMutation.mutate(formData);
+    } catch (error) {
+      console.error("File processing error:", error);
+
+      notify.error("Failed to process files. Please try again.");
+    } finally {
+      setIsUpgrading(false);
+    }
   };
   if (isLoading) return <LoadingComponent message="Preparing wallet data..." />;
   return (
@@ -205,6 +305,15 @@ export default function WalletData({
             </Text>
           </div>
           <Group>
+            <Button
+              variant="light"
+              leftSection={<TrendingUp size={16} />}
+              onClick={() => setUpgradeModalOpen(true)}
+              style={{ backgroundColor: "#F08C2315", color: "#F08C23" }}
+              size="sm"
+            >
+              Upgrade Account
+            </Button>
             <ActionIcon
               variant="light"
               onClick={() =>
@@ -549,6 +658,238 @@ export default function WalletData({
                 </Group>
               </>
             )}
+          </Stack>
+        </Modal>
+
+        {/* Upgrade Account Modal */}
+        <Modal
+          opened={upgradeModalOpen}
+          onClose={() => {
+            setUpgradeModalOpen(false);
+            setUpgradeForm({
+              kraPin: "",
+              selfiePhoto: null,
+              frontSidePhoto: null,
+              backSidePhoto: null,
+            });
+            setPhotoPreview({});
+          }}
+          title={
+            <Group gap="sm">
+              <TrendingUp size={20} style={{ color: "#F08C23" }} />
+              <Text fw={600} style={{ color: "#F08C23" }}>
+                Upgrade to Current Account
+              </Text>
+            </Group>
+          }
+          centered
+          size="lg"
+        >
+          <LoadingOverlay visible={isUpgrading || upgradeMutation.isPending} />
+
+          <Stack gap="lg">
+            <Alert color="blue" icon={<TrendingUp size={16} />}>
+              <Text size="sm">
+                Upgrade your wallet to a current account for enhanced features
+                and higher transaction limits. All fields marked with * are
+                required.
+              </Text>
+            </Alert>
+
+            {/* KRA PIN Field */}
+            <TextInput
+              label="KRA PIN"
+              placeholder="A00668857W"
+              maxLength={11}
+              leftSection={<FileText size={16} />}
+              value={upgradeForm.kraPin}
+              onChange={(event) =>
+                setUpgradeForm((prev) => ({
+                  ...prev,
+                  kraPin: event.currentTarget.value,
+                }))
+              }
+              required
+            />
+
+            <Divider label="Document Uploads" labelPosition="center" />
+
+            {/* Selfie Photo - Required */}
+            <div>
+              <Text
+                size="sm"
+                fw={500}
+                mb="xs"
+                className="flex items-center gap-2"
+              >
+                <Camera size={16} />
+                Selfie Photo <span className="text-red-500">*</span>
+              </Text>
+              <FileInput
+                placeholder="Choose selfie photo"
+                accept="image/*"
+                value={upgradeForm.selfiePhoto}
+                onChange={(file) => {
+                  setUpgradeForm((prev) => ({ ...prev, selfiePhoto: file }));
+                  handleFilePreview(file, "selfiePhoto");
+                }}
+                leftSection={<Upload size={16} />}
+              />
+              {photoPreview.selfiePhoto && (
+                <Card className="mt-3 p-3 border border-gray-200">
+                  <Group justify="space-between" mb="xs">
+                    <Text size="xs" c="dimmed">
+                      Selfie Preview
+                    </Text>
+                    <ActionIcon
+                      size="sm"
+                      variant="subtle"
+                      onClick={() => {
+                        setUpgradeForm((prev) => ({
+                          ...prev,
+                          selfiePhoto: null,
+                        }));
+                        handleFilePreview(null, "selfiePhoto");
+                      }}
+                    >
+                      <X size={14} />
+                    </ActionIcon>
+                  </Group>
+                  <img
+                    src={photoPreview.selfiePhoto}
+                    alt="Selfie Preview"
+                    className="max-h-32 w-auto mx-auto rounded"
+                  />
+                </Card>
+              )}
+            </div>
+
+            {/* Front Side Photo - Optional */}
+            <div>
+              <Text
+                size="sm"
+                fw={500}
+                mb="xs"
+                className="flex items-center gap-2"
+              >
+                <Upload size={16} />
+                ID Front Side Photo (Optional)
+              </Text>
+              <FileInput
+                placeholder="Choose front side photo"
+                accept="image/*"
+                value={upgradeForm.frontSidePhoto}
+                onChange={(file) => {
+                  setUpgradeForm((prev) => ({ ...prev, frontSidePhoto: file }));
+                  handleFilePreview(file, "frontSidePhoto");
+                }}
+                leftSection={<Upload size={16} />}
+              />
+              {photoPreview.frontSidePhoto && (
+                <Card className="mt-3 p-3 border border-gray-200">
+                  <Group justify="space-between" mb="xs">
+                    <Text size="xs" c="dimmed">
+                      Front Side Preview
+                    </Text>
+                    <ActionIcon
+                      size="sm"
+                      variant="subtle"
+                      onClick={() => {
+                        setUpgradeForm((prev) => ({
+                          ...prev,
+                          frontSidePhoto: null,
+                        }));
+                        handleFilePreview(null, "frontSidePhoto");
+                      }}
+                    >
+                      <X size={14} />
+                    </ActionIcon>
+                  </Group>
+                  <img
+                    src={photoPreview.frontSidePhoto}
+                    alt="Front Side Preview"
+                    className="max-h-32 w-auto mx-auto rounded"
+                  />
+                </Card>
+              )}
+            </div>
+
+            {/* Back Side Photo - Optional */}
+            <div>
+              <Text
+                size="sm"
+                fw={500}
+                mb="xs"
+                className="flex items-center gap-2"
+              >
+                <Upload size={16} />
+                ID Back Side Photo (Optional)
+              </Text>
+              <FileInput
+                placeholder="Choose back side photo"
+                accept="image/*"
+                value={upgradeForm.backSidePhoto}
+                onChange={(file) => {
+                  setUpgradeForm((prev) => ({ ...prev, backSidePhoto: file }));
+                  handleFilePreview(file, "backSidePhoto");
+                }}
+                leftSection={<Upload size={16} />}
+              />
+              {photoPreview.backSidePhoto && (
+                <Card className="mt-3 p-3 border border-gray-200">
+                  <Group justify="space-between" mb="xs">
+                    <Text size="xs" c="dimmed">
+                      Back Side Preview
+                    </Text>
+                    <ActionIcon
+                      size="sm"
+                      variant="subtle"
+                      onClick={() => {
+                        setUpgradeForm((prev) => ({
+                          ...prev,
+                          backSidePhoto: null,
+                        }));
+                        handleFilePreview(null, "backSidePhoto");
+                      }}
+                    >
+                      <X size={14} />
+                    </ActionIcon>
+                  </Group>
+                  <img
+                    src={photoPreview.backSidePhoto}
+                    alt="Back Side Preview"
+                    className="max-h-32 w-auto mx-auto rounded"
+                  />
+                </Card>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <Group justify="flex-end" mt="xl">
+              <Button
+                variant="light"
+                onClick={() => {
+                  setUpgradeModalOpen(false);
+                  setUpgradeForm({
+                    kraPin: "",
+                    selfiePhoto: null,
+                    frontSidePhoto: null,
+                    backSidePhoto: null,
+                  });
+                  setPhotoPreview({});
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleUpgradeSubmit}
+                loading={isUpgrading || upgradeMutation.isPending}
+                style={{ backgroundColor: "#F08C23" }}
+                leftSection={<TrendingUp size={16} />}
+              >
+                Submit Upgrade
+              </Button>
+            </Group>
           </Stack>
         </Modal>
       </Stack>

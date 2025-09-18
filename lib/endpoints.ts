@@ -101,5 +101,6 @@ export const ENDPOINTS = {
     VERIFICATION_FEE: "/api/verification/fee",
     CREATE_CURRENT_ACCOUNT: "/api/user/create-current-account",
     UPLOAD_KYC_DOCUMENTS: "/api/user/upload-kyc-documents",
+    UPGRADE_ACCOUNT: "/api/user/upgrade-wallet-account",
   },
 };
