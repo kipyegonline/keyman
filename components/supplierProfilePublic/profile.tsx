@@ -243,14 +243,26 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
           </div>
           <div>
             {" "}
-            <Tooltip label={"Key contract"} position="bottom">
+            <Tooltip
+              label={
+                supplier?.is_user_verified === 0
+                  ? "You can't create a contract. Service provider is not verified"
+                  : "Key contract"
+              }
+              position="bottom"
+            >
               <ActionIcon
                 disabled={supplier?.is_user_verified === 0}
                 variant="light"
                 size="sm"
                 onClick={() => setShowContract(true)}
               >
-                <ReceiptText className="w-4 h-4" />
+                <img
+                  src="/signing-the-contract-svgrepo-com.svg"
+                  alt="keyman key"
+                  className="w-10 h-10 bg-green animation-pulse"
+                />
+                <ReceiptText className="w-10 h-10 hidden" />
               </ActionIcon>
             </Tooltip>
             <Tooltip

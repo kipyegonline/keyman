@@ -221,7 +221,12 @@ const TopNavigation: React.FC = () => {
                 onClick={() => setShowContract(true)}
                 className="animate-pulse"
               >
-                <ReceiptText size={22} />
+                <img
+                  src="/signing-the-contract-svgrepo-com.svg"
+                  alt="keyman key"
+                  className="w-8 h-8 bg-green animation-pulse"
+                />
+                <ReceiptText size={22} className="hidden" />
               </ActionIcon>
             </Tooltip>
           )}

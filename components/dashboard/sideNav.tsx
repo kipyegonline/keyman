@@ -49,8 +49,9 @@ const Sidebar: React.FC<{
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "orders", label: "Orders", icon: ShoppingCart },
     { id: "requests", label: "Requests", icon: ClipboardList },
+    { id: "orders", label: "Orders", icon: ShoppingCart },
+
     { id: "suppliers-near-me", label: "Stores near me", icon: LocateIcon },
     { id: "keyman-coin", label: "My Coins", icon: Coins },
     { id: "key-contract", label: "My Contracts", icon: ReceiptText },

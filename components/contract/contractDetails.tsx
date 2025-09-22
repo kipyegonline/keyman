@@ -734,7 +734,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                           </Text>
                         </div>
                       </Group>
-                      {contract.initiator?.email && (
+                      {contract.initiator?.email && false && (
                         <Group gap="xs" mb="xs">
                           <Mail size={14} className="text-gray-500" />
                           <Text size="xs" c="dimmed">
@@ -742,7 +742,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                           </Text>
                         </Group>
                       )}
-                      {contract.initiator?.phone && (
+                      {contract.initiator?.phone && false && (
                         <Group gap="xs">
                           <Phone size={14} className="text-gray-500" />
                           <Text size="xs" c="dimmed">
@@ -772,7 +772,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                           </Text>
                         </div>
                       </Group>
-                      {contract.service_provider?.email && (
+                      {contract.service_provider?.email && false && (
                         <Group gap="xs" mb="xs">
                           <Mail size={14} className="text-gray-500" />
                           <Text size="xs" c="dimmed">
@@ -780,7 +780,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                           </Text>
                         </Group>
                       )}
-                      {contract.service_provider?.phone && (
+                      {contract.service_provider?.phone && false && (
                         <Group gap="xs">
                           <Phone size={14} className="text-gray-500" />
                           <Text size="xs" c="dimmed">
