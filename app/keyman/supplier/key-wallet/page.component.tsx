@@ -70,8 +70,8 @@ export default function WalletClientComponent() {
     initializeWalletMutation.mutate(data);
   };
 
-  //console.log(userAccount, wallet, "user loading.....");
-
+  console.log(userAccount, wallet, "user loading.....");
+  return <WalletData walletData={wallet} isLoading={loadingWallet} />;
   // Loading state
   if (loadingUser) {
     return <WalletLoadingComponent />;

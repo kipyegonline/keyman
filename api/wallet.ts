@@ -219,3 +219,27 @@ export const upgradeWalletAccount = async (formData: FormData) => {
     }
   }
 };
+
+export const topUpWallet = async (data: {
+  phone_number: string;
+  amount: number;
+}) => {
+  try {
+    const endpoint = ENDPOINTS.wallet.TOP_UP_WALLET;
+    const response = await AxiosClient.post(endpoint, data);
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while topping up wallet",
+          success: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", success: false };
+    }
+  }
+};

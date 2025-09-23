@@ -43,6 +43,7 @@ import { notifications } from "@mantine/notifications";
 import LoadingComponent from "@/lib/LoadingComponent";
 import { toDataUrlFromFile } from "@/lib/FileHandlers";
 import { notify } from "@/lib/notifications";
+import TopUpModal from "./TopUpModal";
 
 interface AccountDetails {
   accountId: string;
@@ -82,6 +83,7 @@ export default function WalletData({
     {}
   );
   const [isUpgrading, setIsUpgrading] = useState(false);
+  const [topUpModalOpen, setTopUpModalOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -214,6 +216,7 @@ export default function WalletData({
     },
   });
 
+
   const handleSendOTP = () => {
     if (!phoneNumber) {
       notify.error("Please enter your phone number");
@@ -289,6 +292,7 @@ export default function WalletData({
       setIsUpgrading(false);
     }
   };
+
   if (isLoading) return <LoadingComponent message="Preparing wallet data..." />;
   return (
     <Container size="lg" py="xl">
@@ -444,6 +448,7 @@ export default function WalletData({
               p="lg"
               className="hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
               style={{ height: "100%" }}
+              onClick={() => setTopUpModalOpen(true)}
             >
               <Group gap="md" align="center">
                 <ThemeIcon
@@ -892,6 +897,13 @@ export default function WalletData({
             </Group>
           </Stack>
         </Modal>
+
+        {/* Top Up Wallet Modal */}
+        <TopUpModal
+          opened={topUpModalOpen}
+          onClose={() => setTopUpModalOpen(false)}
+          walletData={walletData}
+        />
       </Stack>
     </Container>
   );

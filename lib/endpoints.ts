@@ -102,5 +102,6 @@ export const ENDPOINTS = {
     CREATE_CURRENT_ACCOUNT: "/api/user/create-current-account",
     UPLOAD_KYC_DOCUMENTS: "/api/user/upload-kyc-documents",
     UPGRADE_ACCOUNT: "/api/user/upgrade-wallet-account",
+    TOP_UP_WALLET: "/api/wallet/topup",
   },
 };
