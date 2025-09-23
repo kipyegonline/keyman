@@ -103,5 +103,6 @@ export const ENDPOINTS = {
     UPLOAD_KYC_DOCUMENTS: "/api/user/upload-kyc-documents",
     UPGRADE_ACCOUNT: "/api/user/upgrade-wallet-account",
     TOP_UP_WALLET: "/api/wallet/topup",
+    SEND_MONEY: "/api/wallet/transfer",
   },
 };

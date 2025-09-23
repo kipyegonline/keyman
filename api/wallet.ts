@@ -243,3 +243,28 @@ export const topUpWallet = async (data: {
     }
   }
 };
+
+export const sendMoney = async (data: {
+  recipient_wallet_id: string;
+  amount: number;
+  description: string;
+}) => {
+  try {
+    const endpoint = ENDPOINTS.wallet.SEND_MONEY;
+    const response = await AxiosClient.post(endpoint, data);
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while sending money",
+          success: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", success: false };
+    }
+  }
+};

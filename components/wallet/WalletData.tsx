@@ -44,6 +44,7 @@ import LoadingComponent from "@/lib/LoadingComponent";
 import { toDataUrlFromFile } from "@/lib/FileHandlers";
 import { notify } from "@/lib/notifications";
 import TopUpModal from "./TopUpModal";
+import SendMoneyModal from "./SendMoneyModal";
 
 interface AccountDetails {
   accountId: string;
@@ -84,6 +85,7 @@ export default function WalletData({
   );
   const [isUpgrading, setIsUpgrading] = useState(false);
   const [topUpModalOpen, setTopUpModalOpen] = useState(false);
+  const [sendMoneyModalOpen, setSendMoneyModalOpen] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -419,6 +421,7 @@ export default function WalletData({
               p="lg"
               className="hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
               style={{ height: "100%" }}
+              onClick={() => setSendMoneyModalOpen(true)}
             >
               <Group gap="md" align="center">
                 <ThemeIcon
@@ -902,6 +905,13 @@ export default function WalletData({
         <TopUpModal
           opened={topUpModalOpen}
           onClose={() => setTopUpModalOpen(false)}
+          walletData={walletData}
+        />
+
+        {/* Send Money Modal */}
+        <SendMoneyModal
+          opened={sendMoneyModalOpen}
+          onClose={() => setSendMoneyModalOpen(false)}
           walletData={walletData}
         />
       </Stack>
