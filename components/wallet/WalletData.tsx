@@ -92,8 +92,8 @@ export default function WalletData({
   // Helper functions for account status
   const getAccountStatusBadge = (status: number) => {
     const statusMap = {
-      1: { label: "Active", color: "green" },
-      0: { label: "Inactive", color: "red" },
+      0: { label: "Active", color: "green" },
+      1: { label: "Inactive", color: "red" },
       2: { label: "Suspended", color: "yellow" },
     };
     const statusInfo = statusMap[status as keyof typeof statusMap] || {
@@ -218,7 +218,6 @@ export default function WalletData({
     },
   });
 
-
   const handleSendOTP = () => {
     if (!phoneNumber) {
       notify.error("Please enter your phone number");
@@ -294,7 +293,7 @@ export default function WalletData({
       setIsUpgrading(false);
     }
   };
-
+  console.log(walletData, "wallet data....");
   if (isLoading) return <LoadingComponent message="Preparing wallet data..." />;
   return (
     <Container size="lg" py="xl">
