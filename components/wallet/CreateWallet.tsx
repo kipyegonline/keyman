@@ -54,7 +54,7 @@ import { toDataUrlFromFile } from "@/lib/FileHandlers";
 interface CreateWalletFormData {
   firstName: string;
   lastName: string;
-  middleName?: string;
+  middleName: string;
   phoneNumber: string;
   birthday: Date | null;
   gender: string;
@@ -161,6 +161,7 @@ export default function CreateWallet() {
         return {
           firstName: !values.firstName ? "First name is required" : null,
           lastName: !values.lastName ? "Last name is required" : null,
+          middleName: !values.middleName ? "Middle name is required" : null,
           //phoneNumber: !values.phoneNumber ? "Phone number is required" : null,
           email: !/^\S+@\S+$/.test(values.email || "") ? "Invalid email" : null,
           birthday: !values.birthday
@@ -415,15 +416,21 @@ export default function CreateWallet() {
           setShowSuccess(true);
         } else {
           notify.error(response.message);
-          setSubmitError(response.message || "Registration failed. Please try again.");
+          setSubmitError(
+            response.message || "Registration failed. Please try again."
+          );
         }
       } else {
-        const errorMessage = response.error || response.message || "Failed to submit registration. Please try again.";
+        const errorMessage =
+          response.error ||
+          response.message ||
+          "Failed to submit registration. Please try again.";
         notify.error(errorMessage);
         setSubmitError(errorMessage);
       }
     } catch (error) {
-      const errorMessage = "Failed to submit registration. Please check your information and try again.";
+      const errorMessage =
+        "Failed to submit registration. Please check your information and try again.";
       notify.error("Failed to submit registration");
       setSubmitError(errorMessage);
       console.error(error);
@@ -437,11 +444,13 @@ export default function CreateWallet() {
     label,
     required = false,
     allowCamera = false,
+    description = "",
   }: {
     fieldName: keyof CreateWalletFormData;
     label: string;
     required?: boolean;
     allowCamera?: boolean;
+    description?: string;
   }) => {
     const acceptedTypes = "image/*";
     const file = form.values[fieldName] as File | null;
@@ -452,7 +461,11 @@ export default function CreateWallet() {
           <Upload size={16} />
           {label} {required && <span className="text-red-500">*</span>}
         </Text>
-
+        {description && (
+          <Text size="xs" c="dimmed" className="italic !py-1">
+            {description}
+          </Text>
+        )}
         {fieldName === "selfiePhoto" && (
           <Alert color="blue" className="mb-3">
             <Text size="xs">
@@ -581,7 +594,7 @@ export default function CreateWallet() {
                 </Grid.Col>
                 <Grid.Col span={{ base: 12, sm: 6 }}>
                   <TextInput
-                    label="Middle Name (Optional)"
+                    label="Middle Name"
                     placeholder="Enter middle name"
                     leftSection={<User size={16} />}
                     {...form.getInputProps("middleName")}
@@ -686,6 +699,7 @@ export default function CreateWallet() {
                     fieldName="frontSidePhoto"
                     label={idLabels.frontPhoto}
                     required
+                    description="Kindly take a photo of front side of your ID."
                   />
                 </Grid.Col>
                 {idLabels.showBackPhoto && (
@@ -694,6 +708,7 @@ export default function CreateWallet() {
                       fieldName="backSidePhoto"
                       label={idLabels.backPhoto}
                       required
+                      description="Kindly take a photo of back side of your ID."
                     />
                   </Grid.Col>
                 )}

@@ -83,7 +83,13 @@ export default function WalletClientComponent() {
     userAccount?.user?.wallet_account_id !== undefined &&
     userAccount?.user?.wallet_account_id !== ""
   ) {
-    return <WalletData walletData={wallet} isLoading={loadingWallet} />;
+    return (
+      <WalletData
+        walletData={wallet}
+        isLoading={loadingWallet}
+        accountType={userAccount?.user?.account_type?.toLowerCase()}
+      />
+    );
   }
   // If user has no wallet_account_id and no wallet_creation_status, show wallet type selection
   if (

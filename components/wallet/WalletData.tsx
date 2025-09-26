@@ -62,10 +62,12 @@ interface AccountDetails {
 interface WalletDataProps {
   walletData: AccountDetails;
   isLoading?: boolean;
+  accountType: string;
 }
 
 export default function WalletData({
   walletData,
+  accountType,
   isLoading = false,
 }: WalletDataProps) {
   const [verifyPhoneModalOpen, setVerifyPhoneModalOpen] = useState(false);
@@ -310,15 +312,17 @@ export default function WalletData({
             </Text>
           </div>
           <Group>
-            <Button
-              variant="light"
-              leftSection={<TrendingUp size={16} />}
-              onClick={() => setUpgradeModalOpen(true)}
-              style={{ backgroundColor: "#F08C2315", color: "#F08C23" }}
-              size="sm"
-            >
-              Upgrade Account
-            </Button>
+            {accountType === "personal" ? (
+              <Button
+                variant="light"
+                leftSection={<TrendingUp size={16} />}
+                onClick={() => setUpgradeModalOpen(true)}
+                style={{ backgroundColor: "#F08C2315", color: "#F08C23" }}
+                size="sm"
+              >
+                Upgrade Account
+              </Button>
+            ) : null}
             <ActionIcon
               variant="light"
               onClick={() =>
