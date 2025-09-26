@@ -125,10 +125,12 @@ export default function KYCResubmissionModal({
     fieldName,
     label,
     required = false,
+    description = "",
   }: {
     fieldName: keyof KYCFormData;
     label: string;
     required?: boolean;
+    description?: string;
   }) => {
     const file = form.values[fieldName] as File | null;
 
@@ -138,6 +140,11 @@ export default function KYCResubmissionModal({
           <Upload size={16} />
           {label} {required && <span className="text-red-500">*</span>}
         </Text>
+        {description && (
+          <Text size="xs" c="dimmed" className="!py-1 italic">
+            {description}
+          </Text>
+        )}
 
         <div className="flex gap-3">
           <FileInput
@@ -263,6 +270,7 @@ export default function KYCResubmissionModal({
               fieldName="frontSidePhoto"
               label={idLabels.frontPhoto}
               required
+              description="Take a clear photo of front side of your ID."
             />
           </Grid.Col>
 
@@ -272,6 +280,7 @@ export default function KYCResubmissionModal({
                 fieldName="backSidePhoto"
                 label={idLabels.backPhoto}
                 required
+                description="Take a clear photo of back side of your ID."
               />
             </Grid.Col>
           )}

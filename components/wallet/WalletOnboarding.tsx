@@ -38,11 +38,13 @@ interface WalletOnboardingProps {
   onboardingRequestId: string;
   otpConfirmed: boolean;
   refresh: () => void;
+  accountType: "personal" | "business";
 }
 
 export default function WalletOnboarding({
   onboardingRequestId,
   otpConfirmed,
+  accountType,
 }: WalletOnboardingProps) {
   const onboardingSteps = [
     { icon: User, label: "Identity Verification", status: "completed" },
@@ -77,7 +79,7 @@ export default function WalletOnboarding({
       ((completedSteps + inProgressSteps * 0.5) / onboardingSteps.length) * 100
     );
   };
-  if (otpConfirmed)
+  if (otpConfirmed && accountType === "personal")
     return (
       <Container size="md" py="xl">
         <Stack gap="xl">

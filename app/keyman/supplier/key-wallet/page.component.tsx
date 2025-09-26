@@ -71,8 +71,10 @@ export default function WalletClientComponent() {
   };
 
   //console.log(userAccount, wallet, "user loading.....");
+
   //return <WalletData walletData={wallet} isLoading={loadingWallet} />;
   // Loading state
+
   if (loadingUser) {
     return <WalletLoadingComponent />;
   }
@@ -110,7 +112,11 @@ export default function WalletClientComponent() {
   ) {
     const status = userAccount?.user?.wallet_creation_status;
     const walletAccountId = userAccount?.user?.wallet_account_id;
-    if (status === "Verification Fee Paid") {
+    if (
+      status === "Verification Fee Paid" ||
+      status?.toLowerCase() === "failed" ||
+      status?.toLowerCase() === "rejected"
+    ) {
       return (
         <WalletNotFound
           accountType={userAccount?.user?.account_type?.toLowerCase()}
@@ -124,6 +130,11 @@ export default function WalletClientComponent() {
           refresh={() => refresh()}
           onboardingRequestId={onBoardingId}
           otpConfirmed={!!userAccount?.user?.onboarding_otp_confirmation}
+          accountType={
+            userAccount?.user?.account_type?.toLowerCase() as
+              | "personal"
+              | "business"
+          }
         />
       );
     return (
