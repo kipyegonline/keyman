@@ -124,6 +124,7 @@ export default function WalletClientComponent() {
       );
     }
     const onBoardingId = userAccount?.user?.onboardingRequestId;
+
     if (onBoardingId || walletAccountId)
       return (
         <WalletOnboarding
@@ -137,6 +138,7 @@ export default function WalletClientComponent() {
           }
         />
       );
+
     return (
       <WalletTypeSelection
         onTypeSelect={handleWalletTypeSelect}

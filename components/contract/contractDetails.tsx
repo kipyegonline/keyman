@@ -75,6 +75,7 @@ interface ContractDetails {
     name: string;
     email?: string;
     phone?: string;
+    keyman_number?: string;
   };
   service_provider_signing_date: null | string;
 
@@ -787,6 +788,11 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                             {contract.service_provider?.phone}
                           </Text>
                         </Group>
+                      )}
+                      {contract.service_provider?.keyman_number && (
+                        <Badge variant="light" color="orange" size="xs">
+                          {contract.service_provider?.keyman_number}
+                        </Badge>
                       )}
                     </Paper>
                   </Grid.Col>
