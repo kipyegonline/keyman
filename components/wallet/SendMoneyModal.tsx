@@ -9,13 +9,14 @@ import {
   Text,
   LoadingOverlay,
   Alert,
+  PinInput,
 } from "@mantine/core";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ArrowUpRight, User, AlertTriangle } from "lucide-react";
 import { notifications } from "@mantine/notifications";
 import { notify } from "@/lib/notifications";
-import { sendMoney } from "@/api/wallet";
+import { sendMoney, confirmOTP } from "@/api/wallet";
 
 interface SendMoneyModalProps {
   opened: boolean;
@@ -41,6 +42,10 @@ export default function SendMoneyModal({
     string | number
   >>(null);
   const [isSendMoneyLoading, setIsSendMoneyLoading] = useState(false);
+  const [otpValue, setOtpValue] = useState("");
+  const [isOtpLoading, setIsOtpLoading] = useState(false);
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [isOtpVerified, setIsOtpVerified] = useState(false);
 
   const queryClient = useQueryClient();
   const availableBalance = parseFloat(walletData.balance);
@@ -50,12 +55,13 @@ export default function SendMoneyModal({
       sendMoney(data),
     onSuccess: (data) => {
       setIsSendMoneyLoading(false);
-      if (data.success) {
+      if (data.status) {
         setSendMoneyResponse(data);
+        setShowOtpInput(true);
         notifications.show({
-          title: "Success",
-          message: "Money sent successfully!",
-          color: "green",
+          title: "Transaction Initiated",
+          message: "Please enter the OTP sent to your phone to complete the transaction.",
+          color: "blue",
         });
       } else {
         notify.error(data.message || "Failed to send money");
@@ -65,6 +71,32 @@ export default function SendMoneyModal({
       setIsSendMoneyLoading(false);
       console.error("Send money error:", error);
       notify.error("Failed to send money. Please try again.");
+    },
+  });
+
+  const otpMutation = useMutation({
+    mutationFn: (data: { otp: string; businessId: string }) =>
+      confirmOTP(data.otp, data.businessId),
+    onSuccess: (data) => {
+      setIsOtpLoading(false);
+      if (data.status) {
+        setIsOtpVerified(true);
+        setShowOtpInput(false);
+        notifications.show({
+          title: "Success",
+          message: "Transaction completed successfully!",
+          color: "green",
+        });
+      } else {
+        notify.error(data.message || "Invalid OTP. Please try again.");
+        setOtpValue("");
+      }
+    },
+    onError: (error) => {
+      setIsOtpLoading(false);
+      console.error("OTP verification error:", error);
+      notify.error("Failed to verify OTP. Please try again.");
+      setOtpValue("");
     },
   });
 
@@ -94,6 +126,24 @@ export default function SendMoneyModal({
     });
   };
 
+  const handleOtpSubmit = () => {
+    if (!otpValue || otpValue.length !== 6) {
+      notify.error("Please enter a valid 6-digit OTP");
+      return;
+    }
+
+    if (!sendMoneyResponse?.transaction_id) {
+      notify.error("Transaction ID not found. Please try again.");
+      return;
+    }
+
+    setIsOtpLoading(true);
+    otpMutation.mutate({
+      otp: otpValue,
+      businessId: sendMoneyResponse.transaction_id as string,
+    });
+  };
+
   const handleCompleteSendMoney = () => {
     onClose();
     setSendMoneyForm({ accountId: "", amount: "", description: "" });
@@ -110,6 +160,9 @@ export default function SendMoneyModal({
     onClose();
     setSendMoneyForm({ accountId: "", amount: "", description: "" });
     setSendMoneyResponse(null);
+    setOtpValue("");
+    setShowOtpInput(false);
+    setIsOtpVerified(false);
   };
 
   const formatBalance = (balance: string) => {
@@ -141,7 +194,7 @@ export default function SendMoneyModal({
       centered
     >
       <LoadingOverlay
-        visible={isSendMoneyLoading || sendMoneyMutation.isPending}
+        visible={isSendMoneyLoading || sendMoneyMutation.isPending || isOtpLoading || otpMutation.isPending}
       />
 
       <Stack gap="lg">
@@ -246,6 +299,70 @@ export default function SendMoneyModal({
                 }
               >
                 Send Money
+              </Button>
+            </Group>
+          </>
+        ) : showOtpInput ? (
+          <>
+            <Alert color="blue" icon={<ArrowUpRight size={16} />}>
+              <Text size="sm">
+                Transaction initiated successfully! Please enter the OTP sent to your phone to complete the transfer.
+              </Text>
+            </Alert>
+
+            <div>
+              <Text size="sm" c="dimmed" mb="xs">
+                Transaction ID
+              </Text>
+              <Text fw={500}>{sendMoneyResponse?.transaction_id}</Text>
+            </div>
+
+            <div>
+              <Text size="sm" c="dimmed" mb="xs">
+                Recipient
+              </Text>
+              <Text fw={500}>{sendMoneyResponse?.recipient_name}</Text>
+            </div>
+
+            <div>
+              <Text size="sm" c="dimmed" mb="xs">
+                Amount
+              </Text>
+              <Text fw={500}>
+                {new Intl.NumberFormat("en-KE", {
+                  style: "currency",
+                  currency: walletData.currency || "KES",
+                }).format(parseFloat(sendMoneyForm.amount))}
+              </Text>
+            </div>
+
+            <div>
+              <Text size="sm" fw={500} mb="sm">
+                Enter OTP Code
+              </Text>
+              <PinInput
+                size="lg"
+                length={6}
+                value={otpValue}
+                onChange={setOtpValue}
+                placeholder="○"
+                type="number"
+                style={{ display: "flex", justifyContent: "center" }}
+              />
+            </div>
+
+            <Group justify="flex-end">
+              <Button variant="light" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleOtpSubmit}
+                loading={isOtpLoading || otpMutation.isPending}
+                style={{ backgroundColor: "#3D6B2C" }}
+                leftSection={<ArrowUpRight size={16} />}
+                disabled={!otpValue || otpValue.length !== 6}
+              >
+                Verify OTP
               </Button>
             </Group>
           </>

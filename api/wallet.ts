@@ -146,13 +146,26 @@ export const sendOTP = async (
   }
 };
 
-export const confirmOTP = async (phoneNumber: string, otp: string) => {
+export const confirmOTP = async (
+  otp: string,
+  businessId?: string,
+  phoneNumber?: string
+) => {
   try {
     const endpoint = ENDPOINTS.wallet.CONFIRM_OTP;
-    const response = await AxiosClient.post(endpoint, {
-      phoneNumber,
+    const payload: Record<string, string> = {
       otp_code: otp,
-    });
+    };
+
+    if (businessId) {
+      payload.businessId = businessId;
+    }
+
+    if (phoneNumber) {
+      payload.phoneNumber = phoneNumber;
+    }
+
+    const response = await AxiosClient.post(endpoint, payload);
 
     return response.data;
   } catch (error) {
