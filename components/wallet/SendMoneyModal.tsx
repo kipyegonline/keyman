@@ -59,6 +59,7 @@ export default function SendMoneyModal({
     onSuccess: (data) => {
       setIsSendMoneyLoading(false);
       if (data.status) {
+        console.log("Send money response:", data);
         setSendMoneyResponse(data);
         setShowOtpInput(true);
         notifications.show({
@@ -136,7 +137,7 @@ export default function SendMoneyModal({
 
   const handleOtpSubmit = () => {
     if (!otpValue || otpValue.trim().length !== 4) {
-      notify.error("Please enter a valid 6-digit OTP");
+      notify.error("Please enter a valid 4-digit OTP");
       return;
     }
 
@@ -374,7 +375,7 @@ export default function SendMoneyModal({
                 loading={isOtpLoading || otpMutation.isPending}
                 style={{ backgroundColor: "#3D6B2C" }}
                 leftSection={<ArrowUpRight size={16} />}
-                disabled={!otpValue || otpValue.length !== 6}
+                disabled={!otpValue || otpValue.length !== 4}
               >
                 Verify OTP
               </Button>
