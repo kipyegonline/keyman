@@ -135,7 +135,7 @@ export default function SendMoneyModal({
   };
 
   const handleOtpSubmit = () => {
-    if (!otpValue || otpValue.length !== 6) {
+    if (!otpValue || otpValue.trim().length !== 4) {
       notify.error("Please enter a valid 6-digit OTP");
       return;
     }
@@ -356,7 +356,7 @@ export default function SendMoneyModal({
               </Text>
               <PinInput
                 size="lg"
-                length={6}
+                length={4}
                 value={otpValue}
                 onChange={setOtpValue}
                 placeholder="○"
