@@ -49,7 +49,7 @@ export default function RegistrationSuccess({
   });
 
   const handleNavigateToWallet = () => {
-    router.push("/keyman/supplier/key-wallet");
+    router.push("/keyman/dashboard/key-wallet");
   };
 
   useEffect(() => {

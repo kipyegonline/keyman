@@ -285,7 +285,7 @@ export default function WalletOnboarding({
     <RegistrationSuccess
       resubmit={() => {
         navigateTo();
-        router.push("/keyman/supplier/key-wallet/create-current-account");
+        router.push("/keyman/dashboard/key-wallet/create-current-account");
       }}
     />
   );

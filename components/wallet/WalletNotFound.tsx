@@ -40,7 +40,7 @@ export default function WalletNotFound({
         // queryClient.invalidateQueries({ queryKey: ["wallet"] });
       } else {
         navigateTo();
-        router.push("/keyman/supplier/key-wallet/create");
+        router.push("/keyman/dashboard/key-wallet/create");
       }
     },
   });
@@ -49,9 +49,9 @@ export default function WalletNotFound({
     //createWalletMutation.mutate();
     navigateTo();
     if (accountType === "personal")
-      router.push("/keyman/supplier/key-wallet/create-personal-wallet");
+      router.push("/keyman/dashboard/key-wallet/create-personal-wallet");
     else if (accountType === "business")
-      router.push("/keyman/supplier/key-wallet/create-current-account");
+      router.push("/keyman/dashboard/key-wallet/create-current-account");
 
     // router.push("/keyman/supplier/key-wallet/create");
   };

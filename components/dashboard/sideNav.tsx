@@ -6,6 +6,7 @@ import {
   Coins,
   LocateIcon,
   ReceiptText,
+  Wallet,
 } from "lucide-react";
 import {
   Group,
@@ -54,6 +55,7 @@ const Sidebar: React.FC<{
 
     { id: "suppliers-near-me", label: "Stores near me", icon: LocateIcon },
     { id: "keyman-coin", label: "My Coins", icon: Coins },
+    { id: "key-wallet", label: "My Wallet", icon: Wallet },
     { id: "key-contract", label: "My Contracts", icon: ReceiptText },
 
     //{ id: 'materials', label: 'Materials', icon: Package },
@@ -120,6 +122,10 @@ const Sidebar: React.FC<{
       case "keyman-coin":
         navigateTo();
         router.push("/keyman/dashboard/keyman-coin");
+        break;
+      case "key-wallet":
+        navigateTo();
+        router.push("/keyman/dashboard/key-wallet");
         break;
       case "supplier":
         handleSupplyRoute();
