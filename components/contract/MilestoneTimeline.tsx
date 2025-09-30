@@ -19,6 +19,7 @@ import {
   AlertCircle,
   Play,
   Edit,
+  Trash2 as Delete,
 } from "lucide-react";
 import React from "react";
 
@@ -42,7 +43,8 @@ interface MilestoneTimelineProps {
   canEditMileStone?: boolean;
   serviceProviderSigningDate?: string | null;
   onEditMilestone?: (milestoneId: string) => void;
-  onStatusChange?: (milestoneId: string) => void;
+  onDeleteMilestone?: (milestoneId: string) => void;
+  onStatusChange?: (milestoneId: string, action: "start" | "complete") => void;
   userType: string;
   mode: "client" | "service_provider";
 }
@@ -83,6 +85,7 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
   canEditMileStone = false,
   serviceProviderSigningDate = null,
   onEditMilestone,
+  onDeleteMilestone,
   onStatusChange,
   userType,
   mode,
@@ -190,7 +193,7 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                                   //color="green"
                                   onClick={() =>
                                     onStatusChange &&
-                                    onStatusChange(milestone.id)
+                                    onStatusChange(milestone.id, "start")
                                   }
                                 >
                                   <Play size={12} />
@@ -213,7 +216,7 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                                     //color="green"
                                     onClick={() =>
                                       onStatusChange &&
-                                      onStatusChange(milestone.id)
+                                      onStatusChange(milestone.id, "complete")
                                     }
                                   >
                                     <CheckCircle size={12} />
@@ -237,6 +240,26 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                             <Edit size={14} />
                           </ActionIcon>
                         )}
+                      {canEditMileStone && (
+                        <ActionIcon
+                          size="sm"
+                          variant="light"
+                          color="red"
+                          onClick={() => {
+                            if (onDeleteMilestone) {
+                              if (
+                                confirm(
+                                  "Are you sure you want to delete this milestone? This action cannot be undone."
+                                )
+                              ) {
+                                onDeleteMilestone(milestone.id);
+                              }
+                            }
+                          }}
+                        >
+                          <Delete size={14} />
+                        </ActionIcon>
+                      )}
                     </Group>
                   </Group>
                 }

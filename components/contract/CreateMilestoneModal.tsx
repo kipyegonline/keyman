@@ -87,8 +87,8 @@ const CreateMilestoneModal: React.FC<CreateMilestoneModalProps> = ({
       newErrors.description = "Description is required";
     }
 
-    if (formData.amount <= 0) {
-      newErrors.amount = "Amount must be greater than 0";
+    if (formData.amount < 10) {
+      newErrors.amount = "Minimum amount is KES 10";
     }
 
     if (!formData.start_date) {

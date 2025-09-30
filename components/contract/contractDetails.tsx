@@ -43,6 +43,7 @@ import {
   updateContract,
   updateMilestone,
   createMilestone,
+  deleteMilestone,
 } from "@/api/contract";
 import { notify } from "@/lib/notifications";
 
@@ -174,6 +175,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const [acceptContractModalOpened, setAcceptContractModalOpened] =
     useState(false);
   const [isAcceptingContract, setIsAcceptingContract] = useState(false);
+  const [action, setAction] = useState<"start" | "complete">("start");
   //const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
 
   const handleEditMilestone = (milestoneId: string) => {
@@ -183,7 +185,20 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       setEditModalOpened(true);
     }
   };
-
+  const handleDeleteMilestone = async (milestoneId: string) => {
+    try {
+      const response = await deleteMilestone(milestoneId, {});
+      if (response.status) {
+        notify.success("Milestone deleted successfully");
+        refresh();
+      } else {
+        notify.error("Failed to delete milestone");
+      }
+    } catch (error) {
+      console.error("Error deleting milestone:", error);
+      notify.error("An error occurred while deleting the milestone");
+    }
+  };
   const handleSaveMilestone = async (
     milestoneId: string,
     data: {
@@ -305,13 +320,15 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   };
 
   const handleMilestoneStatusChange = (
-    milestoneId: string
+    milestoneId: string,
+    action: "start" | "complete"
     //currentStatus: string
   ) => {
     const milestone = contract.milestones?.find((m) => m.id === milestoneId);
     if (milestone) {
       setMilestoneForStatusChange(milestone);
       setStatusChangeModalOpened(true);
+      setAction(action);
     }
   };
 
@@ -343,8 +360,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
       if (response.status) {
         refresh();
-        const actionText =
-          newStatus === "in_progress" ? "started" : "completed";
+        const actionText = action === "start" ? "started" : "completed";
+
         notify.success(`Milestone ${actionText} successfully`);
         // Close modal on success
         setStatusChangeModalOpened(false);
@@ -568,11 +585,17 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   variant="light"
                   color="gray"
                   size="lg"
+                  className="!invisible"
                   onClick={onShare}
                 >
                   <Share2 size={18} />
                 </ActionIcon>
-                <ActionIcon variant="light" color="gray" size="lg">
+                <ActionIcon
+                  variant="light"
+                  color="gray"
+                  size="lg"
+                  className="!invisible"
+                >
                   <MoreVertical size={18} />
                 </ActionIcon>
               </Group>
@@ -825,17 +848,20 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   }
                   onEditMilestone={handleEditMilestone}
                   onStatusChange={handleMilestoneStatusChange}
+                  onDeleteMilestone={handleDeleteMilestone}
                   userType={userType}
                   mode={contract?.contract_mode ?? "client"}
                 />
               )}
-              <Button
-                leftSection={<Plus size={16} />}
-                onClick={handleCreateMilestone}
-                style={{ backgroundColor: "#3D6B2C", color: "white" }}
-              >
-                Create Milestone
-              </Button>
+              {canEditMileStone && (
+                <Button
+                  leftSection={<Plus size={16} />}
+                  onClick={handleCreateMilestone}
+                  style={{ backgroundColor: "#3D6B2C", color: "white" }}
+                >
+                  Create Milestone
+                </Button>
+              )}
               {/**Actions */}
               {inNegotiation && userType === "customer" ? (
                 canEditMileStone && contract?.contract_mode === "client" ? (

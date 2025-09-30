@@ -45,7 +45,7 @@ export default function SendMoneyModal({
   const [otpValue, setOtpValue] = useState("");
   const [isOtpLoading, setIsOtpLoading] = useState(false);
   const [showOtpInput, setShowOtpInput] = useState(false);
-  const [isOtpVerified, setIsOtpVerified] = useState(false);
+  const [, setIsOtpVerified] = useState(false);
 
   const queryClient = useQueryClient();
   const availableBalance = parseFloat(walletData.balance);
@@ -59,7 +59,7 @@ export default function SendMoneyModal({
     onSuccess: (data) => {
       setIsSendMoneyLoading(false);
       if (data.status) {
-        console.log("Send money response:", data);
+        // console.log("Send money response:", data);
         setSendMoneyResponse(data);
         setShowOtpInput(true);
         notifications.show({
@@ -92,6 +92,9 @@ export default function SendMoneyModal({
           message: "Transaction completed successfully!",
           color: "green",
         });
+        setTimeout(() => {
+          location.reload();
+        }, 2000);
       } else {
         notify.error(data.message || "Invalid OTP. Please try again.");
         setOtpValue("");
@@ -187,7 +190,7 @@ export default function SendMoneyModal({
     if (!amount || isNaN(amount)) return "dimmed";
     return amount > availableBalance ? "red" : "green";
   };
-  console.info(isOtpVerified);
+  // console.info(isOtpVerified);
   return (
     <Modal
       opened={opened}
