@@ -51,8 +51,11 @@ export default function SendMoneyModal({
   const availableBalance = parseFloat(walletData.balance);
 
   const sendMoneyMutation = useMutation({
-    mutationFn: (data: { recipient_wallet_id: string; amount: number; description: string }) =>
-      sendMoney(data),
+    mutationFn: (data: {
+      recipient_wallet_id: string;
+      amount: number;
+      description: string;
+    }) => sendMoney(data),
     onSuccess: (data) => {
       setIsSendMoneyLoading(false);
       if (data.status) {
@@ -60,7 +63,8 @@ export default function SendMoneyModal({
         setShowOtpInput(true);
         notifications.show({
           title: "Transaction Initiated",
-          message: "Please enter the OTP sent to your phone to complete the transaction.",
+          message:
+            "Please enter the OTP sent to your phone to complete the transaction.",
           color: "blue",
         });
       } else {
@@ -101,7 +105,11 @@ export default function SendMoneyModal({
   });
 
   const handleSendMoneySubmit = () => {
-    if (!sendMoneyForm.accountId || !sendMoneyForm.amount || !sendMoneyForm.description) {
+    if (
+      !sendMoneyForm.accountId ||
+      !sendMoneyForm.amount ||
+      !sendMoneyForm.description
+    ) {
       notify.error("Please fill in all fields");
       return;
     }
@@ -178,7 +186,7 @@ export default function SendMoneyModal({
     if (!amount || isNaN(amount)) return "dimmed";
     return amount > availableBalance ? "red" : "green";
   };
-
+  console.info(isOtpVerified);
   return (
     <Modal
       opened={opened}
@@ -194,7 +202,12 @@ export default function SendMoneyModal({
       centered
     >
       <LoadingOverlay
-        visible={isSendMoneyLoading || sendMoneyMutation.isPending || isOtpLoading || otpMutation.isPending}
+        visible={
+          isSendMoneyLoading ||
+          sendMoneyMutation.isPending ||
+          isOtpLoading ||
+          otpMutation.isPending
+        }
       />
 
       <Stack gap="lg">
@@ -306,7 +319,8 @@ export default function SendMoneyModal({
           <>
             <Alert color="blue" icon={<ArrowUpRight size={16} />}>
               <Text size="sm">
-                Transaction initiated successfully! Please enter the OTP sent to your phone to complete the transfer.
+                Transaction initiated successfully! Please enter the OTP sent to
+                your phone to complete the transfer.
               </Text>
             </Alert>
 
