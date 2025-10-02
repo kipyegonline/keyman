@@ -36,6 +36,7 @@ import { SupplierInfo } from "@/types";
 import SocialShare from "@/lib/SocilalShareComponent";
 import { ContractChatBot } from "../contract";
 import { getToken } from "@/providers/AppContext";
+import { PepiconsPencilHandshakeCircle } from "./pencil";
 
 interface ISupplierInfo {
   phone: string;
@@ -240,6 +241,18 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
           </div>
           <div>
             {" "}
+            <Button
+              variant="light"
+              size="sm"
+              disabled={supplier?.is_user_verified === 0}
+              onClick={() => setShowContract(true)}
+              //className="!animate-pulse"
+              rightSection={
+                <PepiconsPencilHandshakeCircle className="w-8 h-8  !animation-pulse" />
+              }
+            >
+              Key Contract
+            </Button>
             <Tooltip
               label={
                 supplier?.is_user_verified === 0
@@ -249,6 +262,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               position="bottom"
             >
               <ActionIcon
+                display={"none"}
                 disabled={supplier?.is_user_verified === 0}
                 variant="light"
                 className="hover:scale-110 transition-all duration-300 animate-pulse"
@@ -256,7 +270,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
                 onClick={() => setShowContract(true)}
               >
                 <img
-                  src="/signing-the-contract-svgrepo-com.svg"
+                  src="/PepiconsPencilHandshakeCircle.svg"
                   alt="keyman key"
                   className="w-10 h-10 bg-green animation-pulse"
                 />

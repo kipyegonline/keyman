@@ -211,7 +211,7 @@ const TopNavigation: React.FC = () => {
           >
             {isDark ? <Sun size={20} /> : <Moon size={20} />}
           </ActionIcon>
-          {hasAccess && (
+          {hasAccess && false && (
             <Tooltip label={"Key contract"} position="bottom">
               <ActionIcon
                 //disabled={supplier?.is_user_verified === 0}
