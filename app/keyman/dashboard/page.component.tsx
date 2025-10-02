@@ -60,6 +60,7 @@ export default function UserDashboardComponent() {
   return (
     <div>
       <KeymanBanner banners={banners} />
+
       <MainContent />
     </div>
   );

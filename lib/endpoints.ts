@@ -105,6 +105,6 @@ export const ENDPOINTS = {
     TOP_UP_WALLET: "/api/wallet/topup",
     SEND_MONEY: "/api/wallet/transfer",
     GET_RATES: "/api/exchange-rate/multiple",
-    GET_SUPPORTED_CURRENCIES: "/api/exchange-rate/supported-currencies",
+    SUPPORTED: "/api/exchange-rate/supported-currencies",
   },
 };

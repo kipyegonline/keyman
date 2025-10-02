@@ -33,6 +33,7 @@
     "next-nprogress-bar": "^2.4.7",
     "react": "^19.0.0",
     "react-chatbot-kit": "^2.2.2",
+    "react-countup": "^6.5.3",
     "react-dom": "^19.0.0",
     "react-share": "^5.2.2"
   },

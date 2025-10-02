@@ -24,6 +24,7 @@ import KeymanBanner from "../Banner";
 import { getBannerssNearMe } from "@/api/requests";
 import { useQuery } from "@tanstack/react-query";
 import SuppliersNearMe from "../supplier/SuppliersNearMe";
+import ForexRatesBoard from "../wallet/ForexRatesBoard";
 
 // Hero Section Component
 const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
@@ -543,6 +544,7 @@ const KeymanLanding: React.FC = () => {
       <div className="pt-18"></div>
 
       <AnimatedHeroSection />
+      <ForexRatesBoard />
       <div className="py-4">
         <KeymanBanner banners={banners} />
       </div>

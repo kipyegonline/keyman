@@ -42,6 +42,7 @@ import Link from "next/link";
 import { Order } from "@/types/orders";
 import DashboardSearch from "../keyman-bot/DashboardSearch";
 import KeyContractBanner from "../contract/contractBanner";
+import ForexRatesBoard from "../wallet/ForexRatesBoard";
 // Main Content Component
 const MainContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -245,7 +246,7 @@ const MainContent: React.FC = () => {
           );
         })}
       </Grid>
-
+      <ForexRatesBoard />
       {/* Main Content Grid */}
       {_orders.length > 0 && (
         <Grid>

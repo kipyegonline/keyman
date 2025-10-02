@@ -281,3 +281,45 @@ export const sendMoney = async (data: {
     }
   }
 };
+
+export const getSupportedCurrencies = async () => {
+  try {
+    const endpoint = ENDPOINTS.wallet.SUPPORTED;
+    const response = await AxiosClient.get(endpoint);
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while fetching supported currencies",
+          success: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", success: false };
+    }
+  }
+};
+
+export const getForexRates = async (currencies: string[]) => {
+  try {
+    const endpoint = ENDPOINTS.wallet.GET_RATES;
+    const response = await AxiosClient.post(endpoint, { currencies });
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while fetching forex rates",
+          success: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", success: false };
+    }
+  }
+};
