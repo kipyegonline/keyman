@@ -104,5 +104,7 @@ export const ENDPOINTS = {
     UPGRADE_ACCOUNT: "/api/user/upgrade-wallet-account",
     TOP_UP_WALLET: "/api/wallet/topup",
     SEND_MONEY: "/api/wallet/transfer",
+    GET_RATES: "/api/exchange-rate/multiple",
+    GET_SUPPORTED_CURRENCIES: "/api/exchange-rate/supported-currencies",
   },
 };
