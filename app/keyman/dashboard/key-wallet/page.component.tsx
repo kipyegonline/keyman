@@ -72,7 +72,13 @@ export default function WalletClientComponent() {
 
   //console.log(userAccount, wallet, "user loading.....");
 
-  //return <WalletData walletData={wallet} isLoading={loadingWallet} />;
+  return (
+    <WalletData
+      walletData={wallet}
+      isLoading={loadingWallet}
+      accountType={userAccount?.user?.account_type?.toLowerCase()}
+    />
+  );
   // Loading state
 
   if (loadingUser) {

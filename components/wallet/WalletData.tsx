@@ -255,7 +255,13 @@ export default function WalletData({
       });
     }
   };
-
+  const handleSendMoney = () => {
+    if (!walletData?.balance || +walletData?.balance < 10) {
+      notify.error("You have insufficient balance, kindly top up");
+      return;
+    }
+    setSendMoneyModalOpen(true);
+  };
   const handleUpgradeSubmit = async () => {
     if (!upgradeForm.kraPin || !upgradeForm.selfiePhoto) {
       notifications.show({
@@ -424,7 +430,7 @@ export default function WalletData({
               p="lg"
               className="hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
               style={{ height: "100%" }}
-              onClick={() => setSendMoneyModalOpen(true)}
+              onClick={handleSendMoney}
             >
               <Group gap="md" align="center">
                 <ThemeIcon

@@ -1,22 +1,24 @@
 "use client";
 import {
   Modal,
-  TextInput,
-  Textarea,
-  Button,
-  Group,
   Stack,
   Text,
-  LoadingOverlay,
+  Card,
+  ActionIcon,
+  Transition,
+  Group,
   Alert,
-  PinInput,
 } from "@mantine/core";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { ArrowUpRight, User, AlertTriangle } from "lucide-react";
-import { notifications } from "@mantine/notifications";
-import { notify } from "@/lib/notifications";
-import { sendMoney, confirmOTP } from "@/api/wallet";
+import {
+  Shield,
+  ArrowLeftRight,
+  Building2,
+  Globe,
+  CreditCard,
+} from "lucide-react";
+import GeneralTransfer from "./GeneralTransfer";
+import BankTransfer from "./BankTransfer";
 
 interface SendMoneyModalProps {
   opened: boolean;
@@ -27,154 +29,76 @@ interface SendMoneyModalProps {
   };
 }
 
+// Transfer type configurations
+const transferTypes = {
+  general: {
+    label: "General Transfer",
+    icon: <ArrowLeftRight size={24} />,
+    color: "#3D6B2C",
+    description: "Send money to another wallet instantly",
+    features: ["Instant transfer", "No fees", "24/7 availability"],
+  },
+  bank: {
+    label: "Bank Transfer (RTGS/EFT)",
+    icon: <Building2 size={24} />,
+    color: "#F08C23",
+    description: "Transfer to any bank account via RTGS or EFT",
+    features: ["Same-day processing", "Secure transfer", "All local banks"],
+  },
+  international: {
+    label: "International Transfer (SWIFT)",
+    icon: <Globe size={24} />,
+    color: "#1976D2",
+    description: "Send money internationally via SWIFT network",
+    features: ["Global coverage", "Competitive rates", "Tracked transfers"],
+  },
+};
+
+// Custom styles matching PaymentModal
+const customStyles = {
+  primary: "#3D6B2C",
+  secondary: "#F08C23",
+  success: "#388E3C",
+  gradient: "linear-gradient(135deg, #3D6B2C 0%, #388E3C 100%)",
+  cardHover:
+    "transform: translateY(-2px); box-shadow: 0 8px 25px rgba(61, 107, 44, 0.15);",
+};
+
 export default function SendMoneyModal({
   opened,
   onClose,
   walletData,
 }: SendMoneyModalProps) {
-  const [sendMoneyForm, setSendMoneyForm] = useState({
-    accountId: "",
-    amount: "",
-    description: "",
-  });
-  const [sendMoneyResponse, setSendMoneyResponse] = useState<null | Record<
-    string,
-    string | number
-  >>(null);
-  const [isSendMoneyLoading, setIsSendMoneyLoading] = useState(false);
-  const [otpValue, setOtpValue] = useState("");
-  const [isOtpLoading, setIsOtpLoading] = useState(false);
-  const [showOtpInput, setShowOtpInput] = useState(false);
-  const [, setIsOtpVerified] = useState(false);
-
-  const queryClient = useQueryClient();
-  const availableBalance = parseFloat(walletData.balance);
-
-  const sendMoneyMutation = useMutation({
-    mutationFn: (data: {
-      recipient_wallet_id: string;
-      amount: number;
-      description: string;
-    }) => sendMoney(data),
-    onSuccess: (data) => {
-      setIsSendMoneyLoading(false);
-      if (data.status) {
-        // console.log("Send money response:", data);
-        setSendMoneyResponse(data);
-        setShowOtpInput(true);
-        notifications.show({
-          title: "Transaction Initiated",
-          message:
-            "Please enter the OTP sent to your phone to complete the transaction.",
-          color: "blue",
-        });
-      } else {
-        notify.error(data.message || "Failed to send money");
-      }
-    },
-    onError: (error) => {
-      setIsSendMoneyLoading(false);
-      console.error("Send money error:", error);
-      notify.error("Failed to send money. Please try again.");
-    },
-  });
-
-  const otpMutation = useMutation({
-    mutationFn: (data: { otp: string; businessId: string }) =>
-      confirmOTP(data.otp, data.businessId),
-    onSuccess: (data) => {
-      setIsOtpLoading(false);
-      if (data.status) {
-        setIsOtpVerified(true);
-        setShowOtpInput(false);
-        notifications.show({
-          title: "Success",
-          message: "Transaction completed successfully!",
-          color: "green",
-        });
-        setTimeout(() => {
-          location.reload();
-        }, 2000);
-      } else {
-        notify.error(data.message || "Invalid OTP. Please try again.");
-        setOtpValue("");
-      }
-    },
-    onError: (error) => {
-      setIsOtpLoading(false);
-      console.error("OTP verification error:", error);
-      notify.error("Failed to verify OTP. Please try again.");
-      setOtpValue("");
-    },
-  });
-
-  const handleSendMoneySubmit = () => {
-    if (
-      !sendMoneyForm.accountId ||
-      !sendMoneyForm.amount ||
-      !sendMoneyForm.description
-    ) {
-      notify.error("Please fill in all fields");
-      return;
-    }
-
-    const amount = parseFloat(sendMoneyForm.amount);
-    if (amount <= 0 || isNaN(amount)) {
-      notify.error("Please enter a valid amount");
-      return;
-    }
-
-    // Check if user has sufficient balance
-    if (amount > availableBalance) {
-      notify.error("Insufficient balance. Please enter a lower amount.");
-      return;
-    }
-
-    setIsSendMoneyLoading(true);
-    sendMoneyMutation.mutate({
-      recipient_wallet_id: sendMoneyForm.accountId,
-      amount: amount,
-      description: sendMoneyForm.description,
-    });
-  };
-
-  const handleOtpSubmit = () => {
-    if (!otpValue || otpValue.trim().length !== 4) {
-      notify.error("Please enter a valid 4-digit OTP");
-      return;
-    }
-
-    if (!sendMoneyResponse?.transaction_id) {
-      notify.error("Transaction ID not found. Please try again.");
-      return;
-    }
-
-    setIsOtpLoading(true);
-    otpMutation.mutate({
-      otp: otpValue,
-      businessId: sendMoneyResponse.transaction_id as string,
-    });
-  };
-
-  const handleCompleteSendMoney = () => {
-    onClose();
-    setSendMoneyForm({ accountId: "", amount: "", description: "" });
-    setSendMoneyResponse(null);
-    queryClient.invalidateQueries({ queryKey: ["wallet"] });
-    notifications.show({
-      title: "Transaction Completed",
-      message: "Your wallet has been updated.",
-      color: "green",
-    });
-  };
+  const [transferType, setTransferType] = useState<string>("");
+  const [transferStep, setTransferStep] = useState<"select" | "form">("select");
 
   const handleClose = () => {
+    setTransferStep("select");
+    setTransferType("");
     onClose();
-    setSendMoneyForm({ accountId: "", amount: "", description: "" });
-    setSendMoneyResponse(null);
-    setOtpValue("");
-    setShowOtpInput(false);
-    setIsOtpVerified(false);
+  };
+
+  const handleTypeSelect = (type: string) => {
+    setTransferType(type);
+    setTransferStep("form");
+  };
+
+  const handleBackToSelect = () => {
+    setTransferStep("select");
+    setTransferType("");
+  };
+
+  const getStepTitle = () => {
+    switch (transferStep) {
+      case "select":
+        return "Choose Transfer Type";
+      case "form":
+        return transferType
+          ? transferTypes[transferType as keyof typeof transferTypes].label
+          : "Transfer Details";
+      default:
+        return "Send Money";
+    }
   };
 
   const formatBalance = (balance: string) => {
@@ -185,245 +109,170 @@ export default function SendMoneyModal({
     }).format(numBalance);
   };
 
-  const getBalanceColor = () => {
-    const amount = parseFloat(sendMoneyForm.amount);
-    if (!amount || isNaN(amount)) return "dimmed";
-    return amount > availableBalance ? "red" : "green";
-  };
-  // console.info(isOtpVerified);
   return (
     <Modal
       opened={opened}
       onClose={handleClose}
       title={
-        <Group gap="sm">
-          <ArrowUpRight size={20} style={{ color: "#3D6B2C" }} />
-          <Text fw={600} style={{ color: "#3D6B2C" }}>
-            Send Money
+        <Group>
+          <Shield size={20} style={{ color: "white" }} />
+          <Text fw={600} size="lg" style={{ color: "white" }}>
+            {getStepTitle()}
           </Text>
         </Group>
       }
+      size="lg"
       centered
+      overlayProps={{
+        backgroundOpacity: 0.55,
+        blur: 3,
+      }}
+      styles={{
+        content: {
+          background: "linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)",
+          borderRadius: "16px",
+          overflow: "visible",
+        },
+        header: {
+          background: customStyles.gradient,
+          color: "white",
+          padding: "20px 24px",
+          borderBottom: "none",
+        },
+        title: {
+          color: "white",
+          fontWeight: 600,
+        },
+        close: {
+          color: "white",
+        },
+        body: {
+          padding: "24px",
+          maxHeight: "70vh",
+          overflowY: "auto",
+        },
+      }}
     >
-      <LoadingOverlay
-        visible={
-          isSendMoneyLoading ||
-          sendMoneyMutation.isPending ||
-          isOtpLoading ||
-          otpMutation.isPending
-        }
-      />
-
       <Stack gap="lg">
-        {!sendMoneyResponse ? (
-          <>
-            {/* Available Balance Display */}
-            <Alert color="blue" icon={<User size={16} />}>
-              <Text size="sm">
-                Available Balance:{" "}
-                <strong>{formatBalance(walletData.balance)}</strong>
+        {/* Transfer Type Selection */}
+        <Transition
+          mounted={transferStep === "select"}
+          transition="slide-right"
+          duration={300}
+        >
+          {(styles) => (
+            <div style={styles}>
+              <Text
+                size="sm"
+                fw={500}
+                mb="md"
+                style={{ color: customStyles.primary }}
+              >
+                Select your preferred transfer method:
               </Text>
-            </Alert>
-
-            <TextInput
-              label="Account ID"
-              placeholder="Enter recipient's account ID"
-              value={sendMoneyForm.accountId}
-              onChange={(event) =>
-                setSendMoneyForm((prev) => ({
-                  ...prev,
-                  accountId: event.target?.value || "",
-                }))
-              }
-              leftSection={<User size={16} />}
-              required
-            />
-
-            <div>
-              <TextInput
-                label="Amount"
-                placeholder="Enter amount to send"
-                value={sendMoneyForm.amount}
-                onChange={(event) =>
-                  setSendMoneyForm((prev) => ({
-                    ...prev,
-                    amount: event.target?.value || "",
-                  }))
-                }
-                leftSection={<Text size="sm">{walletData.currency}</Text>}
-                type="number"
-                min={1}
-                max={availableBalance}
-                required
-                error={
-                  sendMoneyForm.amount &&
-                  parseFloat(sendMoneyForm.amount) > availableBalance
-                    ? "Amount exceeds available balance"
-                    : undefined
-                }
-              />
-              {sendMoneyForm.amount && (
-                <Text size="xs" c={getBalanceColor()} mt="xs">
-                  {parseFloat(sendMoneyForm.amount) > availableBalance ? (
-                    <>
-                      <AlertTriangle
-                        size={12}
-                        style={{ display: "inline", marginRight: "4px" }}
-                      />
-                      Insufficient balance
-                    </>
-                  ) : (
-                    `Remaining balance: ${formatBalance(
-                      (
-                        availableBalance - parseFloat(sendMoneyForm.amount)
-                      ).toString()
-                    )}`
-                  )}
+              <Stack gap="sm">
+                {Object.entries(transferTypes).map(([key, config]) => (
+                  <Card
+                    key={key}
+                    withBorder
+                    radius="md"
+                    style={{
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      border:
+                        transferType === key
+                          ? `2px solid ${customStyles.primary}`
+                          : "1px solid #e9ecef",
+                    }}
+                    onClick={() => handleTypeSelect(key)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow =
+                        "0 8px 25px rgba(61, 107, 44, 0.15)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow =
+                        "0 2px 4px rgba(0, 0, 0, 0.1)";
+                    }}
+                  >
+                    <Group align="flex-start">
+                      <div style={{ color: config.color, marginTop: "4px" }}>
+                        {config.icon}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <Text fw={600} size="md" mb={4}>
+                          {config.label}
+                        </Text>
+                        <Text size="sm" c="dimmed" mb={8}>
+                          {config.description}
+                        </Text>
+                        <Group gap={8}>
+                          {config.features.map((feature, idx) => (
+                            <Text
+                              key={idx}
+                              size="xs"
+                              style={{
+                                background: "#f1f3f5",
+                                padding: "2px 8px",
+                                borderRadius: "4px",
+                                color: "#495057",
+                              }}
+                            >
+                              {feature}
+                            </Text>
+                          ))}
+                        </Group>
+                      </div>
+                      <ActionIcon variant="light" color="gray" size="sm">
+                        <CreditCard size={16} />
+                      </ActionIcon>
+                    </Group>
+                  </Card>
+                ))}
+              </Stack>
+              <Alert
+                icon={<Shield size={16} />}
+                title="Secure Transfer"
+                color="teal"
+                variant="light"
+                mt="md"
+              >
+                <Text size="xs">
+                  All transfers are encrypted and secure. Available Balance:{" "}
+                  <strong>{formatBalance(walletData.balance)}</strong>
                 </Text>
-              )}
+              </Alert>
             </div>
+          )}
+        </Transition>
 
-            <Textarea
-              label="Description"
-              placeholder="Enter transfer description (e.g., Payment for services, Loan repayment, etc.)"
-              value={sendMoneyForm.description}
-              onChange={(event) =>
-                setSendMoneyForm((prev) => ({
-                  ...prev,
-                  description: event.target?.value || "",
-                }))
-              }
-              minRows={2}
-              maxRows={4}
-              autosize
-              required
-            />
+        {/* Transfer Forms Based on Type */}
+        {transferStep === "form" && transferType === "general" && (
+          <GeneralTransfer
+            walletData={walletData}
+            onClose={handleClose}
+            onBack={handleBackToSelect}
+          />
+        )}
 
-            <Group justify="flex-end">
-              <Button variant="light" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleSendMoneySubmit}
-                loading={isSendMoneyLoading || sendMoneyMutation.isPending}
-                style={{ backgroundColor: "#3D6B2C" }}
-                leftSection={<ArrowUpRight size={16} />}
-                disabled={
-                  !sendMoneyForm.accountId ||
-                  !sendMoneyForm.amount ||
-                  !sendMoneyForm.description ||
-                  parseFloat(sendMoneyForm.amount) > availableBalance
-                }
-              >
-                Send Money
-              </Button>
-            </Group>
-          </>
-        ) : showOtpInput ? (
-          <>
-            <Alert color="blue" icon={<ArrowUpRight size={16} />}>
-              <Text size="sm">
-                Transaction initiated successfully! Please enter the OTP sent to
-                your phone to complete the transfer.
-              </Text>
-            </Alert>
+        {/* Bank Transfer */}
+        {transferStep === "form" && transferType === "bank" && (
+          <BankTransfer
+            walletData={walletData}
+            onClose={handleClose}
+            onBack={handleBackToSelect}
+          />
+        )}
 
-            <div>
-              <Text size="sm" c="dimmed" mb="xs">
-                Transaction ID
-              </Text>
-              <Text fw={500}>{sendMoneyResponse?.transaction_id}</Text>
-            </div>
-
-            <div>
-              <Text size="sm" c="dimmed" mb="xs">
-                Recipient
-              </Text>
-              <Text fw={500}>{sendMoneyResponse?.recipient_name}</Text>
-            </div>
-
-            <div>
-              <Text size="sm" c="dimmed" mb="xs">
-                Amount
-              </Text>
-              <Text fw={500}>
-                {new Intl.NumberFormat("en-KE", {
-                  style: "currency",
-                  currency: walletData.currency || "KES",
-                }).format(parseFloat(sendMoneyForm.amount))}
-              </Text>
-            </div>
-
-            <div>
-              <Text size="sm" fw={500} mb="sm">
-                Enter OTP Code
-              </Text>
-              <PinInput
-                size="lg"
-                length={4}
-                value={otpValue}
-                onChange={setOtpValue}
-                placeholder="○"
-                type="number"
-                style={{ display: "flex", justifyContent: "center" }}
-              />
-            </div>
-
-            <Group justify="flex-end">
-              <Button variant="light" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button
-                onClick={handleOtpSubmit}
-                loading={isOtpLoading || otpMutation.isPending}
-                style={{ backgroundColor: "#3D6B2C" }}
-                leftSection={<ArrowUpRight size={16} />}
-                disabled={!otpValue || otpValue.length !== 4}
-              >
-                Verify OTP
-              </Button>
-            </Group>
-          </>
-        ) : (
-          <>
-            <Alert color="green" icon={<ArrowUpRight size={16} />}>
-              <Text size="sm">
-                Money sent successfully! The transaction has been completed.
-              </Text>
-            </Alert>
-            <div>
-              <Text size="sm" c="dimmed" mb="xs">
-                Recipient Account ID
-              </Text>
-              <Text fw={500}>{sendMoneyForm.accountId}</Text>
-            </div>
-            <div>
-              <Text size="sm" c="dimmed" mb="xs">
-                Amount Sent
-              </Text>
-              <Text fw={500}>
-                {new Intl.NumberFormat("en-KE", {
-                  style: "currency",
-                  currency: walletData.currency || "KES",
-                }).format(parseFloat(sendMoneyForm.amount))}
-              </Text>
-            </div>
-            <div>
-              <Text size="sm" c="dimmed" mb="xs">
-                Description
-              </Text>
-              <Text fw={500}>{sendMoneyForm.description}</Text>
-            </div>
-            <Group justify="flex-end">
-              <Button
-                onClick={handleCompleteSendMoney}
-                style={{ backgroundColor: "#3D6B2C" }}
-                leftSection={<ArrowUpRight size={16} />}
-              >
-                Complete Transaction
-              </Button>
-            </Group>
-          </>
+        {/* Placeholder for International Transfer */}
+        {transferStep === "form" && transferType === "international" && (
+          <Alert color="blue" variant="light">
+            <Text size="sm">
+              International Transfer (SWIFT) functionality will be implemented
+              soon.
+            </Text>
+          </Alert>
         )}
       </Stack>
     </Modal>
