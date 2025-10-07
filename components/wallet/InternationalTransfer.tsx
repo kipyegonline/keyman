@@ -16,12 +16,12 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
-  ArrowUpRight,
+  // ArrowUpRight,
   User,
   AlertTriangle,
   Shield,
   Globe,
-  Coins,
+  //Coins,
   FileText,
   MapPin,
   CheckCircle,
@@ -280,7 +280,9 @@ export default function InternationalTransfer({
     sendMoneyMutation.mutate({
       recipient_wallet_id: transferForm.beneficiaryAccountId,
       amount: amount,
-      description: `SWIFT - ${chargeType.toUpperCase()} - ${transferForm.messageToBeneficiary || "International Transfer"}`,
+      description: `SWIFT - ${chargeType.toUpperCase()} - ${
+        transferForm.messageToBeneficiary || "International Transfer"
+      }`,
     });
   };
 
@@ -933,60 +935,61 @@ export default function InternationalTransfer({
 
                     {/* Status Timeline */}
                     <Stack gap="xs" mt="sm">
-                      {["SUBMITTED", "VALIDATING", "APPROVED", "IN_TRANSIT"].map(
-                        (status, idx) => (
-                          <Group key={status} gap="sm">
-                            <div
-                              style={{
-                                width: "24px",
-                                height: "24px",
-                                borderRadius: "50%",
-                                background:
-                                  Object.keys(statusConfig).indexOf(
-                                    transferStatus
-                                  ) >= idx
-                                    ? customStyles.gradient
-                                    : "#e9ecef",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "white",
-                                fontSize: "12px",
-                                fontWeight: 600,
-                              }}
-                            >
-                              {Object.keys(statusConfig).indexOf(
+                      {[
+                        "SUBMITTED",
+                        "VALIDATING",
+                        "APPROVED",
+                        "IN_TRANSIT",
+                      ].map((status, idx) => (
+                        <Group key={status} gap="sm">
+                          <div
+                            style={{
+                              width: "24px",
+                              height: "24px",
+                              borderRadius: "50%",
+                              background:
+                                Object.keys(statusConfig).indexOf(
+                                  transferStatus
+                                ) >= idx
+                                  ? customStyles.gradient
+                                  : "#e9ecef",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "white",
+                              fontSize: "12px",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {Object.keys(statusConfig).indexOf(transferStatus) >
+                            idx
+                              ? "✓"
+                              : idx + 1}
+                          </div>
+                          <Text
+                            size="sm"
+                            fw={
+                              Object.keys(statusConfig).indexOf(
                                 transferStatus
-                              ) > idx
-                                ? "✓"
-                                : idx + 1}
-                            </div>
-                            <Text
-                              size="sm"
-                              fw={
-                                Object.keys(statusConfig).indexOf(
-                                  transferStatus
-                                ) >= idx
-                                  ? 600
-                                  : 400
-                              }
-                              c={
-                                Object.keys(statusConfig).indexOf(
-                                  transferStatus
-                                ) >= idx
-                                  ? "dark"
-                                  : "dimmed"
-                              }
-                            >
-                              {
-                                statusConfig[
-                                  status as keyof typeof statusConfig
-                                ]?.label
-                              }
-                            </Text>
-                          </Group>
-                        )
-                      )}
+                              ) >= idx
+                                ? 600
+                                : 400
+                            }
+                            c={
+                              Object.keys(statusConfig).indexOf(
+                                transferStatus
+                              ) >= idx
+                                ? "dark"
+                                : "dimmed"
+                            }
+                          >
+                            {
+                              statusConfig[status as keyof typeof statusConfig]
+                                ?.label
+                            }
+                          </Text>
+                        </Group>
+                      ))}
                     </Stack>
                   </Stack>
                 </Card>

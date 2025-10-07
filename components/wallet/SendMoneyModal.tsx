@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import GeneralTransfer from "./GeneralTransfer";
 import BankTransfer from "./BankTransfer";
+import InternationalTransfer from "./InternationalTransfer";
 
 interface SendMoneyModalProps {
   opened: boolean;
@@ -265,14 +266,13 @@ export default function SendMoneyModal({
           />
         )}
 
-        {/* Placeholder for International Transfer */}
+        {/* International Transfer */}
         {transferStep === "form" && transferType === "international" && (
-          <Alert color="blue" variant="light">
-            <Text size="sm">
-              International Transfer (SWIFT) functionality will be implemented
-              soon.
-            </Text>
-          </Alert>
+          <InternationalTransfer
+            walletData={walletData}
+            onClose={handleClose}
+            onBack={handleBackToSelect}
+          />
         )}
       </Stack>
     </Modal>

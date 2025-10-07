@@ -258,7 +258,7 @@ export default function WalletData({
   const handleSendMoney = () => {
     if (!walletData?.balance || +walletData?.balance < 10) {
       notify.error("You have insufficient balance, kindly top up");
-      return;
+      //return;
     }
     setSendMoneyModalOpen(true);
   };
