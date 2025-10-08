@@ -12,7 +12,9 @@ import {
   Transition,
   Select,
   Radio,
+  FileButton,
 } from "@mantine/core";
+import { useForm } from "@mantine/form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -30,15 +32,17 @@ import {
   Mail,
   MessageSquare,
   Building2,
+  Upload,
 } from "lucide-react";
 import { notifications } from "@mantine/notifications";
 import { notify } from "@/lib/notifications";
-import { sendMoney, confirmOTP } from "@/api/wallet";
+import { telegraphicTransfer, confirmOTP } from "@/api/wallet";
 
 interface InternationalTransferProps {
   walletData: {
     currency: string;
     balance: string;
+    account_id?: string;
   };
   onClose: () => void;
   onBack: () => void;
@@ -148,21 +152,65 @@ export default function InternationalTransfer({
   onClose,
   onBack,
 }: InternationalTransferProps) {
-  const [chargeType, setChargeType] = useState<string>("");
-  const [transferForm, setTransferForm] = useState({
-    beneficiarySwiftBic: "",
-    beneficiaryBankName: "",
-    beneficiaryBankCity: "",
-    beneficiaryAccountId: "",
-    beneficiaryAccountCcy: "",
-    beneficiaryName: "",
-    beneficiaryEmail: "",
-    amount: "",
-    amountType: "0",
-    paymentPurposeId: "",
-    senderAddress: "",
-    messageToBeneficiary: "",
+  const form = useForm({
+    initialValues: {
+      accountId: walletData.account_id || "",
+      chargeType: "",
+      beneficiarySwiftBic: "",
+      beneficiaryBankName: "",
+      beneficiaryBankCountry: "",
+      beneficiaryBankCity: "",
+      beneficiaryBankAddress: "",
+      beneficiaryAccountId: "",
+      beneficiaryAccountCcy: "",
+      beneficiaryName: "",
+      beneficiaryEmail: "",
+      amount: "",
+      amountType: "0",
+      paymentPurposeId: "",
+      senderAddress: "",
+      messageToBeneficiary: "",
+      supportDocument: "",
+      supportDocumentType: "",
+      paymentChannel: "SWIFT",
+    },
+    validate: {
+      chargeType: (value) => (!value ? "Fee payment method is required" : null),
+      beneficiarySwiftBic: (value) =>
+        !value
+          ? "SWIFT/BIC code is required"
+          : value.length < 8 || value.length > 11
+          ? "SWIFT/BIC code must be 8 or 11 characters"
+          : null,
+      beneficiaryBankName: (value) => (!value ? "Bank name is required" : null),
+      beneficiaryBankCountry: (value) =>
+        !value ? "Bank country is required" : null,
+      beneficiaryBankCity: (value) => (!value ? "Bank city is required" : null),
+      beneficiaryBankAddress: (value) =>
+        !value ? "Bank address is required" : null,
+      beneficiaryAccountId: (value) =>
+        !value ? "Account number/IBAN is required" : null,
+      beneficiaryAccountCcy: (value) =>
+        !value ? "Account currency is required" : null,
+      beneficiaryName: (value) =>
+        !value ? "Beneficiary name is required" : null,
+      beneficiaryEmail: (value) =>
+        value && !/^\S+@\S+$/.test(value) ? "Invalid email format" : null,
+      amount: (value) => {
+        if (!value) return "Amount is required";
+        const amount = parseFloat(value);
+        if (isNaN(amount) || amount <= 0)
+          return "Amount must be greater than 0";
+        if (amount > parseFloat(walletData.balance))
+          return "Insufficient balance";
+        return null;
+      },
+      paymentPurposeId: (value) =>
+        !value ? "Payment purpose is required" : null,
+      senderAddress: (value) => (!value ? "Sender address is required" : null),
+    },
   });
+
   const [sendMoneyResponse, setSendMoneyResponse] = useState<null | Record<
     string,
     string | number
@@ -172,16 +220,13 @@ export default function InternationalTransfer({
   const [isOtpLoading, setIsOtpLoading] = useState(false);
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [transferStatus, setTransferStatus] = useState<string>("SUBMITTED");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const queryClient = useQueryClient();
   const availableBalance = parseFloat(walletData.balance);
 
-  const sendMoneyMutation = useMutation({
-    mutationFn: (data: {
-      recipient_wallet_id: string;
-      amount: number;
-      description: string;
-    }) => sendMoney(data),
+  const transferMutation = useMutation({
+    mutationFn: telegraphicTransfer,
     onSuccess: (data) => {
       setIsSendMoneyLoading(false);
       if (data.status) {
@@ -236,55 +281,41 @@ export default function InternationalTransfer({
     },
   });
 
-  const handleInternationalTransferSubmit = () => {
-    // Validate all required fields
-    if (
-      !chargeType ||
-      !transferForm.beneficiarySwiftBic ||
-      !transferForm.beneficiaryBankName ||
-      !transferForm.beneficiaryBankCity ||
-      !transferForm.beneficiaryAccountId ||
-      !transferForm.beneficiaryAccountCcy ||
-      !transferForm.beneficiaryName ||
-      !transferForm.amount ||
-      !transferForm.paymentPurposeId ||
-      !transferForm.senderAddress
-    ) {
-      notify.error("Please fill in all required fields");
-      return;
-    }
-
-    const amount = parseFloat(transferForm.amount);
-    if (amount <= 0 || isNaN(amount)) {
-      notify.error("Please enter a valid amount");
-      return;
-    }
-
-    if (amount > availableBalance) {
-      notify.error("Insufficient balance. Please enter a lower amount.");
-      return;
-    }
-
-    // Validate SWIFT/BIC format (basic validation)
-    if (
-      transferForm.beneficiarySwiftBic.length < 8 ||
-      transferForm.beneficiarySwiftBic.length > 11
-    ) {
-      notify.error("SWIFT/BIC code must be 8 or 11 characters");
-      return;
-    }
-
+  const handleInternationalTransferSubmit = form.onSubmit((values) => {
     setIsSendMoneyLoading(true);
 
-    // Send to backend (backend will forward to the SWIFT API)
-    sendMoneyMutation.mutate({
-      recipient_wallet_id: transferForm.beneficiaryAccountId,
-      amount: amount,
-      description: `SWIFT - ${chargeType.toUpperCase()} - ${
-        transferForm.messageToBeneficiary || "International Transfer"
-      }`,
-    });
-  };
+    // Get payment purpose label
+    const paymentPurpose =
+      paymentPurposes.find((p) => p.value === values.paymentPurposeId)?.label ||
+      "";
+
+    // Construct the proper SWIFT payload
+    const payload = {
+      accountId: values.accountId,
+      beneficiarySwiftBic: values.beneficiarySwiftBic,
+      beneficiaryBankName: values.beneficiaryBankName,
+      beneficiaryBankCountry: values.beneficiaryBankCountry,
+      beneficiaryBankCity: values.beneficiaryBankCity,
+      beneficiaryBankAddress: values.beneficiaryBankAddress,
+      beneficiaryAccountId: values.beneficiaryAccountId,
+      beneficiaryAccountCcy: values.beneficiaryAccountCcy,
+      beneficiaryName: values.beneficiaryName,
+      beneficiaryEmail: values.beneficiaryEmail,
+      amount: parseFloat(values.amount),
+      amountType: parseInt(values.amountType),
+      messageToBeneficiary: values.messageToBeneficiary,
+      paymentChannel: values.paymentChannel,
+      paymentPurposeId: values.paymentPurposeId,
+      paymentPurpose: paymentPurpose,
+      senderAddress: values.senderAddress,
+      supportDocument: values.supportDocument || "",
+      supportDocumentType: values.supportDocumentType || "",
+      chargeType: values.chargeType.toUpperCase(),
+    };
+
+    // Send to backend
+    transferMutation.mutate(payload);
+  });
 
   const handleOtpSubmit = () => {
     if (!otpValue || otpValue.trim().length !== 4) {
@@ -306,20 +337,8 @@ export default function InternationalTransfer({
 
   const handleCompleteInternationalTransfer = () => {
     onClose();
-    setTransferForm({
-      beneficiarySwiftBic: "",
-      beneficiaryBankName: "",
-      beneficiaryBankCity: "",
-      beneficiaryAccountId: "",
-      beneficiaryAccountCcy: "",
-      beneficiaryName: "",
-      beneficiaryEmail: "",
-      amount: "",
-      amountType: "0",
-      paymentPurposeId: "",
-      senderAddress: "",
-      messageToBeneficiary: "",
-    });
+    form.reset();
+    setUploadedFile(null);
     setSendMoneyResponse(null);
     setTransferStatus("SUBMITTED");
     queryClient.invalidateQueries({ queryKey: ["wallet"] });
@@ -339,7 +358,7 @@ export default function InternationalTransfer({
   };
 
   const getBalanceColor = () => {
-    const amount = parseFloat(transferForm.amount);
+    const amount = parseFloat(form.values.amount);
     if (!amount || isNaN(amount)) return "dimmed";
     return amount > availableBalance ? "red" : "green";
   };
@@ -353,7 +372,7 @@ export default function InternationalTransfer({
         duration={300}
       >
         {(styles) => (
-          <div style={styles}>
+          <form style={styles} onSubmit={handleInternationalTransferSubmit}>
             {/* Available Balance Display */}
             <Alert color="blue" icon={<Globe size={16} />} variant="light">
               <Text size="sm">
@@ -375,7 +394,7 @@ export default function InternationalTransfer({
               >
                 Fee Payment Method *
               </Text>
-              <Radio.Group value={chargeType} onChange={setChargeType}>
+              <Radio.Group {...form.getInputProps("chargeType")}>
                 <Stack gap="sm">
                   {Object.entries(chargeTypes).map(([key, config]) => (
                     <Card
@@ -386,12 +405,12 @@ export default function InternationalTransfer({
                       style={{
                         cursor: "pointer",
                         border:
-                          chargeType === key
+                          form.values.chargeType === key
                             ? `2px solid ${customStyles.primary}`
                             : "1px solid #e9ecef",
                         transition: "all 0.2s ease",
                       }}
-                      onClick={() => setChargeType(key)}
+                      onClick={() => form.setFieldValue("chargeType", key)}
                     >
                       <Radio
                         value={key}
@@ -425,12 +444,12 @@ export default function InternationalTransfer({
             <TextInput
               label="SWIFT/BIC Code"
               placeholder="e.g., BARCGB22XXX (8 or 11 characters)"
-              value={transferForm.beneficiarySwiftBic}
+              {...form.getInputProps("beneficiarySwiftBic")}
               onChange={(e) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  beneficiarySwiftBic: e.target.value.toUpperCase(),
-                }))
+                form.setFieldValue(
+                  "beneficiarySwiftBic",
+                  e.target.value.toUpperCase()
+                )
               }
               leftSection={<Building2 size={16} />}
               styles={{
@@ -445,13 +464,7 @@ export default function InternationalTransfer({
               <TextInput
                 label="Bank Name"
                 placeholder="e.g., Barclays Bank"
-                value={transferForm.beneficiaryBankName}
-                onChange={(e) =>
-                  setTransferForm((prev) => ({
-                    ...prev,
-                    beneficiaryBankName: e.target.value,
-                  }))
-                }
+                {...form.getInputProps("beneficiaryBankName")}
                 leftSection={<Building2 size={16} />}
                 styles={{
                   label: { color: customStyles.primary, fontWeight: 500 },
@@ -460,15 +473,41 @@ export default function InternationalTransfer({
                 required
               />
               <TextInput
+                label="Bank Country"
+                placeholder="e.g., US"
+                {...form.getInputProps("beneficiaryBankCountry")}
+                onChange={(e) =>
+                  form.setFieldValue(
+                    "beneficiaryBankCountry",
+                    e.target.value.toUpperCase()
+                  )
+                }
+                leftSection={<Globe size={16} />}
+                styles={{
+                  label: { color: customStyles.primary, fontWeight: 500 },
+                  input: { borderColor: customStyles.primary },
+                }}
+                maxLength={2}
+                required
+              />
+            </Group>
+
+            <Group grow>
+              <TextInput
                 label="Bank City"
                 placeholder="e.g., London"
-                value={transferForm.beneficiaryBankCity}
-                onChange={(e) =>
-                  setTransferForm((prev) => ({
-                    ...prev,
-                    beneficiaryBankCity: e.target.value,
-                  }))
-                }
+                {...form.getInputProps("beneficiaryBankCity")}
+                leftSection={<MapPin size={16} />}
+                styles={{
+                  label: { color: customStyles.primary, fontWeight: 500 },
+                  input: { borderColor: customStyles.primary },
+                }}
+                required
+              />
+              <TextInput
+                label="Bank Address"
+                placeholder="e.g., 383 Madison Avenue"
+                {...form.getInputProps("beneficiaryBankAddress")}
                 leftSection={<MapPin size={16} />}
                 styles={{
                   label: { color: customStyles.primary, fontWeight: 500 },
@@ -491,13 +530,7 @@ export default function InternationalTransfer({
             <TextInput
               label="Beneficiary Name"
               placeholder="Full name of recipient"
-              value={transferForm.beneficiaryName}
-              onChange={(e) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  beneficiaryName: e.target.value,
-                }))
-              }
+              {...form.getInputProps("beneficiaryName")}
               leftSection={<User size={16} />}
               styles={{
                 label: { color: customStyles.primary, fontWeight: 500 },
@@ -510,13 +543,7 @@ export default function InternationalTransfer({
               <TextInput
                 label="Account Number / IBAN"
                 placeholder="Beneficiary account number"
-                value={transferForm.beneficiaryAccountId}
-                onChange={(e) =>
-                  setTransferForm((prev) => ({
-                    ...prev,
-                    beneficiaryAccountId: e.target.value,
-                  }))
-                }
+                {...form.getInputProps("beneficiaryAccountId")}
                 leftSection={<User size={16} />}
                 styles={{
                   label: { color: customStyles.primary, fontWeight: 500 },
@@ -528,13 +555,7 @@ export default function InternationalTransfer({
                 label="Account Currency"
                 placeholder="Select currency"
                 data={internationalCurrencies}
-                value={transferForm.beneficiaryAccountCcy}
-                onChange={(value) =>
-                  setTransferForm((prev) => ({
-                    ...prev,
-                    beneficiaryAccountCcy: value || "",
-                  }))
-                }
+                {...form.getInputProps("beneficiaryAccountCcy")}
                 styles={{
                   label: { color: customStyles.primary, fontWeight: 500 },
                   input: { borderColor: customStyles.primary },
@@ -547,13 +568,7 @@ export default function InternationalTransfer({
             <TextInput
               label="Beneficiary Email (Optional)"
               placeholder="recipient@example.com"
-              value={transferForm.beneficiaryEmail}
-              onChange={(e) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  beneficiaryEmail: e.target.value,
-                }))
-              }
+              {...form.getInputProps("beneficiaryEmail")}
               leftSection={<Mail size={16} />}
               type="email"
               styles={{
@@ -576,13 +591,7 @@ export default function InternationalTransfer({
               <TextInput
                 label="Amount"
                 placeholder="Enter amount to transfer"
-                value={transferForm.amount}
-                onChange={(e) =>
-                  setTransferForm((prev) => ({
-                    ...prev,
-                    amount: e.target.value,
-                  }))
-                }
+                {...form.getInputProps("amount")}
                 leftSection={<Text size="sm">{walletData.currency}</Text>}
                 type="number"
                 min={1}
@@ -591,23 +600,17 @@ export default function InternationalTransfer({
                   label: { color: customStyles.primary, fontWeight: 500 },
                   input: {
                     borderColor:
-                      transferForm.amount &&
-                      parseFloat(transferForm.amount) > availableBalance
+                      form.values.amount &&
+                      parseFloat(form.values.amount) > availableBalance
                         ? "#fa5252"
                         : customStyles.primary,
                   },
                 }}
                 required
-                error={
-                  transferForm.amount &&
-                  parseFloat(transferForm.amount) > availableBalance
-                    ? "Amount exceeds available balance"
-                    : undefined
-                }
               />
-              {transferForm.amount && (
+              {form.values.amount && (
                 <Text size="xs" c={getBalanceColor()} mt="xs">
-                  {parseFloat(transferForm.amount) > availableBalance ? (
+                  {parseFloat(form.values.amount) > availableBalance ? (
                     <>
                       <AlertTriangle
                         size={12}
@@ -618,7 +621,7 @@ export default function InternationalTransfer({
                   ) : (
                     `Remaining balance: ${formatBalance(
                       (
-                        availableBalance - parseFloat(transferForm.amount)
+                        availableBalance - parseFloat(form.values.amount)
                       ).toString()
                     )}`
                   )}
@@ -630,13 +633,7 @@ export default function InternationalTransfer({
               label="Amount Type"
               placeholder="Select amount type"
               data={amountTypes}
-              value={transferForm.amountType}
-              onChange={(value) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  amountType: value || "0",
-                }))
-              }
+              {...form.getInputProps("amountType")}
               styles={{
                 label: { color: customStyles.primary, fontWeight: 500 },
                 input: { borderColor: customStyles.primary },
@@ -648,13 +645,7 @@ export default function InternationalTransfer({
               label="Payment Purpose"
               placeholder="Select payment purpose"
               data={paymentPurposes}
-              value={transferForm.paymentPurposeId}
-              onChange={(value) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  paymentPurposeId: value || "",
-                }))
-              }
+              {...form.getInputProps("paymentPurposeId")}
               styles={{
                 label: { color: customStyles.primary, fontWeight: 500 },
                 input: { borderColor: customStyles.primary },
@@ -665,13 +656,7 @@ export default function InternationalTransfer({
             <TextInput
               label="Sender Address"
               placeholder="Your physical address"
-              value={transferForm.senderAddress}
-              onChange={(e) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  senderAddress: e.target.value,
-                }))
-              }
+              {...form.getInputProps("senderAddress")}
               leftSection={<MapPin size={16} />}
               styles={{
                 label: { color: customStyles.primary, fontWeight: 500 },
@@ -683,13 +668,7 @@ export default function InternationalTransfer({
             <Textarea
               label="Message to Beneficiary (Optional)"
               placeholder="Optional message to recipient (max 140 characters)"
-              value={transferForm.messageToBeneficiary}
-              onChange={(e) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  messageToBeneficiary: e.target.value,
-                }))
-              }
+              {...form.getInputProps("messageToBeneficiary")}
               leftSection={<MessageSquare size={16} />}
               minRows={2}
               maxRows={3}
@@ -701,34 +680,79 @@ export default function InternationalTransfer({
               }}
             />
 
+            {/* Supporting Document Upload */}
+            <div>
+              <Text
+                size="sm"
+                fw={500}
+                mb="xs"
+                style={{ color: customStyles.primary }}
+              >
+                Supporting Document (Optional)
+              </Text>
+              <FileButton
+                onChange={(file) => {
+                  setUploadedFile(file);
+                  if (file) {
+                    // Convert file to base64
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      const base64 = reader.result as string;
+                      const base64Data = base64.split(",")[1]; // Remove data:*/*;base64, prefix
+                      form.setFieldValue("supportDocument", base64Data);
+                      form.setFieldValue(
+                        "supportDocumentType",
+                        file.type.includes("pdf")
+                          ? "PDF"
+                          : file.type.includes("image")
+                          ? "IMAGE"
+                          : "DOCUMENT"
+                      );
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                accept="application/pdf,image/*"
+              >
+                {(props) => (
+                  <Button
+                    {...props}
+                    variant="light"
+                    leftSection={<Upload size={16} />}
+                    style={{
+                      borderColor: customStyles.primary,
+                      color: customStyles.primary,
+                    }}
+                  >
+                    {uploadedFile
+                      ? `Selected: ${uploadedFile.name}`
+                      : "Upload Document (PDF or Image)"}
+                  </Button>
+                )}
+              </FileButton>
+              {uploadedFile && (
+                <Text size="xs" c="dimmed" mt="xs">
+                  File: {uploadedFile.name} (
+                  {(uploadedFile.size / 1024).toFixed(2)} KB)
+                </Text>
+              )}
+            </div>
+
             {/* Action Buttons */}
             <Group justify="space-between" mt="md">
               <Button variant="outline" color="gray" onClick={onBack}>
                 Back
               </Button>
               <Button
-                onClick={handleInternationalTransferSubmit}
-                loading={isSendMoneyLoading || sendMoneyMutation.isPending}
+                type="submit"
+                loading={isSendMoneyLoading || transferMutation.isPending}
                 style={{ background: customStyles.gradient }}
                 leftSection={<Globe size={16} />}
-                disabled={
-                  !chargeType ||
-                  !transferForm.beneficiarySwiftBic ||
-                  !transferForm.beneficiaryBankName ||
-                  !transferForm.beneficiaryBankCity ||
-                  !transferForm.beneficiaryAccountId ||
-                  !transferForm.beneficiaryAccountCcy ||
-                  !transferForm.beneficiaryName ||
-                  !transferForm.amount ||
-                  !transferForm.paymentPurposeId ||
-                  !transferForm.senderAddress ||
-                  parseFloat(transferForm.amount) > availableBalance
-                }
               >
                 Initiate SWIFT Transfer
               </Button>
             </Group>
-          </div>
+          </form>
         )}
       </Transition>
 
@@ -801,8 +825,9 @@ export default function InternationalTransfer({
                       </Text>
                       <Text fw={500}>
                         {
-                          chargeTypes[chargeType as keyof typeof chargeTypes]
-                            ?.label
+                          chargeTypes[
+                            form.values.chargeType as keyof typeof chargeTypes
+                          ]?.label
                         }
                       </Text>
                     </div>
@@ -812,11 +837,11 @@ export default function InternationalTransfer({
                         Beneficiary Bank
                       </Text>
                       <Text fw={500}>
-                        {transferForm.beneficiaryBankName},{" "}
-                        {transferForm.beneficiaryBankCity}
+                        {form.values.beneficiaryBankName},{" "}
+                        {form.values.beneficiaryBankCity}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        SWIFT: {transferForm.beneficiarySwiftBic}
+                        SWIFT: {form.values.beneficiarySwiftBic}
                       </Text>
                     </div>
 
@@ -824,10 +849,10 @@ export default function InternationalTransfer({
                       <Text size="sm" c="dimmed" mb="xs">
                         Beneficiary
                       </Text>
-                      <Text fw={500}>{transferForm.beneficiaryName}</Text>
+                      <Text fw={500}>{form.values.beneficiaryName}</Text>
                       <Text size="xs" c="dimmed">
-                        {transferForm.beneficiaryAccountId} (
-                        {transferForm.beneficiaryAccountCcy})
+                        {form.values.beneficiaryAccountId} (
+                        {form.values.beneficiaryAccountCcy})
                       </Text>
                     </div>
 
@@ -839,7 +864,7 @@ export default function InternationalTransfer({
                         {new Intl.NumberFormat("en-KE", {
                           style: "currency",
                           currency: walletData.currency || "KES",
-                        }).format(parseFloat(transferForm.amount))}
+                        }).format(parseFloat(form.values.amount))}
                       </Text>
                     </div>
                   </Stack>
@@ -1002,8 +1027,9 @@ export default function InternationalTransfer({
                       </Text>
                       <Text fw={500}>
                         {
-                          chargeTypes[chargeType as keyof typeof chargeTypes]
-                            ?.label
+                          chargeTypes[
+                            form.values.chargeType as keyof typeof chargeTypes
+                          ]?.label
                         }
                       </Text>
                     </div>
@@ -1012,21 +1038,21 @@ export default function InternationalTransfer({
                         Beneficiary Bank
                       </Text>
                       <Text fw={500}>
-                        {transferForm.beneficiaryBankName},{" "}
-                        {transferForm.beneficiaryBankCity}
+                        {form.values.beneficiaryBankName},{" "}
+                        {form.values.beneficiaryBankCity}
                       </Text>
                       <Text size="xs" c="dimmed">
-                        SWIFT: {transferForm.beneficiarySwiftBic}
+                        SWIFT: {form.values.beneficiarySwiftBic}
                       </Text>
                     </div>
                     <div>
                       <Text size="sm" c="dimmed" mb="xs">
                         Beneficiary
                       </Text>
-                      <Text fw={500}>{transferForm.beneficiaryName}</Text>
+                      <Text fw={500}>{form.values.beneficiaryName}</Text>
                       <Text size="xs" c="dimmed">
-                        {transferForm.beneficiaryAccountId} (
-                        {transferForm.beneficiaryAccountCcy})
+                        {form.values.beneficiaryAccountId} (
+                        {form.values.beneficiaryAccountCcy})
                       </Text>
                     </div>
                     <div>
@@ -1041,7 +1067,7 @@ export default function InternationalTransfer({
                         {new Intl.NumberFormat("en-KE", {
                           style: "currency",
                           currency: walletData.currency || "KES",
-                        }).format(parseFloat(transferForm.amount))}
+                        }).format(parseFloat(form.values.amount))}
                       </Text>
                     </div>
                     <div>
@@ -1051,18 +1077,18 @@ export default function InternationalTransfer({
                       <Text fw={500}>
                         {
                           paymentPurposes.find(
-                            (p) => p.value === transferForm.paymentPurposeId
+                            (p) => p.value === form.values.paymentPurposeId
                           )?.label
                         }
                       </Text>
                     </div>
-                    {transferForm.messageToBeneficiary && (
+                    {form.values.messageToBeneficiary && (
                       <div>
                         <Text size="sm" c="dimmed" mb="xs">
                           Message to Beneficiary
                         </Text>
                         <Text fw={500} size="sm">
-                          {transferForm.messageToBeneficiary}
+                          {form.values.messageToBeneficiary}
                         </Text>
                       </div>
                     )}

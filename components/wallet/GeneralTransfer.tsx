@@ -21,7 +21,7 @@ import {
   Shield,
   Wallet,
   Smartphone,
-  Building2,
+  //Building2,
   Link as LinkIcon,
 } from "lucide-react";
 import { notifications } from "@mantine/notifications";
@@ -59,14 +59,14 @@ const transferTypeOptions = [
     icon: <Smartphone size={16} />,
     description: "Send to Airtel Money mobile number",
     placeholder: "254733000000",
-  },
+  } /*
   {
     value: "choice_bank",
     label: "Choice Bank",
     icon: <Building2 size={16} />,
     description: "Send to Choice Bank account",
     placeholder: "Enter bank account number",
-  },
+  },*/,
   {
     value: "pesa_link",
     label: "PesaLink",

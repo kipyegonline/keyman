@@ -12,7 +12,9 @@ import {
   Transition,
   Select,
   Radio,
+  FileButton,
 } from "@mantine/core";
+import { useForm } from "@mantine/form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -27,15 +29,19 @@ import {
   CheckCircle,
   Clock,
   XCircle,
+  Mail,
+  MessageSquare,
+  Upload,
 } from "lucide-react";
 import { notifications } from "@mantine/notifications";
 import { notify } from "@/lib/notifications";
-import { sendMoney, confirmOTP } from "@/api/wallet";
+import { domesticBankTransfer, confirmOTP } from "@/api/wallet";
 
 interface BankTransferProps {
   walletData: {
     currency: string;
     balance: string;
+    account_id?: string;
   };
   onClose: () => void;
   onBack: () => void;
@@ -91,6 +97,12 @@ const beneficiaryCurrencies = [
   { value: "RWF", label: "RWF - Rwandan Franc" },
 ];
 
+// Amount type options
+const amountTypes = [
+  { value: "0", label: "Debit Account Currency (Source currency)" },
+  { value: "1", label: "Credit Account Currency (Beneficiary currency)" },
+];
+
 // Transfer status configurations
 const statusConfig = {
   SUBMITTED: {
@@ -138,18 +150,57 @@ export default function BankTransfer({
   onClose,
   onBack,
 }: BankTransferProps) {
-  const [paymentChannel, setPaymentChannel] = useState<string>("");
-  const [transferForm, setTransferForm] = useState({
-    beneficiaryBankCode: "",
-    beneficiaryBankName: "",
-    beneficiaryAccountId: "",
-    beneficiaryAccountCcy: "",
-    beneficiaryName: "",
-    amount: "",
-    paymentPurposeId: "",
-    senderAddress: "",
-    description: "",
+  const form = useForm({
+    initialValues: {
+      accountId: walletData.account_id || "",
+      paymentChannel: "",
+      beneficiaryBankCode: "",
+      beneficiaryBankName: "",
+      beneficiaryBranchCode: "",
+      beneficiaryAccountId: "",
+      beneficiaryAccountCcy: "",
+      beneficiaryName: "",
+      beneficiaryEmail: "",
+      amount: "",
+      amountType: "0",
+      messageToBeneficiary: "",
+      paymentPurposeId: "",
+      senderAddress: "",
+      supportDocument: "",
+      supportDocumentType: "",
+    },
+    validate: {
+      paymentChannel: (value) => (!value ? "Payment channel is required" : null),
+      beneficiaryBankCode: (value) =>
+        !value ? "Bank code is required" : null,
+      beneficiaryBankName: (value) => (!value ? "Bank name is required" : null),
+      beneficiaryBranchCode: (value) =>
+        !value ? "Branch code is required" : null,
+      beneficiaryAccountId: (value) =>
+        !value ? "Account number is required" : null,
+      beneficiaryAccountCcy: (value) =>
+        !value ? "Account currency is required" : null,
+      beneficiaryName: (value) =>
+        !value ? "Beneficiary name is required" : null,
+      beneficiaryEmail: (value) =>
+        value && !/^\S+@\S+$/.test(value) ? "Invalid email format" : null,
+      amount: (value) => {
+        if (!value) return "Amount is required";
+        const amount = parseFloat(value);
+        if (isNaN(amount) || amount <= 0)
+          return "Amount must be greater than 0";
+        if (amount > parseFloat(walletData.balance))
+          return "Insufficient balance";
+        if (amount <= 999999)
+          return "Minimum recommended: KES 1,000,000";
+        return null;
+      },
+      paymentPurposeId: (value) =>
+        !value ? "Payment purpose is required" : null,
+      senderAddress: (value) => (!value ? "Sender address is required" : null),
+    },
   });
+
   const [sendMoneyResponse, setSendMoneyResponse] = useState<null | Record<
     string,
     string | number
@@ -159,16 +210,13 @@ export default function BankTransfer({
   const [isOtpLoading, setIsOtpLoading] = useState(false);
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [transferStatus, setTransferStatus] = useState<string>("SUBMITTED");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
 
   const queryClient = useQueryClient();
   const availableBalance = parseFloat(walletData.balance);
 
-  const sendMoneyMutation = useMutation({
-    mutationFn: (data: {
-      recipient_wallet_id: string;
-      amount: number;
-      description: string;
-    }) => sendMoney(data),
+  const transferMutation = useMutation({
+    mutationFn: domesticBankTransfer,
     onSuccess: (data) => {
       setIsSendMoneyLoading(false);
       if (data.status) {
@@ -223,46 +271,11 @@ export default function BankTransfer({
     },
   });
 
-  const handleBankTransferSubmit = () => {
-    // Validate all required fields
-    if (
-      !paymentChannel ||
-      !transferForm.beneficiaryBankCode ||
-      !transferForm.beneficiaryBankName ||
-      !transferForm.beneficiaryAccountId ||
-      !transferForm.beneficiaryAccountCcy ||
-      !transferForm.beneficiaryName ||
-      !transferForm.amount ||
-      !transferForm.paymentPurposeId ||
-      !transferForm.senderAddress
-    ) {
-      notify.error("Please fill in all required fields");
-      return;
-    }
-
-    const amount = parseFloat(transferForm.amount);
-    if (amount <= 0 || isNaN(amount)) {
-      notify.error("Please enter a valid amount");
-      return;
-    }
-
-    if (amount > availableBalance) {
-      notify.error("Insufficient balance. Please enter a lower amount.");
-      return;
-    }
-
-    // Validate minimum amount for bank transfers
-    if (amount <= 999999) {
-      notify.error(
-        "Bank Transfer is recommended for amounts exceeding KES 999,999. Please use PesaLink for lower amounts."
-      );
-      return;
-    }
-
-    // Validate currency compatibility
+  const handleBankTransferSubmit = form.onSubmit((values) => {
+    // Additional currency compatibility validation
     if (
       walletData.currency !== "KES" &&
-      walletData.currency !== transferForm.beneficiaryAccountCcy
+      walletData.currency !== values.beneficiaryAccountCcy
     ) {
       notify.error(
         "Source and beneficiary currencies must match, or source must be KES"
@@ -272,13 +285,35 @@ export default function BankTransfer({
 
     setIsSendMoneyLoading(true);
 
-    // Send to backend (backend will forward to the bank API)
-    sendMoneyMutation.mutate({
-      recipient_wallet_id: transferForm.beneficiaryAccountId,
-      amount: amount,
-      description: `${paymentChannel.toUpperCase()} - ${transferForm.description}`,
-    });
-  };
+    // Get payment purpose label
+    const paymentPurpose =
+      paymentPurposes.find((p) => p.value === values.paymentPurposeId)?.label ||
+      "";
+
+    // Construct the payload
+    const payload = {
+      accountId: values.accountId,
+      beneficiaryBankCode: values.beneficiaryBankCode,
+      beneficiaryBankName: values.beneficiaryBankName,
+      beneficiaryBranchCode: values.beneficiaryBranchCode,
+      beneficiaryAccountId: values.beneficiaryAccountId,
+      beneficiaryAccountCcy: values.beneficiaryAccountCcy,
+      beneficiaryName: values.beneficiaryName,
+      beneficiaryEmail: values.beneficiaryEmail,
+      amount: parseFloat(values.amount),
+      amountType: parseInt(values.amountType),
+      messageToBeneficiary: values.messageToBeneficiary,
+      paymentChannel: values.paymentChannel.toUpperCase(),
+      paymentPurposeId: values.paymentPurposeId,
+      paymentPurpose: paymentPurpose,
+      senderAddress: values.senderAddress,
+      supportDocument: values.supportDocument || "",
+      supportDocumentType: values.supportDocumentType || "",
+    };
+
+    // Send to backend
+    transferMutation.mutate(payload);
+  });
 
   const handleOtpSubmit = () => {
     if (!otpValue || otpValue.trim().length !== 4) {
@@ -300,17 +335,8 @@ export default function BankTransfer({
 
   const handleCompleteBankTransfer = () => {
     onClose();
-    setTransferForm({
-      beneficiaryBankCode: "",
-      beneficiaryBankName: "",
-      beneficiaryAccountId: "",
-      beneficiaryAccountCcy: "",
-      beneficiaryName: "",
-      amount: "",
-      paymentPurposeId: "",
-      senderAddress: "",
-      description: "",
-    });
+    form.reset();
+    setUploadedFile(null);
     setSendMoneyResponse(null);
     setTransferStatus("SUBMITTED");
     queryClient.invalidateQueries({ queryKey: ["wallet"] });
@@ -330,7 +356,7 @@ export default function BankTransfer({
   };
 
   const getBalanceColor = () => {
-    const amount = parseFloat(transferForm.amount);
+    const amount = parseFloat(form.values.amount);
     if (!amount || isNaN(amount)) return "dimmed";
     return amount > availableBalance ? "red" : "green";
   };
@@ -344,7 +370,7 @@ export default function BankTransfer({
         duration={300}
       >
         {(styles) => (
-          <div style={styles}>
+          <form style={styles} onSubmit={handleBankTransferSubmit}>
             {/* Available Balance Display */}
             <Alert color="blue" icon={<Coins size={16} />} variant="light">
               <Text size="sm">
@@ -361,7 +387,7 @@ export default function BankTransfer({
               <Text size="sm" fw={500} mb="xs" style={{ color: customStyles.primary }}>
                 Payment Channel *
               </Text>
-              <Radio.Group value={paymentChannel} onChange={setPaymentChannel}>
+              <Radio.Group {...form.getInputProps("paymentChannel")}>
                 <Stack gap="sm">
                   {Object.entries(paymentChannels).map(([key, config]) => (
                     <Card
@@ -372,12 +398,12 @@ export default function BankTransfer({
                       style={{
                         cursor: "pointer",
                         border:
-                          paymentChannel === key
+                          form.values.paymentChannel === key
                             ? `2px solid ${customStyles.primary}`
                             : "1px solid #e9ecef",
                         transition: "all 0.2s ease",
                       }}
-                      onClick={() => setPaymentChannel(key)}
+                      onClick={() => form.setFieldValue("paymentChannel", key)}
                     >
                       <Radio
                         value={key}
@@ -422,14 +448,8 @@ export default function BankTransfer({
             <Group grow>
               <TextInput
                 label="Bank Code"
-                placeholder="e.g., 11"
-                value={transferForm.beneficiaryBankCode}
-                onChange={(e) =>
-                  setTransferForm((prev) => ({
-                    ...prev,
-                    beneficiaryBankCode: e.target.value,
-                  }))
-                }
+                placeholder="e.g., 03001"
+                {...form.getInputProps("beneficiaryBankCode")}
                 leftSection={<Building2 size={16} />}
                 styles={{
                   label: { color: customStyles.primary, fontWeight: 500 },
@@ -440,13 +460,7 @@ export default function BankTransfer({
               <TextInput
                 label="Bank Name"
                 placeholder="e.g., Equity Bank"
-                value={transferForm.beneficiaryBankName}
-                onChange={(e) =>
-                  setTransferForm((prev) => ({
-                    ...prev,
-                    beneficiaryBankName: e.target.value,
-                  }))
-                }
+                {...form.getInputProps("beneficiaryBankName")}
                 leftSection={<Building2 size={16} />}
                 styles={{
                   label: { color: customStyles.primary, fontWeight: 500 },
@@ -456,6 +470,18 @@ export default function BankTransfer({
               />
             </Group>
 
+            <TextInput
+              label="Branch Code"
+              placeholder="e.g., 001"
+              {...form.getInputProps("beneficiaryBranchCode")}
+              leftSection={<Building2 size={16} />}
+              styles={{
+                label: { color: customStyles.primary, fontWeight: 500 },
+                input: { borderColor: customStyles.primary },
+              }}
+              required
+            />
+
             {/* Beneficiary Account Details */}
             <Text size="sm" fw={600} mt="md" style={{ color: customStyles.primary }}>
               Beneficiary Account Details
@@ -464,13 +490,7 @@ export default function BankTransfer({
             <TextInput
               label="Beneficiary Name"
               placeholder="Full name of recipient"
-              value={transferForm.beneficiaryName}
-              onChange={(e) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  beneficiaryName: e.target.value,
-                }))
-              }
+              {...form.getInputProps("beneficiaryName")}
               leftSection={<User size={16} />}
               styles={{
                 label: { color: customStyles.primary, fontWeight: 500 },
@@ -483,13 +503,7 @@ export default function BankTransfer({
               <TextInput
                 label="Account Number"
                 placeholder="Beneficiary account number"
-                value={transferForm.beneficiaryAccountId}
-                onChange={(e) =>
-                  setTransferForm((prev) => ({
-                    ...prev,
-                    beneficiaryAccountId: e.target.value,
-                  }))
-                }
+                {...form.getInputProps("beneficiaryAccountId")}
                 leftSection={<User size={16} />}
                 styles={{
                   label: { color: customStyles.primary, fontWeight: 500 },
@@ -501,13 +515,7 @@ export default function BankTransfer({
                 label="Account Currency"
                 placeholder="Select currency"
                 data={beneficiaryCurrencies}
-                value={transferForm.beneficiaryAccountCcy}
-                onChange={(value) =>
-                  setTransferForm((prev) => ({
-                    ...prev,
-                    beneficiaryAccountCcy: value || "",
-                  }))
-                }
+                {...form.getInputProps("beneficiaryAccountCcy")}
                 styles={{
                   label: { color: customStyles.primary, fontWeight: 500 },
                   input: { borderColor: customStyles.primary },
@@ -516,10 +524,22 @@ export default function BankTransfer({
               />
             </Group>
 
+            <TextInput
+              label="Beneficiary Email (Optional)"
+              placeholder="recipient@example.com"
+              {...form.getInputProps("beneficiaryEmail")}
+              leftSection={<Mail size={16} />}
+              type="email"
+              styles={{
+                label: { color: customStyles.primary, fontWeight: 500 },
+                input: { borderColor: customStyles.primary },
+              }}
+            />
+
             {/* Currency compatibility notice */}
-            {transferForm.beneficiaryAccountCcy &&
+            {form.values.beneficiaryAccountCcy &&
               walletData.currency !== "KES" &&
-              walletData.currency !== transferForm.beneficiaryAccountCcy && (
+              walletData.currency !== form.values.beneficiaryAccountCcy && (
                 <Alert
                   icon={<AlertTriangle size={16} />}
                   color="orange"
@@ -540,13 +560,7 @@ export default function BankTransfer({
               <TextInput
                 label="Amount"
                 placeholder="Enter amount to transfer"
-                value={transferForm.amount}
-                onChange={(e) =>
-                  setTransferForm((prev) => ({
-                    ...prev,
-                    amount: e.target.value,
-                  }))
-                }
+                {...form.getInputProps("amount")}
                 leftSection={<Text size="sm">{walletData.currency}</Text>}
                 type="number"
                 min={1000000}
@@ -555,26 +569,17 @@ export default function BankTransfer({
                   label: { color: customStyles.primary, fontWeight: 500 },
                   input: {
                     borderColor:
-                      transferForm.amount &&
-                      parseFloat(transferForm.amount) > availableBalance
+                      form.values.amount &&
+                      parseFloat(form.values.amount) > availableBalance
                         ? "#fa5252"
                         : customStyles.primary,
                   },
                 }}
                 required
-                error={
-                  transferForm.amount &&
-                  parseFloat(transferForm.amount) > availableBalance
-                    ? "Amount exceeds available balance"
-                    : transferForm.amount &&
-                      parseFloat(transferForm.amount) <= 999999
-                    ? "Minimum recommended: KES 1,000,000"
-                    : undefined
-                }
               />
-              {transferForm.amount && (
+              {form.values.amount && (
                 <Text size="xs" c={getBalanceColor()} mt="xs">
-                  {parseFloat(transferForm.amount) > availableBalance ? (
+                  {parseFloat(form.values.amount) > availableBalance ? (
                     <>
                       <AlertTriangle
                         size={12}
@@ -585,7 +590,7 @@ export default function BankTransfer({
                   ) : (
                     `Remaining balance: ${formatBalance(
                       (
-                        availableBalance - parseFloat(transferForm.amount)
+                        availableBalance - parseFloat(form.values.amount)
                       ).toString()
                     )}`
                   )}
@@ -594,16 +599,22 @@ export default function BankTransfer({
             </div>
 
             <Select
+              label="Amount Type"
+              placeholder="Select amount type"
+              data={amountTypes}
+              {...form.getInputProps("amountType")}
+              styles={{
+                label: { color: customStyles.primary, fontWeight: 500 },
+                input: { borderColor: customStyles.primary },
+              }}
+              required
+            />
+
+            <Select
               label="Payment Purpose"
               placeholder="Select payment purpose"
               data={paymentPurposes}
-              value={transferForm.paymentPurposeId}
-              onChange={(value) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  paymentPurposeId: value || "",
-                }))
-              }
+              {...form.getInputProps("paymentPurposeId")}
               styles={{
                 label: { color: customStyles.primary, fontWeight: 500 },
                 input: { borderColor: customStyles.primary },
@@ -614,13 +625,7 @@ export default function BankTransfer({
             <TextInput
               label="Sender Address"
               placeholder="Your physical address"
-              value={transferForm.senderAddress}
-              onChange={(e) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  senderAddress: e.target.value,
-                }))
-              }
+              {...form.getInputProps("senderAddress")}
               leftSection={<MapPin size={16} />}
               styles={{
                 label: { color: customStyles.primary, fontWeight: 500 },
@@ -630,17 +635,13 @@ export default function BankTransfer({
             />
 
             <Textarea
-              label="Description (Optional)"
-              placeholder="Additional notes about this transfer"
-              value={transferForm.description}
-              onChange={(e) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  description: e.target.value,
-                }))
-              }
+              label="Message to Beneficiary (Optional)"
+              placeholder="Optional message to recipient (max 140 characters)"
+              {...form.getInputProps("messageToBeneficiary")}
+              leftSection={<MessageSquare size={16} />}
               minRows={2}
               maxRows={3}
+              maxLength={140}
               autosize
               styles={{
                 label: { color: customStyles.primary, fontWeight: 500 },
@@ -648,34 +649,78 @@ export default function BankTransfer({
               }}
             />
 
+            {/* Supporting Document Upload */}
+            <div>
+              <Text
+                size="sm"
+                fw={500}
+                mb="xs"
+                style={{ color: customStyles.primary }}
+              >
+                Supporting Document (Optional)
+              </Text>
+              <FileButton
+                onChange={(file) => {
+                  setUploadedFile(file);
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      const base64 = reader.result as string;
+                      const base64Data = base64.split(",")[1];
+                      form.setFieldValue("supportDocument", base64Data);
+                      form.setFieldValue(
+                        "supportDocumentType",
+                        file.type.includes("pdf")
+                          ? "PDF"
+                          : file.type.includes("image")
+                          ? "IMAGE"
+                          : "DOCUMENT"
+                      );
+                    };
+                    reader.readAsDataURL(file);
+                  }
+                }}
+                accept="application/pdf,image/*"
+              >
+                {(props) => (
+                  <Button
+                    {...props}
+                    variant="light"
+                    leftSection={<Upload size={16} />}
+                    style={{
+                      borderColor: customStyles.primary,
+                      color: customStyles.primary,
+                    }}
+                  >
+                    {uploadedFile
+                      ? `Selected: ${uploadedFile.name}`
+                      : "Upload Document (PDF or Image)"}
+                  </Button>
+                )}
+              </FileButton>
+              {uploadedFile && (
+                <Text size="xs" c="dimmed" mt="xs">
+                  File: {uploadedFile.name} (
+                  {(uploadedFile.size / 1024).toFixed(2)} KB)
+                </Text>
+              )}
+            </div>
+
             {/* Action Buttons */}
             <Group justify="space-between" mt="md">
               <Button variant="outline" color="gray" onClick={onBack}>
                 Back
               </Button>
               <Button
-                onClick={handleBankTransferSubmit}
-                loading={isSendMoneyLoading || sendMoneyMutation.isPending}
+                type="submit"
+                loading={isSendMoneyLoading || transferMutation.isPending}
                 style={{ background: customStyles.gradient }}
                 leftSection={<ArrowUpRight size={16} />}
-                disabled={
-                  !paymentChannel ||
-                  !transferForm.beneficiaryBankCode ||
-                  !transferForm.beneficiaryBankName ||
-                  !transferForm.beneficiaryAccountId ||
-                  !transferForm.beneficiaryAccountCcy ||
-                  !transferForm.beneficiaryName ||
-                  !transferForm.amount ||
-                  !transferForm.paymentPurposeId ||
-                  !transferForm.senderAddress ||
-                  parseFloat(transferForm.amount) > availableBalance ||
-                  parseFloat(transferForm.amount) <= 999999
-                }
               >
                 Initiate Transfer
               </Button>
             </Group>
-          </div>
+          </form>
         )}
       </Transition>
 
@@ -731,7 +776,7 @@ export default function BankTransfer({
                         Payment Channel
                       </Text>
                       <Text fw={500}>
-                        {paymentChannels[paymentChannel as keyof typeof paymentChannels]?.label}
+                        {paymentChannels[form.values.paymentChannel as keyof typeof paymentChannels]?.label}
                       </Text>
                     </div>
 
@@ -739,9 +784,9 @@ export default function BankTransfer({
                       <Text size="sm" c="dimmed" mb="xs">
                         Beneficiary
                       </Text>
-                      <Text fw={500}>{transferForm.beneficiaryName}</Text>
+                      <Text fw={500}>{form.values.beneficiaryName}</Text>
                       <Text size="xs" c="dimmed">
-                        {transferForm.beneficiaryBankName} - {transferForm.beneficiaryAccountId}
+                        {form.values.beneficiaryBankName} - {form.values.beneficiaryAccountId}
                       </Text>
                     </div>
 
@@ -752,8 +797,8 @@ export default function BankTransfer({
                       <Text fw={500} style={{ color: customStyles.primary }}>
                         {new Intl.NumberFormat("en-KE", {
                           style: "currency",
-                          currency: transferForm.beneficiaryAccountCcy || "KES",
-                        }).format(parseFloat(transferForm.amount))}
+                          currency: form.values.beneficiaryAccountCcy || "KES",
+                        }).format(parseFloat(form.values.amount))}
                       </Text>
                     </div>
                   </Stack>
@@ -874,7 +919,7 @@ export default function BankTransfer({
                         Payment Channel
                       </Text>
                       <Text fw={500}>
-                        {paymentChannels[paymentChannel as keyof typeof paymentChannels]?.label}
+                        {paymentChannels[form.values.paymentChannel as keyof typeof paymentChannels]?.label}
                       </Text>
                     </div>
                     <div>
@@ -882,16 +927,16 @@ export default function BankTransfer({
                         Beneficiary Bank
                       </Text>
                       <Text fw={500}>
-                        {transferForm.beneficiaryBankName} ({transferForm.beneficiaryBankCode})
+                        {form.values.beneficiaryBankName} ({form.values.beneficiaryBankCode})
                       </Text>
                     </div>
                     <div>
                       <Text size="sm" c="dimmed" mb="xs">
                         Beneficiary Account
                       </Text>
-                      <Text fw={500}>{transferForm.beneficiaryName}</Text>
+                      <Text fw={500}>{form.values.beneficiaryName}</Text>
                       <Text size="xs" c="dimmed">
-                        {transferForm.beneficiaryAccountId} - {transferForm.beneficiaryAccountCcy}
+                        {form.values.beneficiaryAccountId} - {form.values.beneficiaryAccountCcy}
                       </Text>
                     </div>
                     <div>
@@ -905,8 +950,8 @@ export default function BankTransfer({
                       >
                         {new Intl.NumberFormat("en-KE", {
                           style: "currency",
-                          currency: transferForm.beneficiaryAccountCcy || "KES",
-                        }).format(parseFloat(transferForm.amount))}
+                          currency: form.values.beneficiaryAccountCcy || "KES",
+                        }).format(parseFloat(form.values.amount))}
                       </Text>
                     </div>
                     <div>
@@ -915,7 +960,7 @@ export default function BankTransfer({
                       </Text>
                       <Text fw={500}>
                         {paymentPurposes.find(
-                          (p) => p.value === transferForm.paymentPurposeId
+                          (p) => p.value === form.values.paymentPurposeId
                         )?.label}
                       </Text>
                     </div>

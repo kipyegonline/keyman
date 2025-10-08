@@ -323,3 +323,113 @@ export const getForexRates = async (currencies: string[]) => {
     }
   }
 };
+
+export const telegraphicTransfer = async (data: {
+  accountId: string;
+  beneficiarySwiftBic: string;
+  beneficiaryBankName: string;
+  beneficiaryBankCountry: string;
+  beneficiaryBankCity: string;
+  beneficiaryBankAddress: string;
+  beneficiaryAccountId: string;
+  beneficiaryAccountCcy: string;
+  beneficiaryName: string;
+  beneficiaryEmail: string;
+  amount: number;
+  amountType: number;
+  messageToBeneficiary: string;
+  paymentChannel: string;
+  paymentPurposeId: string;
+  paymentPurpose: string;
+  senderAddress: string;
+  supportDocument: string;
+  supportDocumentType: string;
+  chargeType: string;
+}) => {
+  try {
+    const endpoint = ENDPOINTS.tranfers.SWIFT.TELEGRAPHIC_TRANSFER;
+    const response = await AxiosClient.post(endpoint, data);
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while processing telegraphic transfer",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};
+
+export const domesticBankTransfer = async (data: {
+  accountId: string;
+  beneficiaryBankCode: string;
+  beneficiaryBankName: string;
+  beneficiaryBranchCode: string;
+  beneficiaryAccountId: string;
+  beneficiaryAccountCcy: string;
+  beneficiaryName: string;
+  beneficiaryEmail: string;
+  amount: number;
+  amountType: number;
+  messageToBeneficiary: string;
+  paymentChannel: string;
+  paymentPurposeId: string;
+  paymentPurpose: string;
+  senderAddress: string;
+  supportDocument: string;
+  supportDocumentType: string;
+}) => {
+  try {
+    const endpoint = ENDPOINTS.tranfers.RTGS.REQUEST_LAST_DOMESTIC_INTER_BANK_TRANSFER;
+    const response = await AxiosClient.post(endpoint, data);
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while processing bank transfer",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};
+
+export const getPaginatedTransactions = async (params?: {
+  page?: number;
+  per_page?: number;
+}) => {
+  try {
+    const endpoint = ENDPOINTS.transfers.PAGINATED_TRANSFERS;
+    const response = await AxiosClient.get(endpoint, {
+      params: {
+        page: params?.page || 1,
+        per_page: params?.per_page || 20,
+      },
+    });
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while fetching transactions",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};

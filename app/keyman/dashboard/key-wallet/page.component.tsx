@@ -1,5 +1,5 @@
 "use client";
-import { getWallet, initializeWallet } from "@/api/wallet";
+import { getWallet, initializeWallet, getPaginatedTransactions } from "@/api/wallet";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 //import { WalletData as WalletDataType } from "@/components/wallet/types";
 
@@ -19,6 +19,7 @@ export default function WalletClientComponent() {
   const queryClient = useQueryClient();
 
   const [success, setSuccess] = React.useState<null | number>(null);
+  const [currentPage, setCurrentPage] = React.useState(1);
 
   const { data: wallet, isLoading: loadingWallet } = useQuery({
     queryKey: ["wallet"],
@@ -34,6 +35,14 @@ export default function WalletClientComponent() {
   } = useQuery({
     queryKey: ["user"],
     queryFn: async () => await getUserDetails(),
+  });
+
+  const { data: transactionsData, isLoading: loadingTransactions, error: transactionsError } = useQuery({
+    queryKey: ["transactions", currentPage],
+    queryFn: async () => {
+      return await getPaginatedTransactions({ page: currentPage, per_page: 20 });
+    },
+    retry: 2,
   });
 
   const initializeWalletMutation = useMutation({
@@ -72,11 +81,27 @@ export default function WalletClientComponent() {
 
   //console.log(userAccount, wallet, "user loading.....");
 
+  // Extract transactions and pagination from response
+  const transactions = transactionsData?.status ? transactionsData?.data?.transactions || [] : [];
+  const pagination = transactionsData?.status ? transactionsData?.data?.pagination || null : null;
+
+  // Handle transaction error
+  const transactionErrorMessage = transactionsError
+    ? "Failed to load transactions. Please try again later."
+    : transactionsData?.status === false
+    ? transactionsData?.message || "Unable to fetch transactions"
+    : null;
+
   return (
     <WalletData
       walletData={wallet}
       isLoading={loadingWallet}
       accountType={userAccount?.user?.account_type?.toLowerCase()}
+      transactions={transactions}
+      pagination={pagination}
+      onPageChange={setCurrentPage}
+      loadingTransactions={loadingTransactions}
+      transactionError={transactionErrorMessage}
     />
   );
   // Loading state
@@ -96,6 +121,11 @@ export default function WalletClientComponent() {
         walletData={wallet}
         isLoading={loadingWallet}
         accountType={userAccount?.user?.account_type?.toLowerCase()}
+        transactions={transactions}
+        pagination={pagination}
+        onPageChange={setCurrentPage}
+        loadingTransactions={loadingTransactions}
+        transactionError={transactionErrorMessage}
       />
     );
   }

@@ -107,4 +107,19 @@ export const ENDPOINTS = {
     GET_RATES: "/api/exchange-rate/multiple",
     SUPPORTED: "/api/exchange-rate/supported-currencies",
   },
+  transfers: {
+    SWIFT: {
+      TELEGRAPHIC_TRANSFER: "/api/trans/telegraphicTransfer",
+      SWIFT_TRANSFER_SAVED_DETAILS: "/api/trans/telegraphicTransfer",
+      INTER_BANK_TRANSFER_LIST: "/api/trans/getInterBankTransferList",
+      INTER_BANK_TRANSFER_DETAILS: "/api/trans/getInterBankTransferDetails",
+      GET_BANK_CODES: `/api/staticData/getBankCodes`,
+    },
+    RTGS: {
+      REQUEST_LAST_DOMESTIC_INTER_BANK_TRANSFER:
+        "/api/trans/largeDomesticInterBankTransfer",
+      REQUEST_LAST_DOMESTIC_INTER_BANK_TRANSFER_SAVED_DETAILS: `/api/trans/largeDomesticInterBankTransfer`,
+    },
+    PAGINATED_TRANSFERS: `/api/user/transactions/paginated`,
+  },
 };
