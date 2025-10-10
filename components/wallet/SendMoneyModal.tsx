@@ -27,6 +27,7 @@ interface SendMoneyModalProps {
   walletData: {
     currency: string;
     balance: string;
+    accountId: string;
   };
 }
 

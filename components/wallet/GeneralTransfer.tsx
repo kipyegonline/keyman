@@ -40,6 +40,7 @@ interface GeneralTransferProps {
   walletData: {
     currency: string;
     balance: string;
+    accountId: string;
   };
   onClose: () => void;
   onBack: () => void;
@@ -103,11 +104,11 @@ export default function GeneralTransfer({
   onBack,
 }: GeneralTransferProps) {
   const [transferType, setTransferType] = useState<string>("");
-
+  console.log(walletData, "iddn");
   // Mantine form for better state management and validation
   const form = useForm({
     initialValues: {
-      payerAccountId: "",
+      payerAccountId: walletData?.accountId,
       payeeBankCode: "",
       payeeAccountId: "",
       payeeAccountName: "",
@@ -397,6 +398,7 @@ export default function GeneralTransfer({
                 label: { color: customStyles.primary, fontWeight: 500 },
                 input: { borderColor: customStyles.primary },
               }}
+              readOnly
               required
             />
 
