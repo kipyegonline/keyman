@@ -121,5 +121,6 @@ export const ENDPOINTS = {
       REQUEST_LAST_DOMESTIC_INTER_BANK_TRANSFER_SAVED_DETAILS: `/api/trans/largeDomesticInterBankTransfer`,
     },
     PAGINATED_TRANSFERS: `/api/user/transactions/paginated`,
+    GENERAL_TRANSFER: "/api/trans/v2/applyForTransfer",
   },
 };

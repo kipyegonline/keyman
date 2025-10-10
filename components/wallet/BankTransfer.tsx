@@ -170,9 +170,9 @@ export default function BankTransfer({
       supportDocumentType: "",
     },
     validate: {
-      paymentChannel: (value) => (!value ? "Payment channel is required" : null),
-      beneficiaryBankCode: (value) =>
-        !value ? "Bank code is required" : null,
+      paymentChannel: (value) =>
+        !value ? "Payment channel is required" : null,
+      beneficiaryBankCode: (value) => (!value ? "Bank code is required" : null),
       beneficiaryBankName: (value) => (!value ? "Bank name is required" : null),
       beneficiaryBranchCode: (value) =>
         !value ? "Branch code is required" : null,
@@ -191,8 +191,7 @@ export default function BankTransfer({
           return "Amount must be greater than 0";
         if (amount > parseFloat(walletData.balance))
           return "Insufficient balance";
-        if (amount <= 999999)
-          return "Minimum recommended: KES 1,000,000";
+        if (amount <= 999999) return "Minimum recommended: KES 1,000,000";
         return null;
       },
       paymentPurposeId: (value) =>
@@ -384,7 +383,12 @@ export default function BankTransfer({
 
             {/* Payment Channel Selection */}
             <div>
-              <Text size="sm" fw={500} mb="xs" style={{ color: customStyles.primary }}>
+              <Text
+                size="sm"
+                fw={500}
+                mb="xs"
+                style={{ color: customStyles.primary }}
+              >
                 Payment Channel *
               </Text>
               <Radio.Group {...form.getInputProps("paymentChannel")}>
@@ -441,7 +445,12 @@ export default function BankTransfer({
             </div>
 
             {/* Beneficiary Bank Details */}
-            <Text size="sm" fw={600} mt="md" style={{ color: customStyles.primary }}>
+            <Text
+              size="sm"
+              fw={600}
+              mt="md"
+              style={{ color: customStyles.primary }}
+            >
               Beneficiary Bank Details
             </Text>
 
@@ -483,7 +492,12 @@ export default function BankTransfer({
             />
 
             {/* Beneficiary Account Details */}
-            <Text size="sm" fw={600} mt="md" style={{ color: customStyles.primary }}>
+            <Text
+              size="sm"
+              fw={600}
+              mt="md"
+              style={{ color: customStyles.primary }}
+            >
               Beneficiary Account Details
             </Text>
 
@@ -552,7 +566,12 @@ export default function BankTransfer({
               )}
 
             {/* Transfer Details */}
-            <Text size="sm" fw={600} mt="md" style={{ color: customStyles.primary }}>
+            <Text
+              size="sm"
+              fw={600}
+              mt="md"
+              style={{ color: customStyles.primary }}
+            >
               Transfer Details
             </Text>
 
@@ -737,25 +756,41 @@ export default function BankTransfer({
                 {/* Status Indicator */}
                 <Card withBorder radius="md" p="md" mb="md">
                   <Group>
-                    <div style={{ color: statusConfig[transferStatus as keyof typeof statusConfig]?.color }}>
-                      {statusConfig[transferStatus as keyof typeof statusConfig]?.icon}
+                    <div
+                      style={{
+                        color:
+                          statusConfig[
+                            transferStatus as keyof typeof statusConfig
+                          ]?.color,
+                      }}
+                    >
+                      {
+                        statusConfig[
+                          transferStatus as keyof typeof statusConfig
+                        ]?.icon
+                      }
                     </div>
                     <div style={{ flex: 1 }}>
                       <Text fw={600} size="sm">
-                        Status: {statusConfig[transferStatus as keyof typeof statusConfig]?.label}
+                        Status:{" "}
+                        {
+                          statusConfig[
+                            transferStatus as keyof typeof statusConfig
+                          ]?.label
+                        }
                       </Text>
                       <Text size="xs" c="dimmed">
-                        {statusConfig[transferStatus as keyof typeof statusConfig]?.description}
+                        {
+                          statusConfig[
+                            transferStatus as keyof typeof statusConfig
+                          ]?.description
+                        }
                       </Text>
                     </div>
                   </Group>
                 </Card>
 
-                <Alert
-                  color="blue"
-                  icon={<Shield size={16} />}
-                  variant="light"
-                >
+                <Alert color="blue" icon={<Shield size={16} />} variant="light">
                   <Text size="sm">
                     Transfer submitted successfully! Please enter the OTP sent
                     to your phone to validate the transaction.
@@ -776,7 +811,12 @@ export default function BankTransfer({
                         Payment Channel
                       </Text>
                       <Text fw={500}>
-                        {paymentChannels[form.values.paymentChannel as keyof typeof paymentChannels]?.label}
+                        {
+                          paymentChannels[
+                            form.values
+                              .paymentChannel as keyof typeof paymentChannels
+                          ]?.label
+                        }
                       </Text>
                     </div>
 
@@ -786,7 +826,8 @@ export default function BankTransfer({
                       </Text>
                       <Text fw={500}>{form.values.beneficiaryName}</Text>
                       <Text size="xs" c="dimmed">
-                        {form.values.beneficiaryBankName} - {form.values.beneficiaryAccountId}
+                        {form.values.beneficiaryBankName} -{" "}
+                        {form.values.beneficiaryAccountId}
                       </Text>
                     </div>
 
@@ -864,21 +905,42 @@ export default function BankTransfer({
                           justifyContent: "center",
                         }}
                       >
-                        {statusConfig[transferStatus as keyof typeof statusConfig]?.icon}
+                        {
+                          statusConfig[
+                            transferStatus as keyof typeof statusConfig
+                          ]?.icon
+                        }
                       </div>
                       <div style={{ flex: 1 }}>
-                        <Text size="xl" fw={600} style={{ color: customStyles.success }}>
-                          {statusConfig[transferStatus as keyof typeof statusConfig]?.label}
+                        <Text
+                          size="xl"
+                          fw={600}
+                          style={{ color: customStyles.success }}
+                        >
+                          {
+                            statusConfig[
+                              transferStatus as keyof typeof statusConfig
+                            ]?.label
+                          }
                         </Text>
                         <Text size="sm" c="dimmed">
-                          {statusConfig[transferStatus as keyof typeof statusConfig]?.description}
+                          {
+                            statusConfig[
+                              transferStatus as keyof typeof statusConfig
+                            ]?.description
+                          }
                         </Text>
                       </div>
                     </Group>
 
                     {/* Status Timeline */}
                     <Stack gap="xs" mt="sm">
-                      {["SUBMITTED", "VALIDATING", "APPROVED", "IN_TRANSIT"].map((status, idx) => (
+                      {[
+                        "SUBMITTED",
+                        "VALIDATING",
+                        "APPROVED",
+                        "IN_TRANSIT",
+                      ].map((status, idx) => (
                         <Group key={status} gap="sm">
                           <div
                             style={{
@@ -886,7 +948,9 @@ export default function BankTransfer({
                               height: "24px",
                               borderRadius: "50%",
                               background:
-                                Object.keys(statusConfig).indexOf(transferStatus) >= idx
+                                Object.keys(statusConfig).indexOf(
+                                  transferStatus
+                                ) >= idx
                                   ? customStyles.gradient
                                   : "#e9ecef",
                               display: "flex",
@@ -897,14 +961,32 @@ export default function BankTransfer({
                               fontWeight: 600,
                             }}
                           >
-                            {Object.keys(statusConfig).indexOf(transferStatus) > idx ? "✓" : idx + 1}
+                            {Object.keys(statusConfig).indexOf(transferStatus) >
+                            idx
+                              ? "✓"
+                              : idx + 1}
                           </div>
                           <Text
                             size="sm"
-                            fw={Object.keys(statusConfig).indexOf(transferStatus) >= idx ? 600 : 400}
-                            c={Object.keys(statusConfig).indexOf(transferStatus) >= idx ? "dark" : "dimmed"}
+                            fw={
+                              Object.keys(statusConfig).indexOf(
+                                transferStatus
+                              ) >= idx
+                                ? 600
+                                : 400
+                            }
+                            c={
+                              Object.keys(statusConfig).indexOf(
+                                transferStatus
+                              ) >= idx
+                                ? "dark"
+                                : "dimmed"
+                            }
                           >
-                            {statusConfig[status as keyof typeof statusConfig]?.label}
+                            {
+                              statusConfig[status as keyof typeof statusConfig]
+                                ?.label
+                            }
                           </Text>
                         </Group>
                       ))}
@@ -919,7 +1001,12 @@ export default function BankTransfer({
                         Payment Channel
                       </Text>
                       <Text fw={500}>
-                        {paymentChannels[form.values.paymentChannel as keyof typeof paymentChannels]?.label}
+                        {
+                          paymentChannels[
+                            form.values
+                              .paymentChannel as keyof typeof paymentChannels
+                          ]?.label
+                        }
                       </Text>
                     </div>
                     <div>
@@ -927,7 +1014,8 @@ export default function BankTransfer({
                         Beneficiary Bank
                       </Text>
                       <Text fw={500}>
-                        {form.values.beneficiaryBankName} ({form.values.beneficiaryBankCode})
+                        {form.values.beneficiaryBankName} (
+                        {form.values.beneficiaryBankCode})
                       </Text>
                     </div>
                     <div>
@@ -936,7 +1024,8 @@ export default function BankTransfer({
                       </Text>
                       <Text fw={500}>{form.values.beneficiaryName}</Text>
                       <Text size="xs" c="dimmed">
-                        {form.values.beneficiaryAccountId} - {form.values.beneficiaryAccountCcy}
+                        {form.values.beneficiaryAccountId} -{" "}
+                        {form.values.beneficiaryAccountCcy}
                       </Text>
                     </div>
                     <div>
@@ -959,9 +1048,11 @@ export default function BankTransfer({
                         Payment Purpose
                       </Text>
                       <Text fw={500}>
-                        {paymentPurposes.find(
-                          (p) => p.value === form.values.paymentPurposeId
-                        )?.label}
+                        {
+                          paymentPurposes.find(
+                            (p) => p.value === form.values.paymentPurposeId
+                          )?.label
+                        }
                       </Text>
                     </div>
                   </Stack>
@@ -969,8 +1060,9 @@ export default function BankTransfer({
 
                 <Alert icon={<Shield size={16} />} color="teal" variant="light">
                   <Text size="xs">
-                    Your bank transfer is being processed. Settlement time depends on
-                    the payment channel selected (RTGS: immediate, EFT: T+1).
+                    Your bank transfer is being processed. Settlement time
+                    depends on the payment channel selected (RTGS: immediate,
+                    EFT: T+1).
                   </Text>
                 </Alert>
 

@@ -282,6 +282,36 @@ export const sendMoney = async (data: {
   }
 };
 
+export const generalTransfer = async (data: {
+  payerAccountId: string;
+  payeeBankCode: string;
+  payeeAccountId: string;
+  payeeAccountName: string;
+  currency: string;
+  amount: number;
+  remark: string;
+  payeeMobileForNotification: string;
+}) => {
+  try {
+    const endpoint = ENDPOINTS.transfers.GENERAL_TRANSFER;
+    const response = await AxiosClient.post(endpoint, data);
+
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while processing transfer",
+          success: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", success: false };
+    }
+  }
+};
+
 export const getSupportedCurrencies = async () => {
   try {
     const endpoint = ENDPOINTS.wallet.SUPPORTED;
@@ -347,7 +377,7 @@ export const telegraphicTransfer = async (data: {
   chargeType: string;
 }) => {
   try {
-    const endpoint = ENDPOINTS.tranfers.SWIFT.TELEGRAPHIC_TRANSFER;
+    const endpoint = ENDPOINTS.transfers.SWIFT.TELEGRAPHIC_TRANSFER;
     const response = await AxiosClient.post(endpoint, data);
 
     return response.data;
@@ -386,7 +416,8 @@ export const domesticBankTransfer = async (data: {
   supportDocumentType: string;
 }) => {
   try {
-    const endpoint = ENDPOINTS.tranfers.RTGS.REQUEST_LAST_DOMESTIC_INTER_BANK_TRANSFER;
+    const endpoint =
+      ENDPOINTS.transfers.RTGS.REQUEST_LAST_DOMESTIC_INTER_BANK_TRANSFER;
     const response = await AxiosClient.post(endpoint, data);
 
     return response.data;

@@ -12,6 +12,7 @@ import {
   Transition,
   Select,
 } from "@mantine/core";
+import { useForm } from "@mantine/form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import {
@@ -19,14 +20,21 @@ import {
   User,
   AlertTriangle,
   Shield,
-  Wallet,
+  //Wallet,
   Smartphone,
-  //Building2,
+  Building2,
   Link as LinkIcon,
 } from "lucide-react";
 import { notifications } from "@mantine/notifications";
 import { notify } from "@/lib/notifications";
-import { sendMoney, confirmOTP } from "@/api/wallet";
+import { generalTransfer, confirmOTP } from "@/api/wallet";
+
+interface TransferResponse {
+  status: boolean;
+  message?: string;
+  transaction_id?: string;
+  [key: string]: string | number | boolean | undefined;
+}
 
 interface GeneralTransferProps {
   walletData: {
@@ -39,14 +47,13 @@ interface GeneralTransferProps {
 
 // Transfer type configurations
 const transferTypeOptions = [
-  {
+  /*{
     value: "wallet",
     label: "Wallet Transfer",
     icon: <Wallet size={16} />,
     description: "Send to another wallet instantly",
     placeholder: "Enter wallet ID",
-  },
-  {
+  }*/ {
     value: "mpesa",
     label: "M-Pesa",
     icon: <Smartphone size={16} />,
@@ -59,14 +66,14 @@ const transferTypeOptions = [
     icon: <Smartphone size={16} />,
     description: "Send to Airtel Money mobile number",
     placeholder: "254733000000",
-  } /*
+  },
   {
     value: "choice_bank",
     label: "Choice Bank",
     icon: <Building2 size={16} />,
-    description: "Send to Choice Bank account",
+    description: "Send to Choice Bank account (requires bank code)",
     placeholder: "Enter bank account number",
-  },*/,
+  },
   {
     value: "pesa_link",
     label: "PesaLink",
@@ -96,15 +103,47 @@ export default function GeneralTransfer({
   onBack,
 }: GeneralTransferProps) {
   const [transferType, setTransferType] = useState<string>("");
-  const [transferForm, setTransferForm] = useState({
-    accountId: "",
-    amount: "",
-    description: "",
+
+  // Mantine form for better state management and validation
+  const form = useForm({
+    initialValues: {
+      payerAccountId: "",
+      payeeBankCode: "",
+      payeeAccountId: "",
+      payeeAccountName: "",
+      amount: "",
+      remark: "",
+      payeeMobileForNotification: "",
+    },
+    validate: {
+      payerAccountId: (value) =>
+        !value ? "Payer account ID is required" : null,
+      payeeAccountId: (value) =>
+        !value ? "Payee account ID is required" : null,
+      payeeAccountName: (value) =>
+        !value ? "Recipient name is required" : null,
+      payeeBankCode: (value) =>
+        transferType === "choice_bank" && !value
+          ? "Bank code is required for Choice Bank"
+          : null,
+      amount: (value) => {
+        if (!value) return "Amount is required";
+        const amount = parseFloat(value);
+        if (amount <= 0 || isNaN(amount)) return "Please enter a valid amount";
+        if (amount > availableBalance)
+          return "Amount exceeds available balance";
+        if (transferType === "pesa_link" && amount > 999999)
+          return "PesaLink maximum is KES 999,999";
+        return null;
+      },
+      remark: (value) => (!value ? "Remark is required" : null),
+      payeeMobileForNotification: (value) =>
+        !value ? "Mobile number for notification is required" : null,
+    },
   });
-  const [sendMoneyResponse, setSendMoneyResponse] = useState<null | Record<
-    string,
-    string | number
-  >>(null);
+
+  const [sendMoneyResponse, setSendMoneyResponse] =
+    useState<TransferResponse | null>(null);
   const [isSendMoneyLoading, setIsSendMoneyLoading] = useState(false);
   const [otpValue, setOtpValue] = useState("");
   const [isOtpLoading, setIsOtpLoading] = useState(false);
@@ -115,13 +154,20 @@ export default function GeneralTransfer({
 
   const sendMoneyMutation = useMutation({
     mutationFn: (data: {
-      recipient_wallet_id: string;
+      payerAccountId: string;
+      payeeBankCode: string;
+      payeeAccountId: string;
+      payeeAccountName: string;
+      currency: string;
       amount: number;
-      description: string;
-    }) => sendMoney(data),
-    onSuccess: (data) => {
+      remark: string;
+      payeeMobileForNotification: string;
+    }) => {
+      return generalTransfer(data);
+    },
+    onSuccess: (data: TransferResponse) => {
       setIsSendMoneyLoading(false);
-      if (data.status) {
+      if (data.success) {
         setSendMoneyResponse(data);
         setShowOtpInput(true);
         notifications.show({
@@ -135,9 +181,9 @@ export default function GeneralTransfer({
       }
     },
     onError: (error) => {
+      console.error("Transfer mutation error:", error);
       setIsSendMoneyLoading(false);
-      console.error("Send money error:", error);
-      notify.error("Failed to send money. Please try again.");
+      notify.error("An error occurred while processing the transfer");
     },
   });
 
@@ -146,7 +192,7 @@ export default function GeneralTransfer({
       confirmOTP(data.otp, data.businessId),
     onSuccess: (data) => {
       setIsOtpLoading(false);
-      if (data.status) {
+      if (data.success) {
         setShowOtpInput(false);
         notifications.show({
           title: "Success",
@@ -170,24 +216,22 @@ export default function GeneralTransfer({
   });
 
   const handleSendMoneySubmit = () => {
-    if (
-      !transferType ||
-      !transferForm.accountId ||
-      !transferForm.amount ||
-      !transferForm.description
-    ) {
-      notify.error("Please fill in all fields");
+    const validation = form.validate();
+
+    if (!transferType) {
+      notify.error("Please select a transfer type");
       return;
     }
 
-    const amount = parseFloat(transferForm.amount);
-    if (amount <= 0 || isNaN(amount)) {
-      notify.error("Please enter a valid amount");
+    if (validation.hasErrors) {
+      notify.error("Please fix the errors in the form");
       return;
     }
 
-    if (amount > availableBalance) {
-      notify.error("Insufficient balance. Please enter a lower amount.");
+    const amount = parseFloat(form.values.amount);
+
+    if (amount < 10) {
+      notify.error("Minimum transfer amount is KES 10");
       return;
     }
 
@@ -204,10 +248,39 @@ export default function GeneralTransfer({
     }
 
     setIsSendMoneyLoading(true);
+
+    // Get the correct bank code based on transfer type
+    const getPayeeBankCode = (transferType: string) => {
+      switch (transferType) {
+        case "mpesa":
+          return "M-PESA";
+        case "airtel":
+          return "AIRTEL";
+        case "choice_bank":
+          return form.values.payeeBankCode || "";
+        case "pesa_link":
+          return "03";
+        default:
+          return "";
+      }
+    };
+
+    const finalBankCode = getPayeeBankCode(transferType);
+    const mobile =
+      transferType === "mpesa" ||
+      transferType === "airtel" ||
+      transferType === "pesa_link"
+        ? form.values.payeeAccountId.slice(-9)
+        : form.values.payeeAccountId;
     sendMoneyMutation.mutate({
-      recipient_wallet_id: transferForm.accountId,
+      payerAccountId: form.values.payerAccountId || "12345", // Default or get from user context
+      payeeBankCode: finalBankCode,
+      payeeAccountId: mobile, //form.values.payeeAccountId,
+      payeeAccountName: form.values.payeeAccountName,
+      currency: walletData.currency || "KES",
       amount: amount,
-      description: transferForm.description,
+      remark: form.values.remark,
+      payeeMobileForNotification: form.values.payeeMobileForNotification,
     });
   };
 
@@ -217,7 +290,7 @@ export default function GeneralTransfer({
       return;
     }
 
-    if (!sendMoneyResponse?.transaction_id) {
+    if (!sendMoneyResponse?.txId) {
       notify.error("Transaction ID not found. Please try again.");
       return;
     }
@@ -225,13 +298,13 @@ export default function GeneralTransfer({
     setIsOtpLoading(true);
     otpMutation.mutate({
       otp: otpValue,
-      businessId: sendMoneyResponse.transaction_id as string,
+      businessId: sendMoneyResponse?.txId as string,
     });
   };
 
   const handleCompleteSendMoney = () => {
     onClose();
-    setTransferForm({ accountId: "", amount: "", description: "" });
+    form.reset();
     setSendMoneyResponse(null);
     queryClient.invalidateQueries({ queryKey: ["wallet"] });
     notifications.show({
@@ -250,13 +323,13 @@ export default function GeneralTransfer({
   };
 
   const getBalanceColor = () => {
-    const amount = parseFloat(transferForm.amount);
+    const amount = parseFloat(form.values.amount);
     if (!amount || isNaN(amount)) return "dimmed";
     return amount > availableBalance ? "red" : "green";
   };
 
   const selectedTypeConfig = transferTypeOptions.find(
-    (opt) => opt.value === transferType
+    (opt) => opt?.value === transferType
   );
 
   return (
@@ -281,10 +354,12 @@ export default function GeneralTransfer({
             <Select
               label="Transfer Type"
               placeholder="Select transfer method"
-              data={transferTypeOptions.map((opt) => ({
-                value: opt.value,
-                label: opt.label,
-              }))}
+              data={transferTypeOptions
+                .filter((opt) => opt && opt.value && opt.label)
+                .map((opt) => ({
+                  value: opt.value,
+                  label: opt.label,
+                }))}
               value={transferType}
               onChange={(value) => setTransferType(value || "")}
               styles={{
@@ -312,27 +387,11 @@ export default function GeneralTransfer({
               </Alert>
             )}
 
-            {/* Account ID Input */}
+            {/* Payer Account ID Input (Auto-filled or manual) */}
             <TextInput
-              label={
-                transferType === "mpesa" || transferType === "airtel"
-                  ? "Phone Number"
-                  : transferType === "choice_bank"
-                  ? "Bank Account Number"
-                  : transferType === "pesa_link"
-                  ? "PesaLink Account ID"
-                  : "Account ID"
-              }
-              placeholder={
-                selectedTypeConfig?.placeholder || "Enter account details"
-              }
-              value={transferForm.accountId}
-              onChange={(event) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  accountId: event.target?.value || "",
-                }))
-              }
+              label="Your Account ID"
+              placeholder="Enter your account ID"
+              {...form.getInputProps("payerAccountId")}
               leftSection={<User size={16} />}
               styles={{
                 label: { color: customStyles.primary, fontWeight: 500 },
@@ -341,18 +400,64 @@ export default function GeneralTransfer({
               required
             />
 
+            {/* Payee Account ID Input */}
+            <TextInput
+              label={
+                transferType === "mpesa" || transferType === "airtel"
+                  ? "Phone Number"
+                  : transferType === "choice_bank"
+                  ? "Bank Account Number"
+                  : transferType === "pesa_link"
+                  ? "PesaLink Account ID"
+                  : "Payee Account ID"
+              }
+              placeholder={
+                selectedTypeConfig?.placeholder || "Enter payee account details"
+              }
+              {...form.getInputProps("payeeAccountId")}
+              leftSection={<User size={16} />}
+              styles={{
+                label: { color: customStyles.primary, fontWeight: 500 },
+                input: { borderColor: customStyles.primary },
+              }}
+              required
+            />
+
+            {/* Payee Account Name Input */}
+            <TextInput
+              label="Recipient Name"
+              placeholder="Enter recipient's full name"
+              {...form.getInputProps("payeeAccountName")}
+              leftSection={<User size={16} />}
+              styles={{
+                label: { color: customStyles.primary, fontWeight: 500 },
+                input: { borderColor: customStyles.primary },
+              }}
+              required
+            />
+
+            {/* Bank Code Input - Only for Choice Bank */}
+            {transferType === "choice_bank" && (
+              <TextInput
+                label="Bank Code"
+                placeholder="Enter bank code (e.g., 46)"
+                {...form.getInputProps("payeeBankCode")}
+                leftSection={<Building2 size={16} />}
+                styles={{
+                  label: { color: customStyles.primary, fontWeight: 500 },
+                  input: { borderColor: customStyles.primary },
+                }}
+                required
+                description="Enter the specific bank code for the recipient's bank"
+              />
+            )}
+
             {/* Amount Input */}
             <div>
               <TextInput
                 label="Amount"
                 placeholder="Enter amount to send"
-                value={transferForm.amount}
-                onChange={(event) =>
-                  setTransferForm((prev) => ({
-                    ...prev,
-                    amount: event.target?.value || "",
-                  }))
-                }
+                {...form.getInputProps("amount")}
                 leftSection={<Text size="sm">{walletData.currency}</Text>}
                 type="number"
                 min={1}
@@ -365,27 +470,17 @@ export default function GeneralTransfer({
                   label: { color: customStyles.primary, fontWeight: 500 },
                   input: {
                     borderColor:
-                      transferForm.amount &&
-                      parseFloat(transferForm.amount) > availableBalance
+                      form.values.amount &&
+                      parseFloat(form.values.amount) > availableBalance
                         ? "#fa5252"
                         : customStyles.primary,
                   },
                 }}
                 required
-                error={
-                  transferForm.amount &&
-                  parseFloat(transferForm.amount) > availableBalance
-                    ? "Amount exceeds available balance"
-                    : transferType === "pesa_link" &&
-                      transferForm.amount &&
-                      parseFloat(transferForm.amount) > 999999
-                    ? "PesaLink maximum is KES 999,999"
-                    : undefined
-                }
               />
-              {transferForm.amount && (
+              {form.values.amount && (
                 <Text size="xs" c={getBalanceColor()} mt="xs">
-                  {parseFloat(transferForm.amount) > availableBalance ? (
+                  {parseFloat(form.values.amount) > availableBalance ? (
                     <>
                       <AlertTriangle
                         size={12}
@@ -396,7 +491,7 @@ export default function GeneralTransfer({
                   ) : (
                     `Remaining balance: ${formatBalance(
                       (
-                        availableBalance - parseFloat(transferForm.amount)
+                        availableBalance - parseFloat(form.values.amount)
                       ).toString()
                     )}`
                   )}
@@ -404,17 +499,24 @@ export default function GeneralTransfer({
               )}
             </div>
 
-            {/* Description Input */}
+            {/* Mobile for Notification Input */}
+            <TextInput
+              label="Mobile Number for Notification"
+              placeholder="Enter mobile number for SMS notification"
+              {...form.getInputProps("payeeMobileForNotification")}
+              leftSection={<Smartphone size={16} />}
+              styles={{
+                label: { color: customStyles.primary, fontWeight: 500 },
+                input: { borderColor: customStyles.primary },
+              }}
+              required
+            />
+
+            {/* Remark Input */}
             <Textarea
-              label="Description"
-              placeholder="Enter transfer description (e.g., Payment for services, Loan repayment, etc.)"
-              value={transferForm.description}
-              onChange={(event) =>
-                setTransferForm((prev) => ({
-                  ...prev,
-                  description: event.target?.value || "",
-                }))
-              }
+              label="Remark"
+              placeholder="Enter transfer remark (e.g., Payment for services, Loan repayment, etc.)"
+              {...form.getInputProps("remark")}
               minRows={2}
               maxRows={4}
               autosize
@@ -437,12 +539,17 @@ export default function GeneralTransfer({
                 leftSection={<ArrowUpRight size={16} />}
                 disabled={
                   !transferType ||
-                  !transferForm.accountId ||
-                  !transferForm.amount ||
-                  !transferForm.description ||
-                  parseFloat(transferForm.amount) > availableBalance ||
+                  !form.values.payerAccountId ||
+                  !form.values.payeeAccountId ||
+                  !form.values.payeeAccountName ||
+                  !form.values.amount ||
+                  !form.values.remark ||
+                  !form.values.payeeMobileForNotification ||
+                  (transferType === "choice_bank" &&
+                    !form.values.payeeBankCode) ||
+                  parseFloat(form.values.amount) > availableBalance ||
                   (transferType === "pesa_link" &&
-                    parseFloat(transferForm.amount) > 999999)
+                    parseFloat(form.values.amount) > 999999)
                 }
               >
                 Send Money
@@ -497,7 +604,7 @@ export default function GeneralTransfer({
                         {new Intl.NumberFormat("en-KE", {
                           style: "currency",
                           currency: walletData.currency || "KES",
-                        }).format(parseFloat(transferForm.amount))}
+                        }).format(parseFloat(form.values.amount))}
                       </Text>
                     </div>
                   </Stack>
@@ -580,7 +687,7 @@ export default function GeneralTransfer({
                       <Text fw={500}>
                         {
                           transferTypeOptions.find(
-                            (opt) => opt.value === transferType
+                            (opt) => opt?.value === transferType
                           )?.label
                         }
                       </Text>
@@ -589,7 +696,29 @@ export default function GeneralTransfer({
                       <Text size="sm" c="dimmed" mb="xs">
                         Recipient Account
                       </Text>
-                      <Text fw={500}>{transferForm.accountId}</Text>
+                      <Text fw={500}>{form.values.payeeAccountId}</Text>
+                    </div>
+                    <div>
+                      <Text size="sm" c="dimmed" mb="xs">
+                        Recipient Name
+                      </Text>
+                      <Text fw={500}>{form.values.payeeAccountName}</Text>
+                    </div>
+                    {transferType === "choice_bank" && (
+                      <div>
+                        <Text size="sm" c="dimmed" mb="xs">
+                          Bank Code
+                        </Text>
+                        <Text fw={500}>{form.values.payeeBankCode}</Text>
+                      </div>
+                    )}
+                    <div>
+                      <Text size="sm" c="dimmed" mb="xs">
+                        Notification Mobile
+                      </Text>
+                      <Text fw={500}>
+                        {form.values.payeeMobileForNotification}
+                      </Text>
                     </div>
                     <div>
                       <Text size="sm" c="dimmed" mb="xs">
@@ -603,14 +732,14 @@ export default function GeneralTransfer({
                         {new Intl.NumberFormat("en-KE", {
                           style: "currency",
                           currency: walletData.currency || "KES",
-                        }).format(parseFloat(transferForm.amount))}
+                        }).format(parseFloat(form.values.amount))}
                       </Text>
                     </div>
                     <div>
                       <Text size="sm" c="dimmed" mb="xs">
-                        Description
+                        Remark
                       </Text>
-                      <Text fw={500}>{transferForm.description}</Text>
+                      <Text fw={500}>{form.values.remark}</Text>
                     </div>
                   </Stack>
                 </Card>

@@ -204,7 +204,10 @@ function PhoneVerificationModal({
               <Button variant="light" onClick={handleClose}>
                 Cancel
               </Button>
-              <Button onClick={handleSendOTP} loading={sendOtpMutation.isPending}>
+              <Button
+                onClick={handleSendOTP}
+                loading={sendOtpMutation.isPending}
+              >
                 Send OTP
               </Button>
             </Group>
