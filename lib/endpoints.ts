@@ -123,4 +123,35 @@ export const ENDPOINTS = {
     PAGINATED_TRANSFERS: `/api/user/transactions/paginated`,
     GENERAL_TRANSFER: "/api/trans/v2/applyForTransfer",
   },
+  chat: {
+    CHAT_MANAGEMENT: {
+      LIST_USER_CHATS: "/api/chats",
+      CREATE_CHAT_CONTRACTOR: "/api/chats",
+      CREATE_CHAT_SUPPLIER: "/api/chats",
+      CREATE_CHAT_REQUEST: "/api/chats",
+      GET_CHAT_DETAILS: (chatId: string) => `/api/chats/${chatId}`,
+    },
+    PARTICIPANT_MANAGEMENT: {
+      ADD_PARTICIPANT: (chatId: string) => `/api/chats/${chatId}/participants`,
+      REMOVE_PARTICIPANT: (chatId: string, userIdToRemove: string) =>
+        `/api/chats/${chatId}/participants/${userIdToRemove}`,
+    },
+    MESSAGE_MANAGEMENT: {
+      GET_CHAT_MESSAGES: (chatId: string) =>
+        `/api/chats/${chatId}/messages?page=1&per_page=20`,
+      SEND_MESSAGE: (chatId: string) => `/api/chats/${chatId}/messages`,
+      SEND_MESSAGE_WITH_ATTACHMENT: (chatId: string) =>
+        `/api/chats/${chatId}/messages`,
+      SEND_FILE_ONLY: (chatId: string) => `/api/chats/${chatId}/messages`,
+      DELETE_MESSAGE: (chatId: string, messageId: string) =>
+        `/api/chats/${chatId}/messages/${messageId}`,
+    },
+    READ_RECEIPTS: {
+      MARK_MESSAGE_AS_READ: (chatId: string, messageId: string) =>
+        `/api/chats/${chatId}/messages/${messageId}/read`,
+      MARK_MESSAGES_AS_READ: (chatId: string) =>
+        `/api/chats/${chatId}/read-all`,
+    },
+    ERROR_EXAMPLES: {},
+  },
 };
