@@ -19,7 +19,7 @@ import {
   //Notification,
   Image,
   List,
-  ListItem,
+  //ListItem,
   Box,
   Divider,
   Flex,
@@ -126,7 +126,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string>("");
-  const [customerMessage, setCustomerMessage] = useState<string[]>([]);
+  const [, setCustomerMessage] = useState<string[]>([]);
   //const [requestId, setrequestId] = useState<string>("");
   const [paymentStep, setPaymentStep] = useState<
     "select" | "form" | "customer" | "processing" | "confirming" | "success"
@@ -182,16 +182,21 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
     try {
       setPaymentStep("processing");
-      const result = await makePayments(payload);
+      console.log("payload 2:", payload);
 
-      // console.log(result.original.status, result);
-      if (result.original.status) {
-        const { CustomerMessage } = result.original;
-        const steps = CustomerMessage.split(/\d+\.\s*/).filter(
+      const result = await makePayments(payload);
+      console.log("Payment result:", result);
+      if (result.status) {
+        /* const { CustomerMessage } = result.original;
+        const steps = CustomerMessage.split(/\d+\.\s/).filter(
           (step: string) => step.trim() !== ""
-        );
-        setCustomerMessage(steps);
+        );*/
+        setCustomerMessage(result.message);
         setPaymentStep("customer");
+        setTimeout(() => {
+          handleClose();
+        }, 3000);
+        notify.success(result?.message || "Payment initiated successfully!");
         //setrequestId(CheckoutRequestID);
 
         /*setPaymentStep("customer");
@@ -215,7 +220,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     } catch (error) {
       setLoading(false);
       setPaymentStep("form");
-
+      console.log("Payment error:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Payment failed";
 
@@ -289,10 +294,10 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         return "Payment";
     }
   };
-  const modifyString = (word: string) => {
+  /*const modifyString = (word: string) => {
     if (word.includes(":")) return word.split(":");
     return word;
-  };
+  };*/
   return (
     <Modal
       opened={isOpen}
@@ -546,29 +551,29 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 <Text size="sm">
                   Please check your phone for the payment prompt and complete
                   the transaction{" "}
-                  {customerMessage.length > 0
+                  {/*customerMessage.length > 0
                     ? "or follow instructions below."
-                    : ""}
+                    : ""} */}
                 </Text>
               </Box>
               <Divider />
-              <List>
-                {customerMessage.map((message, index) => (
-                  <ListItem key={index} className="!capitalize mt-2">
-                    <span className="mr-1">{index + 1}.</span>{" "}
-                    {typeof modifyString(message) === "string" ? (
-                      message
-                    ) : (
-                      <>
-                        {" "}
-                        {modifyString(message)[0]}:
-                        <strong className="ml-1">
-                          {modifyString(message)[1]}
-                        </strong>
-                      </>
-                    )}
-                  </ListItem>
-                ))}
+              <List display="none">
+                {/* customerMessage.map((message, index) => (
+                      <ListItem key={index} className="!capitalize mt-2">
+                        <span className="mr-1">{index + 1}.</span>{" "}
+                        {typeof modifyString(message) === "string" ? (
+                          message
+                        ) : (
+                          <>
+                            {" "}
+                            {modifyString(message)[0]}:
+                            <strong className="ml-1">
+                              {modifyString(message)[1]}
+                            </strong>
+                          </>
+                        )}
+                      </ListItem>
+                    ))*/}
               </List>
               <Flex justify={"flex-end"}>
                 <Button

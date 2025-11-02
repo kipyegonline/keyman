@@ -158,6 +158,7 @@ const RequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
   const rows = requests?.map((request, index) => (
     <Table.Tr
       key={request.id}
+      onClick={() => handleRequestClick(request.id)}
       className={`transition-all duration-300 ease-in-out cursor-pointer ${
         hoveredRow === request.id
           ? "bg-gradient-to-r from-green-50 to-orange-50 transform scale-[1.002] shadow-md"
@@ -258,7 +259,7 @@ const RequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
         <StatusBadge status={request.status} />
       </Table.Td>
 
-      <Table.Td>
+      <Table.Td display={{ base: "none", md: "table-cell" }}>
         <Tooltip label="View Details" position="left">
           <ActionIcon
             variant="subtle"
@@ -268,7 +269,10 @@ const RequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
                 : "hover:bg-gray-100"
             }`}
             style={{ color: hoveredRow === request.id ? "#3D6B2C" : "#666" }}
-            onClick={() => handleRequestClick(request.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRequestClick(request.id);
+            }}
           >
             <Eye size={16} />
           </ActionIcon>
@@ -381,7 +385,10 @@ const RequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
                 <Table.Th className="font-semibold text-gray-700">
                   Status
                 </Table.Th>
-                <Table.Th className="font-semibold text-gray-700 text-center">
+                <Table.Th
+                  className="font-semibold text-gray-700 text-center"
+                  display={{ base: "none", md: "table-cell" }}
+                >
                   Actions
                 </Table.Th>
               </Table.Tr>

@@ -167,6 +167,7 @@ const OrdersTable: React.FC<Props> = ({ orders: _orders, isSupplier }) => {
   const rows = filteredOrders.toReversed().map((order, index) => (
     <Table.Tr
       key={order.id}
+      onClick={() => handleOrder(order.id)}
       style={{
         transition: "all 0.2s ease",
         cursor: "pointer",
@@ -263,7 +264,7 @@ const OrdersTable: React.FC<Props> = ({ orders: _orders, isSupplier }) => {
         </Group>
       </Table.Td>
 
-      <Table.Td>
+      <Table.Td display={{ base: "none", md: "table-cell" }}>
         <Group gap="xs">
           <Tooltip label="View Order Details">
             <ActionIcon
@@ -275,7 +276,10 @@ const OrdersTable: React.FC<Props> = ({ orders: _orders, isSupplier }) => {
                 transition: "all 0.2s ease",
               }}
               className="hover:scale-110 hover:bg-green-100"
-              onClick={() => handleOrder(order.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOrder(order.id);
+              }}
             >
               <Eye size={16} />
             </ActionIcon>
@@ -417,7 +421,10 @@ const OrdersTable: React.FC<Props> = ({ orders: _orders, isSupplier }) => {
                     <Table.Th style={{ color: "white", fontWeight: 600 }}>
                       Supplier
                     </Table.Th>
-                    <Table.Th style={{ color: "white", fontWeight: 600 }}>
+                    <Table.Th
+                      style={{ color: "white", fontWeight: 600 }}
+                      display={{ base: "none", md: "table-cell" }}
+                    >
                       Actions
                     </Table.Th>
                   </Table.Tr>
