@@ -27,6 +27,7 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { Bell, ChevronDown, Sun, Moon } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getToken, useAppContext } from "@/providers/AppContext";
 import { navigateTo } from "@/lib/helpers";
 import { usePathname, useRouter } from "next/navigation";
@@ -35,6 +36,13 @@ import Link from "next/link";
 import { CartButton } from "../supplier/priceList";
 import { useCart } from "@/providers/CartContext";
 import { ContractChatBot } from "../contract";
+import { NotificationMenu } from "./NotificationMenu";
+import {
+  // getNotifications, // Uncomment when API is ready
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  mockNotifications,
+} from "@/api/notifications";
 
 export const checkDash = () => {
   const dashboard = globalThis?.window?.localStorage.getItem("dashboard");
@@ -62,12 +70,59 @@ const TopNavigation: React.FC = () => {
     verified,
   } = useAppContext();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   //const isSupplierSide = checkDash();
   const pathname = usePathname();
   const { cart, setModalOpen } = useCart();
   const [ownsCart, setOwnsCart] = React.useState(false);
   const [showContract, setShowContract] = React.useState(false);
+
+  // Fetch notifications with polling every 30 seconds
+  const { data: notificationsData } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => {
+      // For development, use mock data. Replace with actual API call when ready
+      // return await getNotifications();
+
+      // Mock data for now
+      return {
+        notifications: mockNotifications,
+        unread_count: mockNotifications.filter((n) => n.read_at === null)
+          .length,
+        status: true,
+      };
+    },
+    refetchInterval: 30000, // Poll every 30 seconds
+    staleTime: 25000, // Consider data stale after 25 seconds
+  });
+
+  //const notifications = notificationsData?.notifications || [];
+  const unreadCount = notificationsData?.unread_count || 0;
+
+  // Mutation for marking a notification as read
+  const markAsReadMutation = useMutation({
+    mutationFn: markNotificationAsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+
+  // Mutation for marking all notifications as read
+  const markAllAsReadMutation = useMutation({
+    mutationFn: markAllNotificationsAsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+
+  const handleMarkAsRead = (notificationId: string) => {
+    markAsReadMutation.mutate(notificationId);
+  };
+
+  const handleMarkAllAsRead = () => {
+    markAllAsReadMutation.mutate();
+  };
   React.useEffect(() => {
     const ownsCart = checkAuth() === getLocalCart()?.supplierId;
     setOwnsCart(ownsCart);
@@ -221,7 +276,7 @@ const TopNavigation: React.FC = () => {
                 onClick={() => setShowContract(true)}
                 className="animate-pulse"
               >
-                <img
+                <Image
                   src="/signing-the-contract-svgrepo-com.svg"
                   alt="keyman key"
                   className="w-8 h-8 bg-green animation-pulse"
@@ -238,15 +293,38 @@ const TopNavigation: React.FC = () => {
             />
           )}
           {/* Notifications */}
-          <Indicator inline label={null} size={16}>
-            <ActionIcon
-              variant="subtle"
-              size="lg"
-              className={isDark ? "hover:bg-gray-800" : "hover:bg-gray-100"}
-            >
-              <Bell size={20} />
-            </ActionIcon>
-          </Indicator>
+          <Menu
+            shadow="md"
+            width="min(380px, calc(100vw - 32px))"
+            position="bottom-end"
+            offset={8}
+            transitionProps={{ transition: "pop", duration: 150 }}
+          >
+            <Menu.Target>
+              <Indicator
+                inline
+                label={unreadCount > 0 ? unreadCount : null}
+                size={18}
+                color="red"
+                offset={7}
+              >
+                <ActionIcon
+                  variant="subtle"
+                  size="lg"
+                  className={isDark ? "hover:bg-gray-800" : "hover:bg-gray-100"}
+                >
+                  <Bell size={20} />
+                </ActionIcon>
+              </Indicator>
+            </Menu.Target>
+
+            <NotificationMenu
+              notifications={[]}
+              unreadCount={unreadCount}
+              onMarkAsRead={handleMarkAsRead}
+              onMarkAllAsRead={handleMarkAllAsRead}
+            />
+          </Menu>
           {/* Profile Menu */}
           <Menu
             shadow="md"

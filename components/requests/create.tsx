@@ -43,7 +43,7 @@ import {
   Minus,
 } from "lucide-react";
 /*eslint-disable*/
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getItems } from "@/api/items";
 import { KeymanItem } from "@/types/requests";
 import Link from "next/link";
@@ -746,8 +746,8 @@ const PreviewStep: React.FC<{
 const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
   const [active, setActive] = useState(0);
   const [items, setItems] = useState<KeymanItem[]>([]);
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string | null>(null);
 
   const form = useForm<RequestForm>({
@@ -797,6 +797,30 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
     setActive((current) => Math.max(current - 1, 0));
   }, []);
 
+  // Mutation for creating request
+  const createRequestMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      return await createRequest(payload);
+    },
+    onSuccess: (response) => {
+      if (response.status) {
+        // Invalidate and refetch requests
+        queryClient.invalidateQueries({ queryKey: ["customer requests"] });
+        setSuccess(true);
+        form.reset();
+        setItems([]);
+        notify.success("Request created successfully!");
+      } else {
+        notify.error("Something went wrong. Try again later.");
+      }
+    },
+    onError: (err) => {
+      setError("Failed to submit request. Please try again.");
+      console.log(err);
+      notify.error("Failed to submit request. Please try again.");
+    },
+  });
+
   const handleSubmit = async () => {
     const selectedLocation = locations.find(
       (loc) => loc.id === form.values.location_id
@@ -827,24 +851,8 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
       items: processedItems,
     };
 
-    setLoading(true);
     setError(null);
-    try {
-      const response = await createRequest(payload);
-
-      if (response.status) {
-        setSuccess(true);
-        form.reset();
-        setItems([]);
-      } else {
-        notify.error("Something went wrong. Try again later.");
-      }
-    } catch (err) {
-      setError("Failed to submit request. Please try again.");
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
+    createRequestMutation.mutate(payload);
   };
 
   if (success) {
@@ -959,11 +967,15 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
           ) : (
             <Button
               onClick={handleSubmit}
-              loading={loading}
+              loading={createRequestMutation.isPending}
               className="bg-[#F08C23] hover:bg-[#e67e1a]"
-              rightSection={!loading && <CheckCircle size={16} />}
+              rightSection={
+                !createRequestMutation.isPending && <CheckCircle size={16} />
+              }
             >
-              {loading ? "Submitting..." : "Submit Request"}
+              {createRequestMutation.isPending
+                ? "Submitting..."
+                : "Submit Request"}
             </Button>
           )}
         </Group>
