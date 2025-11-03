@@ -25,32 +25,45 @@ import { useRouter } from "next/navigation";
 
 // Notification type definition
 export interface Notification {
-  id: string;
-  user_id: string;
-  type: string; // 'order', 'quote', 'message', 'system', 'contract', 'delivery'
-  notification_key: string;
+  id: number;
+  type: string;
+  title: string;
+  body: string;
   data: {
+    body: string;
+    meta: unknown[];
+    phone?: string;
+    email?: string;
     title: string;
-    description: string;
-    link?: string;
-    avatar?: string;
+    source: string;
+    channels: string[];
   };
-  read_at: Date | null;
-  created_at: Date;
+  read_at: string | null;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface NotificationMenuProps {
   notifications: Notification[];
   unreadCount: number;
-  onMarkAsRead: (notificationId: string) => void;
+  onMarkAsRead: (notificationId: number) => void;
   onMarkAllAsRead: () => void;
+  onClose?: () => void;
 }
 
 // Helper function to get icon based on notification type
 const getNotificationIcon = (type: string) => {
   const iconProps = { size: 18 };
 
-  switch (type.toLowerCase()) {
+  const lowerType = type.toLowerCase();
+
+  // Handle SystemNotificationSender or check title/body for context
+  if (lowerType.includes("system")) {
+    return <Bell {...iconProps} />;
+  }
+
+  switch (lowerType) {
     case "order":
       return <Package {...iconProps} />;
     case "quote":
@@ -61,8 +74,6 @@ const getNotificationIcon = (type: string) => {
       return <FileText {...iconProps} />;
     case "delivery":
       return <ShoppingCart {...iconProps} />;
-    case "system":
-      return <Bell {...iconProps} />;
     case "success":
       return <CheckCircle {...iconProps} />;
     case "alert":
@@ -74,7 +85,14 @@ const getNotificationIcon = (type: string) => {
 
 // Helper function to get icon color based on notification type
 const getNotificationColor = (type: string): string => {
-  switch (type.toLowerCase()) {
+  const lowerType = type.toLowerCase();
+
+  // Handle SystemNotificationSender with brand color
+  if (lowerType.includes("system")) {
+    return "#F08C23";
+  }
+
+  switch (lowerType) {
     case "order":
       return "#3D6B2C";
     case "quote":
@@ -114,18 +132,40 @@ const formatTimestamp = (date: Date): string => {
 // Individual Notification Item Component
 const NotificationItem: React.FC<{
   notification: Notification;
-  onMarkAsRead: (id: string) => void;
-}> = ({ notification, onMarkAsRead }) => {
+  onMarkAsRead: (id: number) => void;
+  onClose?: () => void;
+}> = ({ notification, onMarkAsRead, onClose }) => {
   const router = useRouter();
-  const isUnread = notification.read_at === null;
+  const isUnread = !notification.is_read;
+
+  // Extract URL from body if present
+  const extractUrl = (text: string): string | null => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const match = text.match(urlRegex);
+    return match ? match[0] : null;
+  };
 
   const handleClick = () => {
     if (isUnread) {
       onMarkAsRead(notification.id);
     }
 
-    if (notification.data.link) {
-      router.push(notification.data.link);
+    const url = extractUrl(notification.body);
+    if (url) {
+      // Check if it's an internal URL
+      if (url.includes("keymanstores.com")) {
+        const path = url.split("keymanstores.com")[1];
+        router.push(path);
+      } else {
+        window.open(url, "_blank");
+      }
+    }
+
+    // Close the menu after a smooth transition delay
+    if (onClose) {
+      setTimeout(() => {
+        onClose();
+      }, 200);
     }
   };
 
@@ -157,7 +197,7 @@ const NotificationItem: React.FC<{
         <Box style={{ flex: 1, minWidth: 0 }}>
           <Group justify="space-between" wrap="nowrap" mb={4} gap="xs">
             <Text size="sm" fw={isUnread ? 600 : 500} lineClamp={1}>
-              {notification.data.title}
+              {notification.title}
             </Text>
             {isUnread && (
               <Badge
@@ -175,11 +215,11 @@ const NotificationItem: React.FC<{
           </Group>
 
           <Text size="xs" c="dimmed" lineClamp={2} mb={4}>
-            {notification.data.description}
+            {notification.body}
           </Text>
 
           <Text size="xs" c="dimmed" fw={500}>
-            {formatTimestamp(notification.created_at)}
+            {formatTimestamp(new Date(notification.created_at))}
           </Text>
         </Box>
       </Group>
@@ -193,6 +233,7 @@ export const NotificationMenu: React.FC<NotificationMenuProps> = ({
   unreadCount,
   onMarkAsRead,
   onMarkAllAsRead,
+  onClose,
 }) => {
   const hasNotifications = notifications.length > 0;
 
@@ -236,6 +277,7 @@ export const NotificationMenu: React.FC<NotificationMenuProps> = ({
               key={notification.id}
               notification={notification}
               onMarkAsRead={onMarkAsRead}
+              onClose={onClose}
             />
           ))}
         </ScrollArea>

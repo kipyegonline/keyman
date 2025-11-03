@@ -77,6 +77,8 @@ const TopNavigation: React.FC = () => {
   const { cart, setModalOpen } = useCart();
   const [ownsCart, setOwnsCart] = React.useState(false);
   const [showContract, setShowContract] = React.useState(false);
+  const [notificationMenuOpened, setNotificationMenuOpened] =
+    React.useState(false);
 
   // Fetch notifications with polling every 30 seconds
   const { data: notificationsData } = useQuery({
@@ -87,18 +89,27 @@ const TopNavigation: React.FC = () => {
 
       // Mock data for now
       return {
-        notifications: mockNotifications,
-        unread_count: mockNotifications.filter((n) => n.read_at === null)
-          .length,
         status: true,
+        notifications: [], //mockNotifications,
+        pagination: {
+          current_page: 1,
+          last_page: 1,
+          per_page: 15,
+          total: mockNotifications.length,
+          from: 1,
+          to: mockNotifications.length,
+        },
       };
     },
     refetchInterval: 30000, // Poll every 30 seconds
     staleTime: 25000, // Consider data stale after 25 seconds
   });
 
-  //const notifications = notificationsData?.notifications || [];
-  const unreadCount = notificationsData?.unread_count || 0;
+  const notifications = React.useMemo(() => {
+    if (notificationsData?.status) return notificationsData?.notifications;
+    else return [];
+  }, [notificationsData]);
+  const unreadCount = 0; // notifications.filter((n) => !n.is_read).length || 0;
 
   // Mutation for marking a notification as read
   const markAsReadMutation = useMutation({
@@ -116,8 +127,8 @@ const TopNavigation: React.FC = () => {
     },
   });
 
-  const handleMarkAsRead = (notificationId: string) => {
-    markAsReadMutation.mutate(notificationId);
+  const handleMarkAsRead = (notificationId: number) => {
+    markAsReadMutation.mutate(notificationId.toString());
   };
 
   const handleMarkAllAsRead = () => {
@@ -299,6 +310,8 @@ const TopNavigation: React.FC = () => {
             position="bottom-end"
             offset={8}
             transitionProps={{ transition: "pop", duration: 150 }}
+            opened={notificationMenuOpened}
+            onChange={setNotificationMenuOpened}
           >
             <Menu.Target>
               <Indicator
@@ -319,10 +332,11 @@ const TopNavigation: React.FC = () => {
             </Menu.Target>
 
             <NotificationMenu
-              notifications={[]}
+              notifications={notifications}
               unreadCount={unreadCount}
               onMarkAsRead={handleMarkAsRead}
               onMarkAllAsRead={handleMarkAllAsRead}
+              onClose={() => setNotificationMenuOpened(false)}
             />
           </Menu>
           {/* Profile Menu */}

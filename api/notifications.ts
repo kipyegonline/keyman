@@ -5,29 +5,43 @@ import { AxiosError } from "axios";
  * Notification type definition
  */
 export interface NotificationData {
-  id: string;
-  user_id: string;
+  id: number;
   type: string;
-  notification_key: string;
+  title: string;
+  body: string;
   data: {
+    body: string;
+    meta: unknown[];
+    phone?: string;
+    email?: string;
     title: string;
-    description: string;
-    link?: string;
-    avatar?: string;
+    source: string;
+    channels: string[];
   };
-  read_at: Date | null;
-  created_at: Date;
+  read_at: string | null;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationResponse {
+  status: boolean;
+  notifications: NotificationData[];
+  pagination: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number;
+    to: number;
+  };
 }
 
 /**
  * Get all notifications for the current user
- * @returns List of notifications
+ * @returns List of notifications with pagination
  */
-export const getNotifications = async (): Promise<{
-  notifications: NotificationData[];
-  unread_count: number;
-  status: boolean;
-}> => {
+export const getNotifications = async (): Promise<NotificationResponse> => {
   try {
     const response = await AxiosClient.get("/notifications");
     return response.data;
@@ -35,18 +49,31 @@ export const getNotifications = async (): Promise<{
     if (error instanceof AxiosError) {
       return (
         error.response?.data || {
-          notifications: [],
-          unread_count: 0,
           status: false,
-          message: "Failed to fetch notifications",
+          notifications: [],
+          pagination: {
+            current_page: 1,
+            last_page: 1,
+            per_page: 15,
+            total: 0,
+            from: 0,
+            to: 0,
+          },
         }
       );
     } else {
       console.error("Unexpected error:", error);
       return {
-        notifications: [],
-        unread_count: 0,
         status: false,
+        notifications: [],
+        pagination: {
+          current_page: 1,
+          last_page: 1,
+          per_page: 15,
+          total: 0,
+          from: 0,
+          to: 0,
+        },
       };
     }
   }
@@ -143,95 +170,75 @@ export const deleteNotification = async (
 // Mock data for development/testing
 export const mockNotifications: NotificationData[] = [
   {
-    id: "1",
-    user_id: "user123",
-    type: "order",
-    notification_key: "order_created",
+    id: 16,
+    type: "SystemNotificationSender",
+    title: "System notification",
+    body: "You have been selected as a potential service provider for the contract KMC073. Please follow the link to view the contract: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
     data: {
-      title: "New Order Placed",
-      description: "Your order #ORD-2024-001 has been successfully placed.",
-      link: "/keyman/dashboard/orders/1",
+      body: "You have been selected as a potential service provider for the contract KMC073. Please follow the link to view the contract: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
+      meta: [],
+      phone: "0727500128",
+      title: "System notification",
+      source: "notifications.sendSMS",
+      channels: ["sms"],
     },
     read_at: null,
-    created_at: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
+    is_read: false,
+    created_at: "2025-11-03T17:15:36+03:00",
+    updated_at: "2025-11-03T17:15:36+03:00",
   },
   {
-    id: "2",
-    user_id: "user123",
-    type: "quote",
-    notification_key: "quote_received",
+    id: 14,
+    type: "SystemNotificationSender",
+    title: "[KMC073] Potential Service Provider Notification",
+    body: "You have been selected as a potential service provider for the contract KMC073. Please follow the link to view the contract: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
     data: {
-      title: "New Quote Received",
-      description:
-        "You have received a new quote for Request #REQ-2024-045 from BuildMart Suppliers.",
-      link: "/keyman/dashboard/requests/req123",
+      body: "You have been selected as a potential service provider for the contract KMC073. Please follow the link to view the contract: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
+      meta: [],
+      email: "david.kimari@outlook.com",
+      title: "[KMC073] Potential Service Provider Notification",
+      source: "notifications.sendEmail",
+      channels: ["email"],
     },
     read_at: null,
-    created_at: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+    is_read: false,
+    created_at: "2025-11-03T17:15:35+03:00",
+    updated_at: "2025-11-03T17:15:35+03:00",
   },
   {
-    id: "3",
-    user_id: "user123",
-    type: "delivery",
-    notification_key: "delivery_update",
+    id: 12,
+    type: "SystemNotificationSender",
+    title: "System notification",
+    body: "There are changes to the contract that have been made. Please review the changes. Please follow the link to view the changes: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
     data: {
-      title: "Order Out for Delivery",
-      description: "Your order #ORD-2024-001 is out for delivery.",
-      link: "/keyman/dashboard/orders/1",
-    },
-    read_at: new Date(),
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-  },
-  {
-    id: "4",
-    user_id: "user123",
-    type: "message",
-    notification_key: "new_message",
-    data: {
-      title: "New Message from Supplier",
-      description: "BuildMart Suppliers sent you a message about your request.",
-      link: "/keyman/dashboard/messages",
+      body: "There are changes to the contract that have been made. Please review the changes. Please follow the link to view the changes: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
+      meta: [],
+      phone: "0727500128",
+      title: "System notification",
+      source: "notifications.sendSMS",
+      channels: ["sms"],
     },
     read_at: null,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 5), // 5 hours ago
+    is_read: false,
+    created_at: "2025-11-03T17:15:34+03:00",
+    updated_at: "2025-11-03T17:15:34+03:00",
   },
   {
-    id: "5",
-    user_id: "user123",
-    type: "contract",
-    notification_key: "contract_signed",
+    id: 10,
+    type: "SystemNotificationSender",
+    title: "[KMC073] Contract Changes Notification",
+    body: "There are changes to the contract that have been made. Please review the changes. Please follow the link to view the changes: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
     data: {
-      title: "Contract Ready for Review",
-      description: "A new contract is ready for your review and signature.",
-      link: "/keyman/dashboard/contracts",
+      body: "There are changes to the contract that have been made. Please review the changes. Please follow the link to view the changes: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
+      meta: [],
+      email: "david.kimari@outlook.com",
+      title: "[KMC073] Contract Changes Notification",
+      source: "notifications.sendEmail",
+      channels: ["email"],
     },
-    read_at: new Date(),
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-  },
-  {
-    id: "6",
-    user_id: "user123",
-    type: "success",
-    notification_key: "order_completed",
-    data: {
-      title: "Order Completed",
-      description: "Your order #ORD-2024-001 has been successfully delivered.",
-      link: "/keyman/dashboard/orders/1",
-    },
-    read_at: new Date(),
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-  },
-  {
-    id: "7",
-    user_id: "user123",
-    type: "system",
-    notification_key: "system_update",
-    data: {
-      title: "System Update",
-      description: "New features have been added to improve your experience.",
-      link: "/keyman/dashboard",
-    },
-    read_at: new Date(),
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
+    read_at: null,
+    is_read: false,
+    created_at: "2025-11-03T17:15:33+03:00",
+    updated_at: "2025-11-03T17:15:33+03:00",
   },
 ];
