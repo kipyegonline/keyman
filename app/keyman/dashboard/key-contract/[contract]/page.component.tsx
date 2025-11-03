@@ -8,6 +8,7 @@ import { AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { ContractChatBot } from "@/components/contract";
 import { getToken } from "@/providers/AppContext";
+import { ContractChat } from "@/components/chat-manager/examples";
 
 export default function ClientContractPage({
   contractId,
@@ -136,6 +137,7 @@ export default function ClientContractPage({
   return (
     <Container size="xl" className="py-6">
       {breadcrumbs}
+      <ContractChat contractId="fffs" />
       {showContract && (
         <ContractChatBot
           userToken={token ?? ""}
