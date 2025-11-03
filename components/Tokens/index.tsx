@@ -182,10 +182,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
     try {
       setPaymentStep("processing");
-      console.log("payload 2:", payload);
 
       const result = await makePayments(payload);
-      console.log("Payment result:", result);
+
       if (result.status) {
         /* const { CustomerMessage } = result.original;
         const steps = CustomerMessage.split(/\d+\.\s/).filter(
@@ -194,6 +193,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
         setCustomerMessage(result.message);
         setPaymentStep("customer");
         setTimeout(() => {
+          onPaymentSuccess();
           handleClose();
         }, 3000);
         notify.success(result?.message || "Payment initiated successfully!");
@@ -220,7 +220,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
     } catch (error) {
       setLoading(false);
       setPaymentStep("form");
-      console.log("Payment error:", error);
+
       const errorMessage =
         error instanceof Error ? error.message : "Payment failed";
 
