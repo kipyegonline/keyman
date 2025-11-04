@@ -57,6 +57,7 @@ export default function UserDashboardComponent() {
     }
     return [];
   }, [_banners]);
+  console.log("Banners near me:", banners);
   return (
     <div>
       <KeymanBanner banners={banners} />

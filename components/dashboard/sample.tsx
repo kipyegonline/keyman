@@ -1,6 +1,6 @@
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure } from "@mantine/hooks";
 
-import { AppShell, Burger, Group, Skeleton } from '@mantine/core'
+import { AppShell, Burger, Group, Skeleton } from "@mantine/core";
 
 export function CollapseDesktop() {
   const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
@@ -10,18 +10,26 @@ export function CollapseDesktop() {
     <AppShell
       header={{ height: 60 }}
       navbar={{
-        width: 300,
-       
-        breakpoint: 'sm',
+        width: 600,
+        breakpoint: "sm",
         collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
       }}
       padding="md"
     >
       <AppShell.Header>
         <Group h="100%" px="md">
-          <Burger opened={mobileOpened} onClick={toggleMobile} hiddenFrom="sm" size="sm" />
-          <Burger opened={desktopOpened} onClick={toggleDesktop} visibleFrom="sm" size="sm" />
-          
+          <Burger
+            opened={mobileOpened}
+            onClick={toggleMobile}
+            hiddenFrom="sm"
+            size="sm"
+          />
+          <Burger
+            opened={desktopOpened}
+            onClick={toggleDesktop}
+            visibleFrom="sm"
+            size="sm"
+          />
         </Group>
       </AppShell.Header>
       <AppShell.Navbar p="md">

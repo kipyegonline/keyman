@@ -159,7 +159,7 @@ const MainContent: React.FC = () => {
           display={"none"}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.currentTarget.value)}
-          placeholder="Ask Keyman  about materials, prices, or construction tips..."
+          placeholder="Search Store details..."
           size="lg"
           radius="lg"
           leftSection={<Brain size={20} className="text-[#3D6B2C]" />}
