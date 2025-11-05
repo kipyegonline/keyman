@@ -133,9 +133,11 @@ export default function ClientContractPage({
   }
 
   const token = getToken();
+
   return (
     <Container size="xl" className="py-6">
       {breadcrumbs}
+
       {showContract && (
         <ContractChatBot
           userToken={token ?? ""}

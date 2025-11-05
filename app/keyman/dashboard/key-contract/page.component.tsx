@@ -1,5 +1,6 @@
 "use client";
 import { getContracts } from "@/api/contract";
+
 import { ContractChatBot } from "@/components/contract";
 
 import ContractList from "@/components/contract/Contractlist";
@@ -19,7 +20,7 @@ export default function CustomerContract() {
     },
   });
   const contracts = React.useMemo(() => {
-    if (data && data?.status) return data?.contracts;
+    if (data && data?.status) return data?.contracts?.toReversed();
     return [];
   }, [data]);
   const handleCreateContract = () => {

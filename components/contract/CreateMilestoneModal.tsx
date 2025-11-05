@@ -8,10 +8,13 @@ import {
   Textarea,
   Button,
   NumberInput,
+  Badge,
+  Box,
 } from "@mantine/core";
-import { Plus, X, Check } from "lucide-react";
+import { Plus, X, Check, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { DatePickerInput } from "@mantine/dates";
+import { ISuggestedMilestone } from "@/api/contract";
 
 interface CreateMilestoneModalProps {
   opened: boolean;
@@ -26,6 +29,7 @@ interface CreateMilestoneModalProps {
     end_date: string;
     amount: number;
   }) => Promise<void>;
+  suggestedMilestone?: ISuggestedMilestone | null;
 }
 
 const CreateMilestoneModal: React.FC<CreateMilestoneModalProps> = ({
@@ -33,6 +37,7 @@ const CreateMilestoneModal: React.FC<CreateMilestoneModalProps> = ({
   onClose,
   contractId,
   onSave,
+  suggestedMilestone,
 }) => {
   const [formData, setFormData] = useState({
     name: "",
@@ -50,16 +55,28 @@ const CreateMilestoneModal: React.FC<CreateMilestoneModalProps> = ({
     end_date: "",
   });
 
-  // Reset form when modal opens
+  // Reset or pre-populate form when modal opens
   useEffect(() => {
     if (opened) {
-      setFormData({
-        name: "",
-        description: "",
-        amount: 0,
-        start_date: null,
-        end_date: null,
-      });
+      if (suggestedMilestone) {
+        // Pre-populate with AI suggestion
+        setFormData({
+          name: suggestedMilestone.name,
+          description: suggestedMilestone.description,
+          amount: suggestedMilestone.amount,
+          start_date: new Date(suggestedMilestone.start_date),
+          end_date: new Date(suggestedMilestone.end_date),
+        });
+      } else {
+        // Reset for manual creation
+        setFormData({
+          name: "",
+          description: "",
+          amount: 0,
+          start_date: null,
+          end_date: null,
+        });
+      }
       setErrors({
         name: "",
         description: "",
@@ -68,7 +85,7 @@ const CreateMilestoneModal: React.FC<CreateMilestoneModalProps> = ({
         end_date: "",
       });
     }
-  }, [opened]);
+  }, [opened, suggestedMilestone]);
 
   const validateForm = () => {
     const newErrors = {
@@ -151,12 +168,29 @@ const CreateMilestoneModal: React.FC<CreateMilestoneModalProps> = ({
       opened={opened}
       onClose={handleClose}
       title={
-        <Group gap="sm">
-          <Plus size={20} className="text-gray-600" />
-          <Text fw={600} size="lg">
-            Create New Milestone
-          </Text>
-        </Group>
+        <Box>
+          <Group gap="sm">
+            {suggestedMilestone ? (
+              <Sparkles size={20} className="text-orange-500" />
+            ) : (
+              <Plus size={20} className="text-gray-600" />
+            )}
+            <Text fw={600} size="lg">
+              Create New Milestone
+            </Text>
+          </Group>
+          {suggestedMilestone && (
+            <Badge
+              size="sm"
+              variant="light"
+              color="orange"
+              mt={4}
+              leftSection={<Sparkles size={12} />}
+            >
+              AI Suggested
+            </Badge>
+          )}
+        </Box>
       }
       size="md"
       radius="lg"
@@ -166,7 +200,9 @@ const CreateMilestoneModal: React.FC<CreateMilestoneModalProps> = ({
     >
       <Stack gap="md">
         <Text size="sm" c="dimmed" mb="sm">
-          Create a new milestone for this contract
+          {suggestedMilestone
+            ? "Review and adjust the AI-suggested milestone details"
+            : "Create a new milestone for this contract"}
         </Text>
 
         <TextInput
