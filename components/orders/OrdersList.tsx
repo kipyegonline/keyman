@@ -168,6 +168,10 @@ const OrdersTable: React.FC<Props> = ({ orders: _orders, isSupplier }) => {
     <Table.Tr
       key={order.id}
       onClick={() => handleOrder(order.id)}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        handleOrder(order.id);
+      }}
       style={{
         transition: "all 0.2s ease",
         cursor: "pointer",
@@ -291,7 +295,7 @@ const OrdersTable: React.FC<Props> = ({ orders: _orders, isSupplier }) => {
   ));
 
   return (
-    <Container py={{ base: "xs", md: "md" }}>
+    <Container py={{ base: "xs", md: "md" }} size={"fluid"}>
       <Card
         shadow="sm"
         p={{ base: "xs", md: "lg" }}

@@ -153,6 +153,11 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
       }`}
       onMouseEnter={() => setHoveredRow(request.id)}
       onMouseLeave={() => setHoveredRow(null)}
+      onClick={() => handleRequestClick(request.id)}
+      onTouchEnd={(e) => {
+        e.preventDefault();
+        handleRequestClick(request.id);
+      }}
     >
       <Table.Td>{index + 1}</Table.Td>
       <Table.Td>
@@ -296,7 +301,7 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
   );
 
   return (
-    <Container size="xl" py="xl">
+    <Container size={"xl"} py="xl">
       <Box mb="xl">
         <Group gap="md" mb="md">
           <Box
@@ -341,38 +346,40 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
           }}
         />
 
-        <Table highlightOnHover className="table-auto">
-          <Table.Thead>
-            <Table.Tr className="bg-gradient-to-r from-gray-50 to-gray-100">
-              <Table.Th className="font-semibold text-gray-700">#</Table.Th>
-              <Table.Th className="font-semibold text-gray-700">
-                Request Code
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700">
-                Created
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700">
-                Delivery Date
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700 hidden">
-                Created From
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700 text-center hidden">
-                Quotes
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700 text-center">
-                Items
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700 hidden">
-                Status
-              </Table.Th>
-              <Table.Th className="font-semibold text-gray-700 text-center">
-                Actions
-              </Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>{rows}</Table.Tbody>
-        </Table>
+        <Box className="overflow-x-auto">
+          <Table highlightOnHover className="table-auto">
+            <Table.Thead>
+              <Table.Tr className="bg-gradient-to-r from-gray-50 to-gray-100">
+                <Table.Th className="font-semibold text-gray-700">#</Table.Th>
+                <Table.Th className="font-semibold text-gray-700">
+                  Request Code
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700">
+                  Created
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700">
+                  Delivery Date
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700 hidden">
+                  Created From
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700 text-center hidden">
+                  Quotes
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700 text-center">
+                  Items
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700 hidden">
+                  Status
+                </Table.Th>
+                <Table.Th className="font-semibold text-gray-700 text-center">
+                  Actions
+                </Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>{rows}</Table.Tbody>
+          </Table>
+        </Box>
       </Paper>
 
       {RequestIndicators}

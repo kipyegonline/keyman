@@ -38,7 +38,7 @@ export default function RequestClientComponent() {
 
   if (isLoading) return <LoadingComponent message="Getting your requests" />;
   return (
-    <Container size="lg">
+    <Container size="fluid" py={{ base: "xs", md: "md" }}>
       {_requests?.length > 0 ? (
         <SupplierRequestsTable requests={_requests} />
       ) : (
