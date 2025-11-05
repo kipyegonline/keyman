@@ -37,7 +37,7 @@ export function ContractChat({ contractId }: { contractId: string }) {
 
   return (
     <ChatManager
-      chatId={`contract-${contractId}`}
+      chatId={contractId}
       currentUserId={user.id}
       recipientName="Contract Discussion"
     />

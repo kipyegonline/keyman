@@ -225,3 +225,56 @@ export const createMilestone = async (milestoneData: {
     }
   }
 };
+
+// Types for suggested milestones
+export interface ISuggestedMilestone {
+  name: string;
+  description: string;
+  amount: number;
+  status: string;
+  start_date: string;
+  end_date: string;
+}
+
+export interface ISuggestedMilestonesData {
+  milestones: ISuggestedMilestone[];
+}
+
+export interface ISuggestedMilestonesResponse {
+  status: boolean;
+  message: string;
+  data: ISuggestedMilestonesData;
+}
+
+/**
+ * Get AI-suggested milestones for a contract
+ * @param contractId - ID of the contract
+ * @returns Suggested milestones response
+ */
+export const getSuggestedMilestones = async (
+  contractId: string
+): Promise<ISuggestedMilestonesResponse> => {
+  try {
+    const response = await AxiosClient.post(
+      ENDPOINTS.contracts.GET_SUGGESTED_MILESTONES(contractId)
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          status: false,
+          message: "An error occurred while fetching suggested milestones",
+          data: { milestones: [] },
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return {
+        status: false,
+        message: "An unexpected error occurred",
+        data: { milestones: [] },
+      };
+    }
+  }
+};

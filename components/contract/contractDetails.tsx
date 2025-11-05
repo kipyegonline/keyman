@@ -16,6 +16,7 @@ import {
   ActionIcon,
   Title,
   Alert,
+  Flex,
 } from "@mantine/core";
 import {
   FileText,
@@ -31,25 +32,32 @@ import {
   Activity,
   MoreVertical,
   Plus,
+  Sparkles,
 } from "lucide-react";
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import EditMilestoneModal from "./EditMilestoneModal";
 import CreateMilestoneModal from "./CreateMilestoneModal";
 import EditContractModal from "./EditContractModal";
 import MilestoneStatusChangeModal from "./MilestoneStatusChangeModal";
 import AcceptContractModal from "./AcceptContractModal";
 import MilestoneTimeline from "./MilestoneTimeline";
+import AiSuggestionsModal from "./AiSuggestionsModal";
 import {
   updateContract,
   updateMilestone,
   createMilestone,
   deleteMilestone,
+  getSuggestedMilestones,
+  ISuggestedMilestone,
 } from "@/api/contract";
 import { notify } from "@/lib/notifications";
+import ChatManager from "../chat-manager";
 
 // Use the actual API response structure
 interface ContractDetails {
   id: string;
+  chat_id: string;
   code: string;
   title: string;
   description?: string;
@@ -176,7 +184,27 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     useState(false);
   const [isAcceptingContract, setIsAcceptingContract] = useState(false);
   const [action, setAction] = useState<"start" | "complete">("start");
+  const [selectedSuggestedMilestone, setSelectedSuggestedMilestone] =
+    useState<ISuggestedMilestone | null>(null);
+  const [aiSuggestionsModalOpened, setAiSuggestionsModalOpened] =
+    useState(false);
   //const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
+
+  // Fetch AI-suggested milestones
+  const { data: suggestedMilestonesData, isLoading: isLoadingSuggestions } =
+    useQuery({
+      queryKey: ["suggestedMilestones", contract.id],
+      queryFn: () => getSuggestedMilestones(contract.chat_id),
+      enabled: !!contract.id, // Only fetch if contract ID exists
+      staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+    });
+
+  const suggestedMilestones = React.useMemo(() => {
+    if (suggestedMilestonesData?.status) {
+      return suggestedMilestonesData?.data?.milestones;
+    }
+    return [];
+  }, [suggestedMilestonesData]);
 
   const handleEditMilestone = (milestoneId: string) => {
     const milestone = contract.milestones?.find((m) => m.id === milestoneId);
@@ -235,6 +263,17 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   };
 
   const handleCreateMilestone = () => {
+    setSelectedSuggestedMilestone(null); // Clear any suggested milestone
+    setCreateMilestoneModalOpened(true);
+  };
+
+  const handleOpenAiSuggestions = () => {
+    setAiSuggestionsModalOpened(true);
+  };
+
+  const handleSelectSuggestedMilestone = (milestone: ISuggestedMilestone) => {
+    setSelectedSuggestedMilestone(milestone);
+    setAiSuggestionsModalOpened(false);
     setCreateMilestoneModalOpened(true);
   };
 
@@ -834,6 +873,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                         Add and manage project milestones
                       </Text>
                     </div>
+                    <ChatManager chatId={contract?.chat_id} currentUserId={1} />
                   </Group>
                 </Card>
               )}
@@ -854,13 +894,24 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                 />
               )}
               {canEditMileStone && (
-                <Button
-                  leftSection={<Plus size={16} />}
-                  onClick={handleCreateMilestone}
-                  style={{ backgroundColor: "#3D6B2C", color: "white" }}
-                >
-                  Create Milestone
-                </Button>
+                <Flex gap={"md"} direction={{ base: "column", md: "row" }}>
+                  <Button
+                    leftSection={<Plus size={16} />}
+                    onClick={handleCreateMilestone}
+                    style={{ backgroundColor: "#3D6B2C", color: "white" }}
+                    className=""
+                  >
+                    Create Milestone
+                  </Button>
+                  <Button
+                    leftSection={<Sparkles size={16} />}
+                    onClick={handleOpenAiSuggestions}
+                    loading={isLoadingSuggestions}
+                    style={{ backgroundColor: "#F08C23", color: "white" }}
+                  >
+                    AI Suggested Milestones
+                  </Button>
+                </Flex>
               )}
               {/**Actions */}
               {inNegotiation && userType === "customer" ? (
@@ -1195,6 +1246,15 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         onAccept={confirmAcceptContract}
       />
 
+      {/* AI Suggestions Modal */}
+      <AiSuggestionsModal
+        opened={aiSuggestionsModalOpened}
+        onClose={() => setAiSuggestionsModalOpened(false)}
+        suggestions={suggestedMilestones}
+        isLoading={isLoadingSuggestions}
+        onSelectMilestone={handleSelectSuggestedMilestone}
+      />
+
       {/* Create Milestone Modal */}
       <CreateMilestoneModal
         opened={createMilestoneModalOpened}
@@ -1203,6 +1263,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         }}
         contractId={contract.id}
         onSave={handleSaveNewMilestone}
+        suggestedMilestone={selectedSuggestedMilestone}
       />
     </Box>
   );

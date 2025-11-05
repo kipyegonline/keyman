@@ -11,6 +11,7 @@ import {
   CheckCheck,
   Image as ImageIcon,
   File,
+  Sparkles,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -23,6 +24,7 @@ import {
 } from "@/api/chat";
 import { notify } from "@/lib/notifications";
 import "./ChatManager.css";
+import { Tooltip } from "@mantine/core";
 
 export interface ChatManagerProps {
   chatId: string;
@@ -54,7 +56,7 @@ export const ChatManager: React.FC<ChatManagerProps> = ({
     refetchOnWindowFocus: true,
   });
 
-  const messages = messagesData?.data?.data || [];
+  const messages = messagesData?.data?.data.toReversed() || [];
   const unreadCount = messages.filter(
     (msg) => !msg.is_read && msg.user_id !== currentUserId
   ).length;
@@ -205,57 +207,64 @@ export const ChatManager: React.FC<ChatManagerProps> = ({
   return (
     <>
       {/* Floating Action Button */}
-      <button
-        onClick={handleToggleChat}
-        className="chat-manager-fab"
-        style={{
-          position: "fixed",
-          bottom: "24px",
-          right: "24px",
-          width: "60px",
-          height: "60px",
-          borderRadius: "50%",
-          backgroundColor: "#F08C23",
-          border: "none",
-          boxShadow: "0 4px 12px rgba(240, 140, 35, 0.4)",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transition: "all 0.3s ease",
-          zIndex: 1000,
-        }}
-        aria-label="Toggle chat"
+      <Tooltip
+        label="use chat assistant to create milestones"
+        position="right-end"
+        withArrow
       >
-        {isOpen ? (
-          <X size={24} color="white" />
-        ) : (
-          <>
-            <MessageCircle size={24} color="white" />
-            {unreadCount > 0 && (
-              <span
-                style={{
-                  position: "absolute",
-                  top: "-5px",
-                  right: "-5px",
-                  backgroundColor: "#ef4444",
-                  color: "white",
-                  borderRadius: "50%",
-                  width: "24px",
-                  height: "24px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "12px",
-                  fontWeight: "bold",
-                }}
-              >
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
-            )}
-          </>
-        )}
-      </button>
+        <button
+          onClick={handleToggleChat}
+          className="chat-manager-fab"
+          style={{
+            //position: "fixed",
+            //bottom: "24px",
+            //right: "24px",
+            width: "80px",
+            height: "50px",
+            //borderRadius: "50%",
+            borderRadius: "12px",
+            backgroundColor: "#F08C23",
+            border: "none",
+            boxShadow: "0 4px 12px rgba(240, 140, 35, 0.4)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.3s ease",
+            // zIndex: 1000,
+          }}
+          aria-label="Toggle chat"
+        >
+          {isOpen ? (
+            <X size={24} color="white" />
+          ) : (
+            <>
+              <Sparkles size={24} color="white" className="animate-pulse" />
+              {unreadCount > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: "-5px",
+                    right: "-5px",
+                    backgroundColor: "#ef4444",
+                    color: "white",
+                    borderRadius: "50%",
+                    width: "24px",
+                    height: "24px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "12px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </>
+          )}
+        </button>
+      </Tooltip>
 
       {/* Chat Window */}
       {isOpen && (
