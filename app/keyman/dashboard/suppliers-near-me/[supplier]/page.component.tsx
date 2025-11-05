@@ -194,6 +194,10 @@ export default function SupplierClientComponent({
       />
 
       <Grid>
+        <Grid.Col span={{ base: 12, md: 5 }}>
+          {" "}
+          {_supplier ? <SupplierProfile supplier={_supplier} /> : null}
+        </Grid.Col>
         <Grid.Col span={{ base: 12, md: 7 }}>
           <div className="">
             <h2 className="text-2xl font-semibold my-4 mb-2">
@@ -241,10 +245,6 @@ export default function SupplierClientComponent({
               <div className=" text-gray-500">No price list available</div>
             )}
           </div>
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 5 }}>
-          {" "}
-          {_supplier ? <SupplierProfile supplier={_supplier} /> : null}
         </Grid.Col>
       </Grid>
     </div>

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { AppShell } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import Sidebar from "./sideNav";
 import Navigation from "./TopNav";
 import { useAppContext } from "@/providers/AppContext";
@@ -9,7 +10,8 @@ import SupplierDashboard from "./SupplierDashboard";
 
 // Main Dashboard Component
 const Dashboard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isCollapsed, setIsCollapsed] = useState(!false);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  const [isCollapsed, setIsCollapsed] = useState(isMobile ? true : false);
   const [isDark] = useState(false);
 
   const { mainDashboard } = useAppContext();

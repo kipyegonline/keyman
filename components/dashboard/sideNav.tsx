@@ -18,6 +18,7 @@ import {
   Tooltip,
   Stack,
 } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { User, X, Menu as MenuIcon, ShoppingCart } from "lucide-react";
 import { Hammer } from "lucide-react";
 import { useAppContext } from "@/providers/AppContext";
@@ -37,6 +38,7 @@ const Sidebar: React.FC<{
   isCollapsed: boolean;
   onToggle: () => void;
 }> = ({ isCollapsed, onToggle }) => {
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const {
     user,
     darkMode: isDark,
@@ -178,7 +180,16 @@ const Sidebar: React.FC<{
           variant="subtle"
           onClick={onToggle}
           size="lg"
-          className={isDark ? "hover:bg-gray-800" : "hover:bg-gray-100"}
+          className={`${isDark ? "hover:bg-gray-800" : "hover:bg-gray-100"} ${
+            isMobile ? "animate-pulse shadow-lg" : ""
+          }`}
+          style={
+            isMobile
+              ? {
+                  boxShadow: "0 4px 12px rgba(240, 140, 35, 0.5)",
+                }
+              : undefined
+          }
         >
           {isCollapsed ? <MenuIcon size={20} /> : <X size={20} />}
         </ActionIcon>

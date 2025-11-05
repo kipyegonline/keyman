@@ -254,7 +254,7 @@ export const NotificationMenu: React.FC<NotificationMenuProps> = ({
       queryClient.invalidateQueries({ queryKey: ["unreadNotificationCount"] });
     },
   });
-  console.log(unreadCountData, "NDI");
+
   const notifications = React.useMemo(() => {
     if (notificationsData?.status) {
       return notificationsData.notifications;

@@ -13,6 +13,7 @@ import {
   // Box,
   //Tabs,
   Chip,
+  Accordion,
 } from "@mantine/core";
 import {
   MapPin,
@@ -38,6 +39,7 @@ import SocialShare from "@/lib/SocilalShareComponent";
 import { ContractChatBot } from "../contract";
 import { getToken } from "@/providers/AppContext";
 import { PepiconsPencilHandshakeCircle } from "../supplier/pencil";
+import UnverifiedContractModal from "../contract/UnverifiedContractModal";
 
 interface ISupplierInfo {
   phone: string;
@@ -113,6 +115,19 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
   const [isSharing, setIsSharing] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(false);
   const [showContract, setShowContract] = useState(false);
+  const [showUnverifiedModal, setShowUnverifiedModal] = useState(false);
+
+  const handleContractClick = (isVerified: number | undefined) => {
+    if (isVerified !== 0) {
+      setShowContract(true);
+    } else {
+      setShowUnverifiedModal(true);
+    }
+  };
+
+  const handleAcceptUnverified = () => {
+    setShowContract(true);
+  };
 
   const handleViewLocation = () => {
     const googleMapsUrl = `https://www.google.com/maps?q=${supplier?.location?.coordinates[1]},${supplier?.location?.coordinates[0]}`;
@@ -246,9 +261,8 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
             <Button
               variant="outline"
               className="!animate-pulse"
-              disabled={supplier?.is_user_verified === 0}
               size="sm"
-              onClick={() => setShowContract(true)}
+              onClick={() => handleContractClick(supplier?.is_user_verified)}
               rightSection={
                 <PepiconsPencilHandshakeCircle className="w-8 h-8 bg-green !animation-pulse" />
               }
@@ -401,108 +415,117 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
           </div>
         </div>
 
-        <Divider />
+        <Divider my="md" />
 
-        {/* Categories - Using Chips */}
-        {supplier.categories.length > 0 && (
-          <div>
-            <Text size="sm" className="font-bold text-gray-900 mb-2">
-              Categories
-            </Text>
-            <Chip.Group>
-              <div className="flex flex-wrap gap-1">
-                {supplier.categories.slice(0, 6).map((category, index) => (
-                  <Chip
+        {/* Collapsible Sections - Accordion */}
+        <Accordion
+          variant="separated"
+          radius="md"
+          multiple
+          classNames={{
+            item: "border border-gray-200 mb-2 overflow-hidden",
+            control:
+              "hover:bg-gray-50 transition-all duration-200 font-semibold",
+            label: "text-gray-900 font-bold text-sm",
+            content: "text-gray-700 text-sm",
+            chevron: "text-[#3D6B2C]",
+          }}
+        >
+          {/* Categories - Using Chips */}
+          {supplier.categories.length > 0 && (
+            <Accordion.Item value="categories">
+              <Accordion.Control>Categories & Services</Accordion.Control>
+              <Accordion.Panel>
+                <Chip.Group>
+                  <div className="flex flex-wrap gap-1">
+                    {supplier.categories.slice(0, 6).map((category, index) => (
+                      <Chip
+                        key={index}
+                        size="sm"
+                        variant="light"
+                        color="#3D6B2C"
+                        className="text-sm"
+                      >
+                        {category?.item_category?.name}
+                      </Chip>
+                    ))}
+                    {supplier.categories.length > 6 && (
+                      <Chip size="sm" variant="outline" color="gray">
+                        +{supplier.categories.length - 6} more
+                      </Chip>
+                    )}
+                  </div>
+                </Chip.Group>
+              </Accordion.Panel>
+            </Accordion.Item>
+          )}
+
+          {/* About Us */}
+          <Accordion.Item value="about">
+            <Accordion.Control>About Us</Accordion.Control>
+            <Accordion.Panel>
+              <Text size="sm" className="text-gray-700 leading-relaxed">
+                {supplier?.comments ?? "Description coming soon..."}
+              </Text>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          {/* Business Features */}
+          <Accordion.Item value="features">
+            <Accordion.Control>Business Features</Accordion.Control>
+            <Accordion.Panel>
+              <div className="grid grid-cols-2 gap-2">
+                {businessFeatures.map((feature, index) => (
+                  <div
                     key={index}
-                    size="sm"
-                    variant="light"
-                    color="#3D6B2C"
-                    className="text-sm"
+                    className="flex items-center gap-2 p-2 rounded bg-gray-50"
                   >
-                    {category?.item_category?.name}
-                  </Chip>
+                    <ThemeIcon
+                      variant="light"
+                      color={feature.active ? "#388E3C" : "gray"}
+                      size="xs"
+                    >
+                      <feature.icon className="w-3 h-3" />
+                    </ThemeIcon>
+                    <Text
+                      size="sm"
+                      className={`font-medium ${
+                        feature.active ? "text-[#388E3C]" : "text-gray-400"
+                      }`}
+                    >
+                      {feature.label}
+                    </Text>
+                  </div>
                 ))}
-                {supplier.categories.length > 6 && (
-                  <Chip size="sm" variant="outline" color="gray">
-                    +{supplier.categories.length - 6} more
-                  </Chip>
-                )}
               </div>
-            </Chip.Group>
-          </div>
-        )}
+            </Accordion.Panel>
+          </Accordion.Item>
 
-        <Divider />
-
-        {/* About Us */}
-        <div>
-          <Text size="sm" className="font-bold text-gray-900 mb-2">
-            About Us
-          </Text>
-          <Text size="sm" className="text-gray-700 leading-relaxed">
-            {supplier?.comments ?? "Description coming soon..."}
-          </Text>
-        </div>
-
-        <Divider />
-
-        {/* Business Features - Stacked */}
-        <div>
-          <Text size="sm" className="font-bold text-gray-900 mb-2">
-            Business Features
-          </Text>
-          <div className="grid grid-cols-2 gap-2">
-            {businessFeatures.map((feature, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 p-2 rounded bg-gray-50"
-              >
-                <ThemeIcon
-                  variant="light"
-                  color={feature.active ? "#388E3C" : "gray"}
-                  size="xs"
-                >
-                  <feature.icon className="w-3 h-3" />
-                </ThemeIcon>
-                <Text
-                  size="sm"
-                  className={`font-medium ${
-                    feature.active ? "text-[#388E3C]" : "text-gray-400"
-                  }`}
-                >
-                  {feature.label}
-                </Text>
+          {/* Follow Us */}
+          <Accordion.Item value="social">
+            <Accordion.Control>Follow Us</Accordion.Control>
+            <Accordion.Panel>
+              <div className="flex justify-between gap-1">
+                {socialLinks.map((social, index) => (
+                  <Tooltip key={index} label={social.platform} position="top">
+                    <ActionIcon
+                      variant="light"
+                      size="lg"
+                      className="flex-1"
+                      onClick={() => window.open(social.link, "_blank")}
+                      style={{
+                        backgroundColor: `${social.color}20`,
+                        color: social.color,
+                      }}
+                    >
+                      <social.icon className="w-5 h-5" />
+                    </ActionIcon>
+                  </Tooltip>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-
-        <Divider />
-
-        {/* Follow Us - Stacked */}
-        <div>
-          <Text size="sm" className="font-bold text-gray-900 mb-2">
-            Follow Us
-          </Text>
-          <div className="flex justify-between gap-1">
-            {socialLinks.map((social, index) => (
-              <Tooltip key={index} label={social.platform} position="top">
-                <ActionIcon
-                  variant="light"
-                  size="lg"
-                  className="flex-1"
-                  onClick={() => window.open(social.link, "_blank")}
-                  style={{
-                    backgroundColor: `${social.color}20`,
-                    color: social.color,
-                  }}
-                >
-                  <social.icon className="w-5 h-5" />
-                </ActionIcon>
-              </Tooltip>
-            ))}
-          </div>
-        </div>
+            </Accordion.Panel>
+          </Accordion.Item>
+        </Accordion>
 
         {/* Social Share Component Placeholder */}
         <div className="mt-4">
@@ -512,6 +535,14 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
           />
         </div>
       </div>
+
+      {/* Unverified Contract Modal */}
+      <UnverifiedContractModal
+        opened={showUnverifiedModal}
+        onClose={() => setShowUnverifiedModal(false)}
+        onAccept={handleAcceptUnverified}
+        supplierName={supplier?.name}
+      />
     </div>
   );
 };
