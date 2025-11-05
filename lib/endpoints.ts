@@ -123,4 +123,15 @@ export const ENDPOINTS = {
     PAGINATED_TRANSFERS: `/api/user/transactions/paginated`,
     GENERAL_TRANSFER: "/api/trans/v2/applyForTransfer",
   },
+  notifications: {
+    GET_ALL_NOTIFICATIONS: "/api/notifications",
+    GET_UNREAD_NOTIFICATIONS: "/api/notifications?unread=true",
+    GET_NOTIFICATIONS_BY_TYPE: (type: string) =>
+      `/api/notifications?type=${type}`,
+    GET_UNREAD_COUNT: "/api/notifications/unread-count",
+    GET_SINGLE_NOTIFICATION: (id: number) => `/api/notifications/${id}`,
+    MARK_NOTIFICATION_AS_READ: (id: number) => `/api/notifications/${id}/read`,
+    MARK_ALL_NOTIFICATIONS_AS_READ: "/api/notifications/read-all",
+    DELETE_NOTIFICATION: (id: number) => `/api/notifications/${id}`,
+  },
 };

@@ -10,6 +10,7 @@ import {
   Box,
   UnstyledButton,
   Divider,
+  Loader,
 } from "@mantine/core";
 import {
   Package,
@@ -22,33 +23,19 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getNotifications,
+  getUnreadNotificationCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  NotificationData,
+} from "@/api/notifications";
 
-// Notification type definition
-export interface Notification {
-  id: number;
-  type: string;
-  title: string;
-  body: string;
-  data: {
-    body: string;
-    meta: unknown[];
-    phone?: string;
-    email?: string;
-    title: string;
-    source: string;
-    channels: string[];
-  };
-  read_at: string | null;
-  is_read: boolean;
-  created_at: string;
-  updated_at: string;
-}
+// Use NotificationData from API
+export type Notification = NotificationData;
 
 interface NotificationMenuProps {
-  notifications: Notification[];
-  unreadCount: number;
-  onMarkAsRead: (notificationId: number) => void;
-  onMarkAllAsRead: () => void;
   onClose?: () => void;
 }
 
@@ -229,13 +216,63 @@ const NotificationItem: React.FC<{
 
 // Main Notification Menu Component
 export const NotificationMenu: React.FC<NotificationMenuProps> = ({
-  notifications,
-  unreadCount,
-  onMarkAsRead,
-  onMarkAllAsRead,
   onClose,
 }) => {
+  const queryClient = useQueryClient();
+
+  // Fetch notifications
+  const { data: notificationsData, isLoading } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: getNotifications,
+    refetchInterval: 30000, // Poll every 30 seconds
+    staleTime: 25000, // Consider data stale after 25 seconds
+  });
+
+  // Fetch unread count
+  const { data: unreadCountData } = useQuery({
+    queryKey: ["unreadNotificationCount"],
+    queryFn: getUnreadNotificationCount,
+    refetchInterval: 30000,
+    staleTime: 25000,
+  });
+
+  // Mutation for marking a notification as read
+  const markAsReadMutation = useMutation({
+    mutationFn: (notificationId: string) =>
+      markNotificationAsRead(notificationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unreadNotificationCount"] });
+    },
+  });
+
+  // Mutation for marking all notifications as read
+  const markAllAsReadMutation = useMutation({
+    mutationFn: markAllNotificationsAsRead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unreadNotificationCount"] });
+    },
+  });
+  console.log(unreadCountData, "NDI");
+  const notifications = React.useMemo(() => {
+    if (notificationsData?.status) {
+      return notificationsData.notifications;
+    } else return [];
+  }, [notificationsData]);
+  const unreadCount = React.useMemo(() => {
+    if (unreadCountData?.status) return unreadCountData?.unread_count;
+    else return 0;
+  }, [unreadCountData]);
   const hasNotifications = notifications.length > 0;
+
+  const handleMarkAsRead = (notificationId: number) => {
+    markAsReadMutation.mutate(notificationId.toString());
+  };
+
+  const handleMarkAllAsRead = () => {
+    markAllAsReadMutation.mutate();
+  };
 
   return (
     <Menu.Dropdown p={0} style={{ overflow: "hidden", maxWidth: "100vw" }}>
@@ -246,7 +283,7 @@ export const NotificationMenu: React.FC<NotificationMenuProps> = ({
             Notifications
           </Text>
           {unreadCount > 0 && (
-            <UnstyledButton onClick={onMarkAllAsRead}>
+            <UnstyledButton onClick={handleMarkAllAsRead}>
               <Text
                 size="xs"
                 c="#F08C23"
@@ -269,14 +306,22 @@ export const NotificationMenu: React.FC<NotificationMenuProps> = ({
 
       <Divider />
 
-      {/* Notifications List */}
-      {hasNotifications ? (
+      {/* Loading State */}
+      {isLoading ? (
+        <Box p="xl" style={{ textAlign: "center" }}>
+          <Loader size="md" color="#3D6B2C" style={{ margin: "0 auto" }} />
+          <Text size="sm" c="dimmed" mt="md">
+            Loading notifications...
+          </Text>
+        </Box>
+      ) : hasNotifications ? (
+        // Notifications List
         <ScrollArea h={400} type="auto" style={{ maxHeight: "400px" }}>
           {notifications.map((notification) => (
             <NotificationItem
               key={notification.id}
               notification={notification}
-              onMarkAsRead={onMarkAsRead}
+              onMarkAsRead={handleMarkAsRead}
               onClose={onClose}
             />
           ))}

@@ -1,6 +1,6 @@
 import AxiosClient from "@/config/axios";
 import { AxiosError } from "axios";
-
+import { ENDPOINTS } from "@/lib/endpoints";
 /**
  * Notification type definition
  */
@@ -43,7 +43,9 @@ export interface NotificationResponse {
  */
 export const getNotifications = async (): Promise<NotificationResponse> => {
   try {
-    const response = await AxiosClient.get("/notifications");
+    const response = await AxiosClient.get(
+      ENDPOINTS.notifications.GET_ALL_NOTIFICATIONS
+    );
     return response.data;
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -80,6 +82,160 @@ export const getNotifications = async (): Promise<NotificationResponse> => {
 };
 
 /**
+ * Get only unread notifications
+ * @returns List of unread notifications with pagination
+ */
+export const getUnreadNotifications =
+  async (): Promise<NotificationResponse> => {
+    try {
+      const response = await AxiosClient.get(
+        ENDPOINTS.notifications.GET_UNREAD_NOTIFICATIONS
+      );
+      return response.data;
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        return (
+          error.response?.data || {
+            status: false,
+            notifications: [],
+            pagination: {
+              current_page: 1,
+              last_page: 1,
+              per_page: 15,
+              total: 0,
+              from: 0,
+              to: 0,
+            },
+          }
+        );
+      } else {
+        console.error("Unexpected error:", error);
+        return {
+          status: false,
+          notifications: [],
+          pagination: {
+            current_page: 1,
+            last_page: 1,
+            per_page: 15,
+            total: 0,
+            from: 0,
+            to: 0,
+          },
+        };
+      }
+    }
+  };
+
+/**
+ * Get notifications by type
+ * @param type - Type of notifications to retrieve
+ * @returns List of notifications of the specified type with pagination
+ */
+export const getNotificationsByType = async (
+  type: string
+): Promise<NotificationResponse> => {
+  try {
+    const response = await AxiosClient.get(
+      ENDPOINTS.notifications.GET_NOTIFICATIONS_BY_TYPE(type)
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          status: false,
+          notifications: [],
+          pagination: {
+            current_page: 1,
+            last_page: 1,
+            per_page: 15,
+            total: 0,
+            from: 0,
+            to: 0,
+          },
+        }
+      );
+    } else {
+      console.error("Unexpected error:", error);
+      return {
+        status: false,
+        notifications: [],
+        pagination: {
+          current_page: 1,
+          last_page: 1,
+          per_page: 15,
+          total: 0,
+          from: 0,
+          to: 0,
+        },
+      };
+    }
+  }
+};
+
+/**
+ * Get unread notification count
+ * @returns Count of unread notifications
+ */
+export const getUnreadNotificationCount = async (): Promise<{
+  status: boolean;
+  unread_count: number;
+}> => {
+  try {
+    const response = await AxiosClient.get(
+      ENDPOINTS.notifications.GET_UNREAD_COUNT
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          status: false,
+          unread_count: 0,
+        }
+      );
+    } else {
+      console.error("Unexpected error:", error);
+      return {
+        status: false,
+        unread_count: 0,
+      };
+    }
+  }
+};
+
+/**
+ * Get a single notification by ID
+ * @param notificationId - ID of the notification to retrieve
+ * @returns Single notification data
+ */
+export const getSingleNotification = async (
+  notificationId: number
+): Promise<{ status: boolean; notification: NotificationData }> => {
+  try {
+    const response = await AxiosClient.get(
+      ENDPOINTS.notifications.GET_SINGLE_NOTIFICATION(notificationId)
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          status: false,
+          notification: {} as NotificationData,
+        }
+      );
+    } else {
+      console.error("Unexpected error:", error);
+      return {
+        status: false,
+        notification: {} as NotificationData,
+      };
+    }
+  }
+};
+
+/**
  * Mark a single notification as read
  * @param notificationId - ID of the notification to mark as read
  */
@@ -88,7 +244,7 @@ export const markNotificationAsRead = async (
 ): Promise<{ status: boolean; message: string }> => {
   try {
     const response = await AxiosClient.put(
-      `/notifications/${notificationId}/read`
+      ENDPOINTS.notifications.MARK_NOTIFICATION_AS_READ(Number(notificationId))
     );
     return response.data;
   } catch (error) {
@@ -117,7 +273,9 @@ export const markAllNotificationsAsRead = async (): Promise<{
   message: string;
 }> => {
   try {
-    const response = await AxiosClient.put("/notifications/read-all");
+    const response = await AxiosClient.put(
+      ENDPOINTS.notifications.MARK_ALL_NOTIFICATIONS_AS_READ
+    );
     return response.data;
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -146,7 +304,7 @@ export const deleteNotification = async (
 ): Promise<{ status: boolean; message: string }> => {
   try {
     const response = await AxiosClient.delete(
-      `/notifications/${notificationId}`
+      ENDPOINTS.notifications.DELETE_NOTIFICATION(Number(notificationId))
     );
     return response.data;
   } catch (error) {

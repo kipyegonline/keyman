@@ -27,7 +27,7 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { Bell, ChevronDown, Sun, Moon } from "lucide-react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { getToken, useAppContext } from "@/providers/AppContext";
 import { navigateTo } from "@/lib/helpers";
 import { usePathname, useRouter } from "next/navigation";
@@ -37,12 +37,7 @@ import { CartButton } from "../supplier/priceList";
 import { useCart } from "@/providers/CartContext";
 import { ContractChatBot } from "../contract";
 import { NotificationMenu } from "./NotificationMenu";
-import {
-  // getNotifications, // Uncomment when API is ready
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-  mockNotifications,
-} from "@/api/notifications";
+import * as notificationApi from "@/api/notifications";
 
 export const checkDash = () => {
   const dashboard = globalThis?.window?.localStorage.getItem("dashboard");
@@ -70,7 +65,6 @@ const TopNavigation: React.FC = () => {
     verified,
   } = useAppContext();
   const router = useRouter();
-  const queryClient = useQueryClient();
 
   //const isSupplierSide = checkDash();
   const pathname = usePathname();
@@ -80,60 +74,18 @@ const TopNavigation: React.FC = () => {
   const [notificationMenuOpened, setNotificationMenuOpened] =
     React.useState(false);
 
-  // Fetch notifications with polling every 30 seconds
-  const { data: notificationsData } = useQuery({
-    queryKey: ["notifications"],
-    queryFn: async () => {
-      // For development, use mock data. Replace with actual API call when ready
-      // return await getNotifications();
-
-      // Mock data for now
-      return {
-        status: true,
-        notifications: [], //mockNotifications,
-        pagination: {
-          current_page: 1,
-          last_page: 1,
-          per_page: 15,
-          total: mockNotifications.length,
-          from: 1,
-          to: mockNotifications.length,
-        },
-      };
-    },
+  // Fetch unread count for the badge
+  const { data: unreadCountData } = useQuery({
+    queryKey: ["unreadNotificationCount"],
+    queryFn: notificationApi.getUnreadNotificationCount,
     refetchInterval: 30000, // Poll every 30 seconds
-    staleTime: 25000, // Consider data stale after 25 seconds
+    staleTime: 25000,
   });
 
-  const notifications = React.useMemo(() => {
-    if (notificationsData?.status) return notificationsData?.notifications;
-    else return [];
-  }, [notificationsData]);
-  const unreadCount = 0; // notifications.filter((n) => !n.is_read).length || 0;
-
-  // Mutation for marking a notification as read
-  const markAsReadMutation = useMutation({
-    mutationFn: markNotificationAsRead,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-    },
-  });
-
-  // Mutation for marking all notifications as read
-  const markAllAsReadMutation = useMutation({
-    mutationFn: markAllNotificationsAsRead,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-    },
-  });
-
-  const handleMarkAsRead = (notificationId: number) => {
-    markAsReadMutation.mutate(notificationId.toString());
-  };
-
-  const handleMarkAllAsRead = () => {
-    markAllAsReadMutation.mutate();
-  };
+  const unreadCount = React.useMemo(() => {
+    if (unreadCountData?.status) return unreadCountData?.unread_count;
+    else return 0;
+  }, [unreadCountData]);
   React.useEffect(() => {
     const ownsCart = checkAuth() === getLocalCart()?.supplierId;
     setOwnsCart(ownsCart);
@@ -332,10 +284,6 @@ const TopNavigation: React.FC = () => {
             </Menu.Target>
 
             <NotificationMenu
-              notifications={notifications}
-              unreadCount={unreadCount}
-              onMarkAsRead={handleMarkAsRead}
-              onMarkAllAsRead={handleMarkAllAsRead}
               onClose={() => setNotificationMenuOpened(false)}
             />
           </Menu>
