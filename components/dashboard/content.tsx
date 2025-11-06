@@ -23,7 +23,7 @@ import {
   Plus,
   CreditCard,
   Search,
-  Brain,
+  //Brain,
   Bot,
   ReceiptText,
 } from "lucide-react";
@@ -40,13 +40,13 @@ import { getRequests } from "@/api/requests";
 import { RequestDeliveryItem } from "@/types";
 import Link from "next/link";
 import { Order } from "@/types/orders";
-import DashboardSearch from "../keyman-bot/DashboardSearch";
+//import DashboardSearch from "../keyman-bot/DashboardSearch";
 import KeyContractBanner from "../contract/contractBanner";
 import ForexRatesBoard from "../wallet/ForexRatesBoard";
 // Main Content Component
 const MainContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const { darkMode: isDark, user } = useAppContext();
+  const { darkMode: isDark, user, setActiveItem } = useAppContext();
   const router = useRouter();
   const [isOpen, setOpen] = useState(false);
   const [showContract, setContract] = useState(false);
@@ -98,6 +98,30 @@ const MainContent: React.FC = () => {
     },
     // { label: "Materials", value: "156", icon: Package, color: "#8b5cf6" },
   ];
+
+  const handleSearch = () => {
+    // Trim whitespace and validate
+    const trimmedQuery = searchQuery.trim();
+
+    if (!trimmedQuery || trimmedQuery.length === 0) {
+      notify.error("Please enter a search query");
+      return;
+    }
+
+    // Navigate to suppliers page with search query
+    setActiveItem("suppliers-near-me");
+    router.push(
+      `/keyman/dashboard/suppliers-near-me?q=${encodeURIComponent(
+        trimmedQuery
+      )}`
+    );
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      handleSearch();
+    }
+  };
 
   const handlePaymentSuccess = () => {
     notify.success(
@@ -154,19 +178,23 @@ const MainContent: React.FC = () => {
         mb="xl"
         className="!shadow-lg max-w-[768px] mx-auto  w-full"
       >
-        <DashboardSearch />
+        {/*<DashboardSearch /> */}
+
         <TextInput
-          display={"none"}
+          //display={"none"}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.currentTarget.value)}
+          onKeyPress={handleKeyPress}
           placeholder="Search Store details..."
           size="lg"
           radius="lg"
-          leftSection={<Brain size={20} className="text-[#3D6B2C]" />}
+          //leftSection={<Brain size={20} className="text-[#3D6B2C]" />}
           rightSection={
             <Button
+              onClick={handleSearch}
               size="sm"
-              className="bg-gradient-to-r from-[#3D6B2C] to-[#388E3C] hover:shadow-lg transition-all duration-200"
+              radius="md"
+              className="bg-gradient-to-r from-[#3D6B2C] to-[#388E3C] hover:shadow-lg transition-all duration-200 mr-1"
             >
               <Search size={18} />
             </Button>
@@ -177,6 +205,7 @@ const MainContent: React.FC = () => {
               "&:focus": {
                 borderColor: "#3D6B2C",
               },
+              paddingRight: "85px",
             },
           }}
         />

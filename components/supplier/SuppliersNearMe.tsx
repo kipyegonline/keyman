@@ -44,16 +44,20 @@ interface ISupplierContact {
   phone: string;
   email: string;
   keyman_number: string;
-  comments: null;
+  comments: string | null;
   photo?: string[];
   supplier_rating: null | string;
   is_user_verified: number;
 }
 
-const SuppliersNearMe: React.FC<{ url?: string }> = ({
+const SuppliersNearMe: React.FC<{
+  url?: string;
+  initialSearchQuery?: string;
+}> = ({
   url = `/keyman/dashboard/suppliers-near-me/`,
+  initialSearchQuery = "",
 }) => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialSearchQuery);
   const [loading, setLoading] = useState(true);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{
@@ -82,6 +86,13 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
     enabled: !!userLocation && useExtendedSearch,
   });
 
+  // Update search query when initialSearchQuery prop changes
+  useEffect(() => {
+    if (initialSearchQuery) {
+      setSearchQuery(initialSearchQuery);
+    }
+  }, [initialSearchQuery]);
+
   const currentSuppliers = useExtendedSearch ? _extendedSuppliers : _suppliers;
   const currentLoading = useExtendedSearch ? isExtendedLoading : isLoading;
   const filteredSuppliers: ISupplierContact[] = React.useMemo(() => {
@@ -92,7 +103,9 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
           supplier.keyman_number
             .toLowerCase()
             .includes(searchQuery.toLowerCase()) ||
-          supplier.email.toLowerCase().includes(searchQuery.toLowerCase())
+          supplier.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (supplier.comments !== null &&
+            supplier.comments.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     if (currentSuppliers?.suppliers) return currentSuppliers?.suppliers;
     else return [];
@@ -149,6 +162,7 @@ const SuppliersNearMe: React.FC<{ url?: string }> = ({
     window.open(`mailto:${email}`, "_blank");
   };
   }, [searchQuery, suppliers]);*/
+  //console.log("filteredSuppliers", filteredSuppliers);
   const perPage = 25,
     total = Math.ceil(filteredSuppliers.length / perPage);
   const [current, setCurrent] = useState(0);

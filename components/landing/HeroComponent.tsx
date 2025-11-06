@@ -8,8 +8,10 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@mantine/core";
 import { useAppContext } from "@/providers/AppContext";
-import DashboardSearch from "../keyman-bot/DashboardSearch";
+//import DashboardSearch from "../keyman-bot/DashboardSearch";
 
 const AnimatedHeroSection: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -339,8 +341,13 @@ export default AnimatedHeroSection;
 
 // Ask Keyman Section Component
 const AskKeymanSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
   const cardStyles = "rounded-3xl p-8 shadow-2xl ";
+
+  const handleSearch = () => {
+    // Navigate to suppliers page
+    router.push(`/suppliers-near-me`);
+  };
 
   return (
     <section
@@ -376,22 +383,17 @@ const AskKeymanSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
           </h3>
 
           <div className="relative max-w-2xl mx-auto">
-            <DashboardSearch />
-            <div className="hidden">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="What do I need to build a 3 bedroom house?"
-                className={`w-full hidden px-6 py-4 pr-16 rounded-xl border-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#3D6B2C] ${
-                  darkMode
-                    ? "bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                    : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                }`}
-              />
-              <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50] p-3 rounded-lg hover:shadow-lg transition-all duration-200 group">
-                <ArrowRight className="w-5 h-5 text-white group-hover:translate-x-1 transition-transform" />
-              </button>
+            {/*<DashboardSearch />*/}
+            <div className="flex justify-center">
+              <Button
+                onClick={handleSearch}
+                size="lg"
+                radius="md"
+                className="bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50] hover:shadow-lg transition-all duration-200"
+                rightSection={<ArrowRight className="w-5 h-5" />}
+              >
+                Search Suppliers
+              </Button>
             </div>
           </div>
         </div>

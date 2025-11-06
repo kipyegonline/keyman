@@ -1,14 +1,15 @@
 "use client";
 import SuppliersNearMe from "@/components/supplier/SuppliersNearMe";
 import React from "react";
-export const metadata = {
-  title: "Keyman stores| Suppliers Near Me",
-  description: "Buy Smart Build Smart",
-};
+import { useSearchParams } from "next/navigation";
+
 export default function SuppliersNearMeComponent() {
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("q") || "";
+
   return (
     <div>
-      <SuppliersNearMe url="/supplier/" />
+      <SuppliersNearMe url="/supplier/" initialSearchQuery={searchQuery} />
     </div>
   );
 }
