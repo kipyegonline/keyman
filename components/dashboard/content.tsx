@@ -43,6 +43,7 @@ import { Order } from "@/types/orders";
 //import DashboardSearch from "../keyman-bot/DashboardSearch";
 import KeyContractBanner from "../contract/contractBanner";
 import ForexRatesBoard from "../wallet/ForexRatesBoard";
+import ForexTicker from "../wallet/ForexTicker";
 // Main Content Component
 const MainContent: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -167,6 +168,7 @@ const MainContent: React.FC = () => {
         onPaymentSuccess={handlePaymentSuccess}
         onPaymentError={handlePaymentError}
       />
+      <ForexTicker />
       <KeyContractBanner
         opened={showContract}
         onClose={() => setContract(false)}
