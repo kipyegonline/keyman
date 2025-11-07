@@ -243,7 +243,7 @@ export const markNotificationAsRead = async (
   notificationId: string
 ): Promise<{ status: boolean; message: string }> => {
   try {
-    const response = await AxiosClient.put(
+    const response = await AxiosClient.post(
       ENDPOINTS.notifications.MARK_NOTIFICATION_AS_READ(Number(notificationId))
     );
     return response.data;
@@ -273,7 +273,7 @@ export const markAllNotificationsAsRead = async (): Promise<{
   message: string;
 }> => {
   try {
-    const response = await AxiosClient.put(
+    const response = await AxiosClient.post(
       ENDPOINTS.notifications.MARK_ALL_NOTIFICATIONS_AS_READ
     );
     return response.data;
@@ -324,79 +324,3 @@ export const deleteNotification = async (
     }
   }
 };
-
-// Mock data for development/testing
-export const mockNotifications: NotificationData[] = [
-  {
-    id: 16,
-    type: "SystemNotificationSender",
-    title: "System notification",
-    body: "You have been selected as a potential service provider for the contract KMC073. Please follow the link to view the contract: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
-    data: {
-      body: "You have been selected as a potential service provider for the contract KMC073. Please follow the link to view the contract: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
-      meta: [],
-      phone: "0727500128",
-      title: "System notification",
-      source: "notifications.sendSMS",
-      channels: ["sms"],
-    },
-    read_at: null,
-    is_read: false,
-    created_at: "2025-11-03T17:15:36+03:00",
-    updated_at: "2025-11-03T17:15:36+03:00",
-  },
-  {
-    id: 14,
-    type: "SystemNotificationSender",
-    title: "[KMC073] Potential Service Provider Notification",
-    body: "You have been selected as a potential service provider for the contract KMC073. Please follow the link to view the contract: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
-    data: {
-      body: "You have been selected as a potential service provider for the contract KMC073. Please follow the link to view the contract: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
-      meta: [],
-      email: "david.kimari@outlook.com",
-      title: "[KMC073] Potential Service Provider Notification",
-      source: "notifications.sendEmail",
-      channels: ["email"],
-    },
-    read_at: null,
-    is_read: false,
-    created_at: "2025-11-03T17:15:35+03:00",
-    updated_at: "2025-11-03T17:15:35+03:00",
-  },
-  {
-    id: 12,
-    type: "SystemNotificationSender",
-    title: "System notification",
-    body: "There are changes to the contract that have been made. Please review the changes. Please follow the link to view the changes: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
-    data: {
-      body: "There are changes to the contract that have been made. Please review the changes. Please follow the link to view the changes: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
-      meta: [],
-      phone: "0727500128",
-      title: "System notification",
-      source: "notifications.sendSMS",
-      channels: ["sms"],
-    },
-    read_at: null,
-    is_read: false,
-    created_at: "2025-11-03T17:15:34+03:00",
-    updated_at: "2025-11-03T17:15:34+03:00",
-  },
-  {
-    id: 10,
-    type: "SystemNotificationSender",
-    title: "[KMC073] Contract Changes Notification",
-    body: "There are changes to the contract that have been made. Please review the changes. Please follow the link to view the changes: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
-    data: {
-      body: "There are changes to the contract that have been made. Please review the changes. Please follow the link to view the changes: https://www.keymanstores.com/keyman/dashboard/key-contract/KMC073",
-      meta: [],
-      email: "david.kimari@outlook.com",
-      title: "[KMC073] Contract Changes Notification",
-      source: "notifications.sendEmail",
-      channels: ["email"],
-    },
-    read_at: null,
-    is_read: false,
-    created_at: "2025-11-03T17:15:33+03:00",
-    updated_at: "2025-11-03T17:15:33+03:00",
-  },
-];

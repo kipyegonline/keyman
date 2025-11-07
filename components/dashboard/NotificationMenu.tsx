@@ -260,6 +260,7 @@ export const NotificationMenu: React.FC<NotificationMenuProps> = ({
       return notificationsData.notifications;
     } else return [];
   }, [notificationsData]);
+  // console.log("Notifications:", notifications);
   const unreadCount = React.useMemo(() => {
     if (unreadCountData?.status) return unreadCountData?.unread_count;
     else return 0;
