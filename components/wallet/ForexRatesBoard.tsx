@@ -63,7 +63,7 @@ const currencyFlags: Record<string, string> = {
 };
 
 // Loading Component
-const ForexLoadingState = () => {
+export const ForexLoadingState = () => {
   return (
     <Card className="bg-gray-900" p="xl" radius="xl">
       <Stack align="center" gap="md" py="xl">
@@ -402,7 +402,7 @@ const ForexRatesBoard = () => {
 
   // Handle loading state
   if (currenciesLoading || ratesLoading) {
-    return <ForexLoadingState />;
+    return null; //<ForexLoadingState />;
   }
 
   // Handle error state

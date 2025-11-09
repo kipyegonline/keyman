@@ -14,6 +14,7 @@ import {
   Text,
   Badge,
   ActionIcon,
+  Flex,
 } from "@mantine/core";
 import {
   ShoppingCart,
@@ -93,7 +94,7 @@ const MainContent: React.FC = () => {
     },
     {
       label: "Coins Balance",
-      value: balance?.balance?.total || "0",
+      value: Number(balance?.balance?.total).toFixed(2) || 0,
       icon: Coins,
       color: "#3D6B2C",
     },
@@ -214,7 +215,13 @@ const MainContent: React.FC = () => {
       </Paper>
 
       {/* Quick Actions */}
-      <Group mb="xl">
+      <Flex
+        mb="xl"
+        //className="border-red"
+        gap={{ base: "sm", md: "md" }}
+        direction={{ base: "column", md: "row" }}
+        align={{ base: "stretch", md: "center" }}
+      >
         <Button
           size="lg"
           onClick={handleRequestItem}
@@ -243,7 +250,7 @@ const MainContent: React.FC = () => {
         >
           Keycontract
         </Button>
-      </Group>
+      </Flex>
 
       {/* Stats Grid */}
       <Grid mb="xl">

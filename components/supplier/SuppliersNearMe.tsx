@@ -73,7 +73,7 @@ const SuppliersNearMe: React.FC<{
       getSuppliersNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0),
     enabled: !!userLocation && !useExtendedSearch,
   });
-
+  // console.log(_suppliers, "suppliers near me");
   // Extended search query with 400km distance
   const { data: _extendedSuppliers, isLoading: isExtendedLoading } = useQuery({
     queryKey: ["suppliers_near_me_extended", 4000000],
@@ -110,6 +110,7 @@ const SuppliersNearMe: React.FC<{
     if (currentSuppliers?.suppliers) return currentSuppliers?.suppliers;
     else return [];
   }, [currentSuppliers, searchQuery]);
+  //console.log("filteredSuppliers", filteredSuppliers);
   // Get user location on component mount
   useEffect(() => {
     const getCurrentLocation = () => {
@@ -164,11 +165,11 @@ const SuppliersNearMe: React.FC<{
   }, [searchQuery, suppliers]);*/
   //console.log("filteredSuppliers", filteredSuppliers);
   const perPage = 25,
-    total = Math.ceil(filteredSuppliers.length / perPage);
+    total = Math.ceil(filteredSuppliers?.length / perPage);
   const [current, setCurrent] = useState(0);
   const startIndex = current * perPage;
   const endIndex = startIndex + perPage;
-  const paginatedSuppliers = filteredSuppliers.slice(startIndex, endIndex);
+  const paginatedSuppliers = filteredSuppliers?.slice(startIndex, endIndex);
   const handleCall = (phone: string) => {
     window.open(`tel:${phone}`, "_self");
   };
