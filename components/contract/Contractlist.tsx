@@ -138,6 +138,10 @@ const ContractList: React.FC<ContractListProps> = ({
       currency: "KES",
     }).format(numericAmount);
   };
+  const createContract = () => {
+    navigateTo();
+    router.push("/keyman/dashboard/key-contract/create");
+  };
 
   if (isLoading) {
     return (
@@ -209,7 +213,7 @@ const ContractList: React.FC<ContractListProps> = ({
                 radius="xl"
                 className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
                 leftSection={<Plus size={20} />}
-                onClick={() => setCreateModalOpened(true)}
+                onClick={createContract}
               >
                 Create Your First Contract
               </Button>
@@ -291,7 +295,7 @@ const ContractList: React.FC<ContractListProps> = ({
               radius="lg"
               className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 transition-all duration-300"
               leftSection={<Plus size={18} />}
-              onClick={() => setCreateModalOpened(true)}
+              onClick={createContract}
             >
               New Contract
             </Button>

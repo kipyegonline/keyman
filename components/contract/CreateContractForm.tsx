@@ -153,29 +153,31 @@ const CreateContractForm: React.FC = () => {
                 disabled={isLoading}
               />
 
-              <Group grow>
-                <NumberInput
-                  label="Contract Amount (KES)"
-                  placeholder="100000"
-                  description="Total contract value in Kenyan Shillings"
-                  required
-                  min={1}
-                  step={1000}
-                  thousandSeparator=","
-                  {...form.getInputProps("contract_amount")}
-                  disabled={isLoading}
-                />
+              {false && (
+                <Group grow>
+                  <NumberInput
+                    label="Contract Amount (KES)"
+                    placeholder="100000"
+                    description="Total contract value in Kenyan Shillings"
+                    required
+                    min={1}
+                    step={1000}
+                    thousandSeparator=","
+                    {...form.getInputProps("contract_amount")}
+                    disabled={isLoading}
+                  />
 
-                <NumberInput
-                  label="Duration (Days)"
-                  placeholder="30"
-                  description="Contract duration in days"
-                  required
-                  min={1}
-                  {...form.getInputProps("contract_duration_in_duration")}
-                  disabled={isLoading}
-                />
-              </Group>
+                  <NumberInput
+                    label="Duration (Days)"
+                    placeholder="30"
+                    description="Contract duration in days"
+                    required
+                    min={1}
+                    {...form.getInputProps("contract_duration_in_duration")}
+                    disabled={isLoading}
+                  />
+                </Group>
+              )}
             </Stack>
             {/* Service Provider Information */}
             <div className="mt-4">
