@@ -175,6 +175,46 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
             )}
           </Paper>
 
+          {/* Payment Information Alert - Only show when starting a milestone */}
+          {isStarting && milestone.amount && (
+            <Paper
+              p="md"
+              radius="md"
+              style={{
+                backgroundColor: "#3D6B2C15",
+                border: "1px solid #3D6B2C40",
+              }}
+            >
+              <Group gap="xs" mb="sm">
+                <Text size="sm" fw={600} c="#3D6B2C">
+                  💳 Payment Information
+                </Text>
+              </Group>
+              <Stack gap="xs">
+                <Text size="sm" c="dimmed">
+                  You will be prompted on your phone to pay{" "}
+                  <Text span fw={600} c="#3D6B2C">
+                    KES {milestone.amount.toLocaleString()}
+                  </Text>{" "}
+                  for this milestone.
+                </Text>
+                <Paper
+                  p="xs"
+                  radius="sm"
+                  style={{
+                    backgroundColor: "#F08C2315",
+                    border: "1px solid #F08C2340",
+                  }}
+                >
+                  <Text size="xs" fw={500} c="#F08C23">
+                    ⓘ Contract fee of KES 200 will be charged on your first
+                    milestone.
+                  </Text>
+                </Paper>
+              </Stack>
+            </Paper>
+          )}
+
           {/* Action Confirmation */}
           <Paper
             p="md"

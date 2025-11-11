@@ -60,7 +60,7 @@ export default function SupplierContractPage() {
     },
   });
   const contracts = React.useMemo(() => {
-    if (data && data?.status) return data?.contracts;
+    if (data && data?.status) return data?.contracts?.toReversed() || [];
     return [];
   }, [data]);
   const handleCreateContract = () => {

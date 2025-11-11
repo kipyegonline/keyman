@@ -31,6 +31,7 @@ export interface ChatManagerProps {
   currentUserId: number;
   recipientName?: string;
   recipientAvatar?: string;
+  open?: boolean;
 }
 
 export const ChatManager: React.FC<ChatManagerProps> = ({
@@ -38,6 +39,7 @@ export const ChatManager: React.FC<ChatManagerProps> = ({
   currentUserId,
   recipientName = "Chat",
   recipientAvatar,
+  open,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -60,6 +62,14 @@ export const ChatManager: React.FC<ChatManagerProps> = ({
   const unreadCount = messages.filter(
     (msg) => !msg.is_read && msg.user_id !== currentUserId
   ).length;
+
+  // Listen to external open prop changes
+  useEffect(() => {
+    if (open) {
+      setIsOpen(open);
+      setIsMinimized(false);
+    }
+  }, [open]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -207,11 +217,7 @@ export const ChatManager: React.FC<ChatManagerProps> = ({
   return (
     <>
       {/* Floating Action Button */}
-      <Tooltip
-        label="use chat assistant to create milestones"
-        position="right-end"
-        withArrow
-      >
+      <Tooltip label="Discuss contract" position="right-end" withArrow>
         <button
           onClick={handleToggleChat}
           className="chat-manager-fab"

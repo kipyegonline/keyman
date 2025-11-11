@@ -116,12 +116,11 @@ const CreateMilestoneModal: React.FC<CreateMilestoneModalProps> = ({
       newErrors.end_date = "End date is required";
     }
 
-    if (
-      formData.start_date &&
-      formData.end_date &&
-      formData.start_date >= formData.end_date
-    ) {
-      newErrors.end_date = "End date must be after start date";
+    if (formData.start_date && formData.end_date) {
+      if (new Date(formData.start_date) > new Date(formData.end_date))
+        newErrors.start_date = "Start date must be on or after end date---";
+      else if (new Date(formData.end_date) < new Date(formData.start_date))
+        newErrors.end_date = "End date must be on or after start date---";
     }
 
     setErrors(newErrors);

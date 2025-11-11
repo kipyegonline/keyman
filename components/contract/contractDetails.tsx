@@ -35,7 +35,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import EditMilestoneModal from "./EditMilestoneModal";
 import CreateMilestoneModal from "./CreateMilestoneModal";
 import EditContractModal from "./EditContractModal";
@@ -105,7 +105,7 @@ interface ContractDetails {
     email?: string;
     phone?: string;
   };
-  milestones?: Milestone[];
+  milestones: Milestone[];
   created_at: string;
   updated_at: string;
 }
@@ -163,7 +163,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   //onEdit,
   onViewDocuments,
   onShare,
-  handleChat,
+  //handleChat,
   onDownload,
   refresh,
   isDownloading = false,
@@ -186,16 +186,20 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const [action, setAction] = useState<"start" | "complete">("start");
   const [selectedSuggestedMilestone, setSelectedSuggestedMilestone] =
     useState<ISuggestedMilestone | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
   const [aiSuggestionsModalOpened, setAiSuggestionsModalOpened] =
     useState(false);
   //const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
+
+  // Initialize query client
+  const queryClient = useQueryClient();
 
   // Fetch AI-suggested milestones
   const { data: suggestedMilestonesData, isLoading: isLoadingSuggestions } =
     useQuery({
       queryKey: ["suggestedMilestones", contract.id],
       queryFn: () => getSuggestedMilestones(contract.chat_id),
-      enabled: !!contract.id, // Only fetch if contract ID exists
+      enabled: !!contract.id && aiSuggestionsModalOpened, // Only fetch if contract ID exists
       staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     });
 
@@ -206,6 +210,56 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     return [];
   }, [suggestedMilestonesData]);
 
+  // Delete milestone mutation
+  const deleteMilestoneMutation = useMutation({
+    mutationFn: (milestoneId: string) => deleteMilestone(milestoneId, {}),
+    onSuccess: () => {
+      notify.success("Milestone deleted successfully");
+      queryClient.invalidateQueries({
+        queryKey: ["suggestedMilestones", contract.id],
+      });
+      refresh();
+    },
+    onError: (error: Error) => {
+      console.error("Error deleting milestone:", error);
+      notify.error(
+        error.message || "An error occurred while deleting the milestone"
+      );
+    },
+  });
+
+  // Update milestone mutation
+  const updateMilestoneMutation = useMutation({
+    mutationFn: ({
+      milestoneId,
+      data,
+    }: {
+      milestoneId: string;
+      data: {
+        name: string;
+        description: string;
+        amount?: number;
+        action?: string;
+      };
+    }) => updateMilestone(milestoneId, data),
+    onSuccess: (response, variables) => {
+      const actionText =
+        variables.data.action === "start"
+          ? "started, awaiting payment"
+          : "updated";
+      notify.success(`Milestone ${actionText}`);
+      queryClient.invalidateQueries({
+        queryKey: ["suggestedMilestones", contract.id],
+      });
+      refresh();
+      setEditModalOpened(false);
+      setSelectedMilestone(null);
+    },
+    onError: (error: Error) => {
+      notify.error(error.message || "Failed to update milestone");
+    },
+  });
+
   const handleEditMilestone = (milestoneId: string) => {
     const milestone = contract.milestones?.find((m) => m.id === milestoneId);
     if (milestone) {
@@ -213,20 +267,11 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       setEditModalOpened(true);
     }
   };
-  const handleDeleteMilestone = async (milestoneId: string) => {
-    try {
-      const response = await deleteMilestone(milestoneId, {});
-      if (response.status) {
-        notify.success("Milestone deleted successfully");
-        refresh();
-      } else {
-        notify.error("Failed to delete milestone");
-      }
-    } catch (error) {
-      console.error("Error deleting milestone:", error);
-      notify.error("An error occurred while deleting the milestone");
-    }
+
+  const handleDeleteMilestone = (milestoneId: string) => {
+    deleteMilestoneMutation.mutate(milestoneId);
   };
+
   const handleSaveMilestone = async (
     milestoneId: string,
     data: {
@@ -236,30 +281,15 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       action?: string;
     }
   ) => {
-    // This function will be called when the user saves the milestone
-    // You can implement the API call logic here
-
-    const response = await updateMilestone(milestoneId, data);
-    if (response.status) {
-      notify.success(
-        `Milestone updated, ${
-          data.action === "start" ? "started, awaiting payment" : "updated"
-        }`
+    return new Promise<void>((resolve, reject) => {
+      updateMilestoneMutation.mutate(
+        { milestoneId, data },
+        {
+          onSuccess: () => resolve(),
+          onError: (error) => reject(error),
+        }
       );
-      refresh();
-      setEditModalOpened(false);
-      setSelectedMilestone(null);
-    } else {
-      notify.error(response.message);
-    }
-
-    // If onEditMilestone prop is provided, call it
-    /*
-    if (onEditMilestone) {
-      onEditMilestone(milestoneId);
-    }*/
-
-    // Close the modal after saving
+    });
   };
 
   const handleCreateMilestone = () => {
@@ -513,6 +543,10 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     projectDates.startDate,
     projectDates.endDate
   );
+  const openChatManager = () => {
+    setChatOpen(true);
+    setTimeout(() => setChatOpen(false), 1000);
+  };
 
   const canEditMileStone = React.useMemo(() => {
     if (
@@ -541,7 +575,73 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       // milestone.status.toLowerCase() === "failed"
     );
   }, [contract?.milestones]);
+  const canNotify = React.useMemo(() => {
+    if (
+      contract.status.toLowerCase() !== "completed" ||
+      contract.status.toLowerCase() !== "supplier_completed"
+    ) {
+      return !!contract.service_provider_signing_date;
+    }
+    return false;
+  }, []);
   //console.log(contract, "tract");
+
+  // Contract Accepted Success Alert Component
+  const ContractAcceptedAlert = () => {
+    if (
+      !contract.service_provider_signing_date ||
+      contract.status === "completed" ||
+      contract?.milestones.length > 0
+    ) {
+      return null;
+    }
+
+    const handleScrollToMilestones = () => {
+      const milestonesSection = document.getElementById("milestones-section");
+      if (milestonesSection) {
+        milestonesSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    };
+
+    return (
+      <Alert
+        variant="light"
+        color="green"
+        radius="md"
+        style={{
+          backgroundColor: "#388E3C15",
+          borderLeft: "4px solid #388E3C",
+        }}
+      >
+        <Group justify="space-between" align="center" wrap="wrap" gap="sm">
+          <Box style={{ flex: 1, minWidth: "200px" }}>
+            <Text size="sm" fw={600} c="#388E3C" mb={4}>
+              🎉 Contract Accepted Successfully!
+            </Text>
+            <Text size="xs" c="dimmed">
+              You can now start working on the project milestones below.
+            </Text>
+          </Box>
+          <Button
+            size="sm"
+            variant="light"
+            color="green"
+            onClick={handleScrollToMilestones}
+            style={{
+              backgroundColor: "#388E3C",
+              color: "white",
+            }}
+          >
+            Go to Milestones
+          </Button>
+        </Group>
+      </Alert>
+    );
+  };
+
   return (
     <Box>
       <Stack gap="xl">
@@ -606,10 +706,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                     </Button>
                   )}
 
-                <Button variant="outlined" onClick={handleChat}>
-                  {" "}
-                  Chat
-                </Button>
+                {!!contract?.service_provider_signing_date && (
+                  <Button variant="outlined" onClick={openChatManager}>
+                    {" "}
+                    Chat
+                  </Button>
+                )}
 
                 {userType === "customer" && (
                   <Button
@@ -675,6 +777,9 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
             </Group>
           </Paper>
         </Card>
+
+        {/* Contract Accepted Success Alert */}
+        <ContractAcceptedAlert />
 
         <Grid>
           {/* Left Column - Main Details */}
@@ -876,24 +981,30 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   </Group>
                 </Card>
               )}
-              {contract?.service_provider_id !== null ? (
-                <ChatManager chatId={contract?.chat_id} currentUserId={1} />
+              {!!contract?.service_provider_signing_date ? (
+                <ChatManager
+                  chatId={contract?.chat_id}
+                  currentUserId={1}
+                  open={chatOpen}
+                />
               ) : null}
 
               {/* Milestones Timeline */}
               {contract.milestones && contract.milestones.length > 0 && (
-                <MilestoneTimeline
-                  milestones={contract.milestones}
-                  canEditMileStone={canEditMileStone}
-                  serviceProviderSigningDate={
-                    contract.service_provider_signing_date
-                  }
-                  onEditMilestone={handleEditMilestone}
-                  onStatusChange={handleMilestoneStatusChange}
-                  onDeleteMilestone={handleDeleteMilestone}
-                  userType={userType}
-                  mode={contract?.contract_mode ?? "client"}
-                />
+                <Box id="milestones-section">
+                  <MilestoneTimeline
+                    milestones={contract.milestones}
+                    canEditMileStone={canEditMileStone}
+                    serviceProviderSigningDate={
+                      contract.service_provider_signing_date
+                    }
+                    onEditMilestone={handleEditMilestone}
+                    onStatusChange={handleMilestoneStatusChange}
+                    onDeleteMilestone={handleDeleteMilestone}
+                    userType={userType}
+                    mode={contract?.contract_mode ?? "client"}
+                  />
+                </Box>
               )}
               {canEditMileStone && (
                 <Flex gap={"md"} direction={{ base: "column", md: "row" }}>
@@ -917,50 +1028,29 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                 </Flex>
               )}
               {/**Actions */}
-              {inNegotiation && userType === "customer" ? (
-                canEditMileStone && contract?.contract_mode === "client" ? (
-                  <Button
-                    loading={notifying}
-                    onClick={() => notifyProvider("service_provider")}
-                    className="bg-keyman-orange text-white"
-                  >
-                    Notify Provider of changes
-                  </Button>
-                ) : contract.contract_mode === "service_provider" ? (
-                  <Alert
-                    icon={<AlertCircle size={16} />}
-                    title="Action Required"
-                    color="orange"
-                    radius="md"
-                  >
-                    <Text size="sm">
-                      This contract is in review by the service provider
-                    </Text>
-                  </Alert>
-                ) : null
-              ) : null}
-              {inNegotiation && userType === "supplier" ? (
-                canEditMileStone ? (
-                  <Button
-                    loading={notifying}
-                    onClick={() => notifyProvider("client")}
-                    className="bg-keyman-orange text-white"
-                  >
-                    Notify Client of changes
-                  </Button>
-                ) : contract.contract_mode === "client" ? (
-                  <Alert
-                    icon={<AlertCircle size={16} />}
-                    title="Action Required"
-                    color="orange"
-                    radius="md"
-                  >
-                    <Text size="sm">
-                      The contract is in review by the client
-                    </Text>
-                  </Alert>
-                ) : null
-              ) : null}
+              {inNegotiation && userType === "customer"
+                ? canNotify && (
+                    <Button
+                      loading={notifying}
+                      onClick={() => notifyProvider("service_provider")}
+                      className="bg-keyman-orange text-white"
+                    >
+                      Notify Provider of changes
+                    </Button>
+                  )
+                : null}
+
+              {inNegotiation && userType === "supplier"
+                ? canNotify && (
+                    <Button
+                      loading={notifying}
+                      onClick={() => notifyProvider("client")}
+                      className="bg-keyman-orange text-white"
+                    >
+                      Notify Client of changes
+                    </Button>
+                  )
+                : null}
             </Stack>
           </Grid.Col>
 

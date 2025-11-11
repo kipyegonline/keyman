@@ -179,7 +179,8 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                           milestone.status.toLowerCase() === "in_progress" ||
                           milestone.status.toLowerCase() ===
                             "supplier_completed") &&
-                        serviceProviderSigningDate !== null && (
+                        serviceProviderSigningDate !== null &&
+                        userType === "customer" && (
                           <>
                             {milestone.status.toLowerCase() === "pending" && (
                               <Tooltip
