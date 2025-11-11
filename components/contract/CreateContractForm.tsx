@@ -35,18 +35,18 @@ const CreateContractForm: React.FC = () => {
   const form = useForm<ContractFormData>({
     initialValues: {
       service_provider_id: "",
-      contract_duration_in_duration: 30,
-      contract_amount: 100000,
+      contract_duration_in_duration: 0,
+      contract_amount: 0,
       title: "",
       scope: "",
     },
     validate: {
       /* service_provider_id: (value) =>
         !value.trim() ? "Service Provider ID is required" : null, */
-      contract_amount: (value) =>
-        !value || value <= 0 ? "Contract amount must be greater than 0" : null,
-      contract_duration_in_duration: (value) =>
-        !value || value <= 0 ? "Duration must be greater than 0" : null,
+      // contract_amount: (value) =>
+      //    !value || value <= 0 ? "Contract amount must be greater than 0" : null,
+      //  contract_duration_in_duration: (value) =>
+      //      !value || value <= 0 ? "Duration must be greater than 0" : null,
       title: (value) => (!value.trim() ? "Contract title is required" : null),
       scope: (value) => (!value.trim() ? "Project scope is required" : null),
     },

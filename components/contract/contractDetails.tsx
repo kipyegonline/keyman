@@ -541,7 +541,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       // milestone.status.toLowerCase() === "failed"
     );
   }, [contract?.milestones]);
-  console.log(contract, "tract");
+  //console.log(contract, "tract");
   return (
     <Box>
       <Stack gap="xl">
@@ -873,15 +873,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                         Add and manage project milestones
                       </Text>
                     </div>
-                    {contract?.service_provider_id !== null ? (
-                      <ChatManager
-                        chatId={contract?.chat_id}
-                        currentUserId={1}
-                      />
-                    ) : null}
                   </Group>
                 </Card>
               )}
+              {contract?.service_provider_id !== null ? (
+                <ChatManager chatId={contract?.chat_id} currentUserId={1} />
+              ) : null}
 
               {/* Milestones Timeline */}
               {contract.milestones && contract.milestones.length > 0 && (
@@ -915,7 +912,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                     loading={isLoadingSuggestions}
                     style={{ backgroundColor: "#F08C23", color: "white" }}
                   >
-                    AI Suggested Milestones
+                    Assistant
                   </Button>
                 </Flex>
               )}
