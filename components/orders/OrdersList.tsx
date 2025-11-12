@@ -170,7 +170,7 @@ const OrdersTable: React.FC<Props> = ({ orders: _orders, isSupplier }) => {
       onClick={() => handleOrder(order.id)}
       onTouchEnd={(e) => {
         e.preventDefault();
-        handleOrder(order.id);
+        // handleOrder(order.id);
       }}
       style={{
         transition: "all 0.2s ease",

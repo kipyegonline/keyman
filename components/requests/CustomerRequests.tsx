@@ -313,7 +313,7 @@ const RequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
 
   return (
     <Container
-      size="xl"
+      size="fluid"
       py={{ base: "xs", md: "xl" }}
       px={{ base: "xs", md: "xl" }}
     >

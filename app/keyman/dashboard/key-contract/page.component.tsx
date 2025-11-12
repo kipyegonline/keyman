@@ -45,7 +45,7 @@ export default function CustomerContract() {
   };
   const token = getToken();
   return (
-    <Container>
+    <Container size={"fluid"}>
       {showContract && (
         <ContractChatBot
           userToken={token ?? ""}

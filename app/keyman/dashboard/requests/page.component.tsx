@@ -60,7 +60,7 @@ export default function RequestClientComponent() {
       )}
 
       {/* Beautiful Animated Floating Button */}
-      <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-50">
+      <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-50 hidden">
         <button
           onClick={() => setIsOpen(true)}
           className="group relative w-14 h-14 bg-gradient-to-r from-keyman-green to-keyman-accent hover:from-keyman-accent hover:to-keyman-green rounded-full shadow-lg hover:shadow-xl transition-all duration-300 ease-out transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-4 focus:ring-keyman-green/30"

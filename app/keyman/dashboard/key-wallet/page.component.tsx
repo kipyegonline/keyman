@@ -106,8 +106,8 @@ export default function WalletClientComponent() {
     : transactionsData?.status === false
     ? transactionsData?.message || "Unable to fetch transactions"
     : null;
-
-  return (
+  //console.log(userAccount, wallet, "wallet render.....");
+  /*return (
     <WalletData
       walletData={wallet}
       isLoading={loadingWallet}
@@ -118,7 +118,7 @@ export default function WalletClientComponent() {
       loadingTransactions={loadingTransactions}
       transactionError={transactionErrorMessage}
     />
-  );
+  );*/
   // Loading state
 
   if (loadingUser) {

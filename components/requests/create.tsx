@@ -461,7 +461,7 @@ const DeliveryDetailsStep: React.FC<{
 }> = ({ form, locations }) => {
   if (locations.length === 0) {
     return (
-      <Card className="p-6 bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200">
+      <Card className="p-3 md:p-6 bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200">
         <div className="text-center">
           <MapPin className="mx-auto mb-4 text-orange-500" size={48} />
           <Title order={3} className="mb-2 text-gray-700">
@@ -857,8 +857,8 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
 
   if (success) {
     return (
-      <Container size="md" className="py-8">
-        <Card className="p-8 text-center bg-gradient-to-br from-green-50 to-blue-50">
+      <Container size="fluid" className="py-4 md:py-8 ">
+        <Card className="p-4 md:p-8 text-center bg-gradient-to-br from-green-50 to-blue-50">
           <CheckCircle className="mx-auto mb-4 text-green-500" size={64} />
           <Title order={2} className="mb-4 text-gray-800">
             Request Submitted Successfully!
@@ -893,8 +893,8 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
   }
 
   return (
-    <Container size="lg" className="py-8">
-      <Paper className="p-6 shadow-lg">
+    <Container size="fluid" className="py-8 ">
+      <Paper className="p-3 md:p-6 shadow-lg">
         <Title order={1} className="mb-6 text-center text-gray-800">
           Create New Request
         </Title>

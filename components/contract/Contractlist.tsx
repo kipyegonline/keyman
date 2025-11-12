@@ -275,7 +275,7 @@ const ContractList: React.FC<ContractListProps> = ({
   }
 
   return (
-    <Container size="lg" className="py-8">
+    <Container size="fluid" className="py-8 ">
       {/* Header */}
       <div className="mb-8">
         <Group justify="space-between" className="mb-4">
@@ -316,7 +316,7 @@ const ContractList: React.FC<ContractListProps> = ({
       </div>
 
       {/* Contracts Grid */}
-      <Grid gutter="md">
+      <Grid gutter="md" className="">
         {contracts.map((contract) => (
           <Grid.Col
             key={contract.id}
@@ -338,7 +338,7 @@ const ContractList: React.FC<ContractListProps> = ({
               {(styles) => (
                 <Card
                   shadow="sm"
-                  padding="lg"
+                  p={{ base: "md", md: "lg" }}
                   radius="lg"
                   withBorder
                   style={styles}
@@ -398,12 +398,12 @@ const ContractList: React.FC<ContractListProps> = ({
                       <Text
                         size="lg"
                         fw={600}
-                        className="text-gray-900 truncate"
+                        className="text-gray-900  "
                         title={contract?.contract_json?.title}
                       >
                         {contract?.contract_json?.title}
                       </Text>
-                      <Text size="sm" c="gray.6" className="truncate">
+                      <Text size="sm" c="gray.6" className="truncated">
                         {contract?.contract_json?.scope}
                       </Text>
                     </div>
