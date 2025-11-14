@@ -17,6 +17,7 @@ import { notify } from "@/lib/notifications";
 
 interface OTPInputProps {
   phoneNumber?: string;
+  businessId?: string;
   onVerificationSuccess?: () => void;
   onVerificationError?: (error: string) => void;
 }
@@ -25,6 +26,7 @@ export default function OTPInput({
   phoneNumber,
   onVerificationSuccess,
   onVerificationError,
+  businessId,
 }: OTPInputProps) {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,7 +56,7 @@ export default function OTPInput({
     setError("");
 
     try {
-      const response = await confirmOTP(phoneNumber ?? "", otp);
+      const response = await confirmOTP(otp, businessId, phoneNumber);
 
       if (response.success) {
         notify.success("OTP verified successfully!");

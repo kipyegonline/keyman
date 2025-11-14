@@ -90,7 +90,7 @@ export default function RegistrationSuccess({
   const handleOTPVerificationError = (error: string) => {
     notify.error(error);
   };
-  //console.log(userAccount, "user loading.....");
+
   const ReadyWallet = (
     <Container size="sm" py="xl">
       <Stack gap="xl">
@@ -288,6 +288,8 @@ export default function RegistrationSuccess({
         <OTPInput
           onVerificationSuccess={handleOTPVerificationSuccess}
           onVerificationError={handleOTPVerificationError}
+          phoneNumber={phoneNumber}
+          businessId={userAccount?.user?.onboardingRequestId}
         />
       );
     }
