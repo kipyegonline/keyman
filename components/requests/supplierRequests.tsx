@@ -156,7 +156,7 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
       onClick={() => handleRequestClick(request.id)}
       onTouchEnd={(e) => {
         e.preventDefault();
-        handleRequestClick(request.id);
+        //handleRequestClick(request.id);
       }}
     >
       <Table.Td>{index + 1}</Table.Td>

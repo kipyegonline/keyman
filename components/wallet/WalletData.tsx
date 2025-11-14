@@ -19,6 +19,7 @@ import {
   ThemeIcon,
   FileInput,
   Alert,
+  Image,
 } from "@mantine/core";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -438,7 +439,7 @@ function UpgradeAccountModal({
                   <X size={14} />
                 </ActionIcon>
               </Group>
-              <img
+              <Image
                 src={photoPreview.selfiePhoto}
                 alt="Selfie Preview"
                 className="max-h-32 w-auto mx-auto rounded"
@@ -757,6 +758,56 @@ export default function WalletData({
             </ThemeIcon>
           </Group>
         </Paper>
+
+        {/* Escrow Account Information Alert */}
+        <Alert
+          variant="light"
+          color="green"
+          radius="md"
+          style={{
+            backgroundColor: "#3D6B2C15",
+            border: "1px solid #3D6B2C30",
+          }}
+        >
+          <Group gap="sm" align="flex-start" wrap="nowrap">
+            <ThemeIcon
+              size={28}
+              radius="md"
+              variant="light"
+              color="green"
+              style={{ backgroundColor: "#3D6B2C25", flexShrink: 0 }}
+            >
+              <Shield size={16} />
+            </ThemeIcon>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Text size="sm" fw={600} c="#3D6B2C" mb={4}>
+                💼 Secure Transaction Notice
+              </Text>
+              <Text size="xs" c="dimmed" style={{ lineHeight: 1.5 }}>
+                All withdrawal and money transfer transactions are securely
+                processed through our{" "}
+                <Text span fw={600} c="#3D6B2C">
+                  Choice Bank Escrow Account
+                </Text>
+                . Your funds are protected and will be credited/debited from
+                account number:{" "}
+                <Text
+                  span
+                  fw={700}
+                  c="#3D6B2C"
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: "0.8rem",
+                    letterSpacing: "0.5px",
+                    wordBreak: "break-all",
+                  }}
+                >
+                  46**********960
+                </Text>
+              </Text>
+            </div>
+          </Group>
+        </Alert>
 
         {/* Action Cards */}
         <Grid>

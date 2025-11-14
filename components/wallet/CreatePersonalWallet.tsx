@@ -55,6 +55,7 @@ import { createCurrentAccount } from "@/api/wallet";
 import RegistrationSuccess from "./RegistrationSuccess";
 import { notify } from "@/lib/notifications";
 import { toDataUrlFromFile } from "@/lib/FileHandlers";
+import CameraCapture from "./CameraCapture";
 
 interface CreatePersonalWalletFormData {
   firstName: string;
@@ -172,6 +173,10 @@ const getIdLabels = (idType: string) => {
 export default function CreatePersonalWallet() {
   const [active, setActive] = useState(0);
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
+  const [photoCameraOpen, setPhotoCameraOpen] = useState(false);
+  const [currentPhotoField, setCurrentPhotoField] = useState<
+    keyof CreatePersonalWalletFormData | null
+  >(null);
   const [photoPreview, setPhotoPreview] = useState<{ [key: string]: string }>(
     {}
   );
@@ -556,6 +561,29 @@ export default function CreatePersonalWallet() {
     }
   };
 
+  const openPhotoCamera = (fieldName: keyof CreatePersonalWalletFormData) => {
+    setCurrentPhotoField(fieldName);
+    setPhotoCameraOpen(true);
+  };
+
+  const handlePhotoCapture = (file: File) => {
+    if (currentPhotoField) {
+      form.setFieldValue(currentPhotoField, file);
+      handleFilePreview(file, currentPhotoField);
+    }
+  };
+
+  const getPhotoCameraInstructions = () => {
+    if (!currentPhotoField) return "";
+
+    if (currentPhotoField === "frontSidePhoto") {
+      return "Position the front side of your ID card clearly in the frame";
+    } else if (currentPhotoField === "backSidePhoto") {
+      return "Position the back side of your ID card clearly in the frame";
+    }
+    return "Position the subject clearly in the frame";
+  };
+
   const PhotoUploadField = ({
     fieldName,
     label,
@@ -570,6 +598,8 @@ export default function CreatePersonalWallet() {
     description?: string;
   }) => {
     const isVideoField = fieldName === "selfiePhoto";
+    const isPhotoField =
+      fieldName === "frontSidePhoto" || fieldName === "backSidePhoto";
     const acceptedTypes = isVideoField ? "video/*" : "image/*";
     const file = form.values[fieldName] as File | null;
     const isVideo = file?.type.startsWith("video/");
@@ -609,14 +639,27 @@ export default function CreatePersonalWallet() {
             error={form.errors[fieldName]}
           />
 
-          {allowCamera && (
+          {allowCamera && isVideoField && (
             <ActionIcon
               variant="light"
               size="lg"
               onClick={startCamera}
               style={{ backgroundColor: "#3D6B2C", color: "white" }}
               className="hover:opacity-80 transition-opacity"
-              title={isVideoField ? "Record Video" : "Take Photo"}
+              title="Record Video"
+            >
+              <Camera size={18} />
+            </ActionIcon>
+          )}
+
+          {isPhotoField && (
+            <ActionIcon
+              variant="light"
+              size="lg"
+              onClick={() => openPhotoCamera(fieldName)}
+              style={{ backgroundColor: "#F08C23", color: "white" }}
+              className="hover:opacity-80 transition-opacity"
+              title="Take Photo"
             >
               <Camera size={18} />
             </ActionIcon>
@@ -1382,6 +1425,26 @@ export default function CreatePersonalWallet() {
           </Box>
         )}
       </Paper>
+
+      {/* Photo Camera Modal for ID Photos */}
+      <CameraCapture
+        opened={photoCameraOpen}
+        onClose={() => {
+          setPhotoCameraOpen(false);
+          setCurrentPhotoField(null);
+        }}
+        onCapture={handlePhotoCapture}
+        title={
+          currentPhotoField === "frontSidePhoto"
+            ? "Capture Front ID Photo"
+            : currentPhotoField === "backSidePhoto"
+            ? "Capture Back ID Photo"
+            : "Take Photo"
+        }
+        facingMode="environment"
+        instructionText={getPhotoCameraInstructions()}
+        clickSoundUrl="/camera.mp3"
+      />
     </Container>
   );
 }

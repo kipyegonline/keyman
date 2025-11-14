@@ -71,6 +71,7 @@ export default function WalletClientComponent() {
   };
 
   //console.log(userAccount, wallet, "user loading.....");
+  // return null;
 
   //return <WalletData walletData={wallet} isLoading={loadingWallet} />;
   // Loading state

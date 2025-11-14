@@ -50,6 +50,7 @@ import { createWalletWithData } from "@/api/wallet";
 import RegistrationSuccess from "./RegistrationSuccess";
 import { notify } from "@/lib/notifications";
 import { toDataUrlFromFile } from "@/lib/FileHandlers";
+import CameraCapture from "./CameraCapture";
 
 interface CreateWalletFormData {
   firstName: string;
@@ -123,6 +124,10 @@ const getIdLabels = (idType: string) => {
 export default function CreateWallet() {
   const [active, setActive] = useState(0);
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
+  const [photoCameraOpen, setPhotoCameraOpen] = useState(false);
+  const [currentPhotoField, setCurrentPhotoField] = useState<
+    keyof CreateWalletFormData | null
+  >(null);
   const [photoPreview, setPhotoPreview] = useState<{ [key: string]: string }>(
     {}
   );
@@ -303,6 +308,29 @@ export default function CreateWallet() {
       setCameraStream(null);
     }
   };
+
+  const openPhotoCamera = (fieldName: keyof CreateWalletFormData) => {
+    setCurrentPhotoField(fieldName);
+    setPhotoCameraOpen(true);
+  };
+
+  const handlePhotoCapture = (file: File) => {
+    if (currentPhotoField) {
+      form.setFieldValue(currentPhotoField, file);
+      handleFilePreview(file, currentPhotoField);
+    }
+  };
+
+  const getPhotoCameraInstructions = () => {
+    if (!currentPhotoField) return "";
+
+    if (currentPhotoField === "frontSidePhoto") {
+      return "Position the front side of your ID card clearly in the frame";
+    } else if (currentPhotoField === "backSidePhoto") {
+      return "Position the back side of your ID card clearly in the frame";
+    }
+    return "Position the subject clearly in the frame";
+  };
   React.useEffect(() => {
     // Effect to run when 'active' changes
     if (active > 0) window.scrollTo(0, 0);
@@ -454,6 +482,9 @@ export default function CreateWallet() {
   }) => {
     const acceptedTypes = "image/*";
     const file = form.values[fieldName] as File | null;
+    const isSelfieField = fieldName === "selfiePhoto";
+    const isPhotoField =
+      fieldName === "frontSidePhoto" || fieldName === "backSidePhoto";
 
     return (
       <div className="space-y-3">
@@ -489,12 +520,25 @@ export default function CreateWallet() {
             error={form.errors[fieldName]}
           />
 
-          {allowCamera && (
+          {allowCamera && isSelfieField && (
             <ActionIcon
               variant="light"
               size="lg"
               onClick={startCamera}
               style={{ backgroundColor: "#3D6B2C", color: "white" }}
+              className="hover:opacity-80 transition-opacity"
+              title="Take Photo"
+            >
+              <Camera size={18} />
+            </ActionIcon>
+          )}
+
+          {isPhotoField && (
+            <ActionIcon
+              variant="light"
+              size="lg"
+              onClick={() => openPhotoCamera(fieldName)}
+              style={{ backgroundColor: "#F08C23", color: "white" }}
               className="hover:opacity-80 transition-opacity"
               title="Take Photo"
             >
@@ -1136,6 +1180,26 @@ export default function CreateWallet() {
           </Box>
         )}
       </Paper>
+
+      {/* Photo Camera Modal for ID Photos */}
+      <CameraCapture
+        opened={photoCameraOpen}
+        onClose={() => {
+          setPhotoCameraOpen(false);
+          setCurrentPhotoField(null);
+        }}
+        onCapture={handlePhotoCapture}
+        title={
+          currentPhotoField === "frontSidePhoto"
+            ? "Capture Front ID Photo"
+            : currentPhotoField === "backSidePhoto"
+            ? "Capture Back ID Photo"
+            : "Take Photo"
+        }
+        facingMode="environment"
+        instructionText={getPhotoCameraInstructions()}
+        clickSoundUrl="/camera.mp3"
+      />
     </Container>
   );
 }

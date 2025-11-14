@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useForm } from "@mantine/form";
 import {
   Modal,
@@ -25,6 +25,7 @@ import {
   AlertCircle,
   FileText,
   Send,
+  Camera,
 } from "lucide-react";
 import { sendKYC } from "@/api/wallet";
 import { notify } from "@/lib/notifications";
@@ -84,6 +85,13 @@ export default function KYCResubmissionModal({
     {}
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [currentStream, setCurrentStream] = useState<MediaStream | null>(null);
+  const [currentField, setCurrentField] = useState<keyof KYCFormData | null>(
+    null
+  );
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const idLabels = getIdLabels(idType);
 
@@ -119,6 +127,80 @@ export default function KYCResubmissionModal({
         return newPreview;
       });
     }
+  };
+
+  const startCamera = async (fieldName: keyof KYCFormData) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: fieldName === "selfiePhoto" ? "user" : "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+
+      setCurrentStream(stream);
+      setCurrentField(fieldName);
+      setCameraOpen(true);
+
+      // Wait for next tick to ensure modal is rendered
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          // Explicitly play the video
+          videoRef.current.play().catch((err) => {
+            console.error("Error playing video:", err);
+          });
+        }
+      }, 100);
+    } catch (error) {
+      console.error("Camera access error:", error);
+      notify.error("Unable to access camera. Please check permissions.");
+    }
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current || !canvasRef.current || !currentField) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext("2d");
+
+    if (!context) return;
+
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    // Draw the video frame to canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Convert canvas to blob
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          const file = new File([blob], `${currentField}_${Date.now()}.jpg`, {
+            type: "image/jpeg",
+          });
+
+          form.setFieldValue(currentField, file);
+          handleFilePreview(file, currentField);
+          closeCamera();
+        }
+      },
+      "image/jpeg",
+      0.95
+    );
+  };
+
+  const closeCamera = () => {
+    if (currentStream) {
+      currentStream.getTracks().forEach((track) => track.stop());
+      setCurrentStream(null);
+    }
+    setCameraOpen(false);
+    setCurrentField(null);
   };
 
   const PhotoUploadField = ({
@@ -160,6 +242,26 @@ export default function KYCResubmissionModal({
             error={form.errors[fieldName]}
           />
         </div>
+
+        {/* Camera Capture Button */}
+        <Group gap="xs" align="center">
+          <Button
+            variant="light"
+            size="compact-sm"
+            leftSection={<Camera size={16} />}
+            onClick={() => startCamera(fieldName)}
+            style={{
+              backgroundColor: "#F08C2315",
+              color: "#F08C23",
+              fontSize: "0.75rem",
+            }}
+          >
+            Take Photo
+          </Button>
+          <Text size="xs" c="dimmed">
+            or choose from gallery above
+          </Text>
+        </Group>
 
         {photoPreview[fieldName] && (
           <Card className="p-3 border border-gray-200">
@@ -318,6 +420,56 @@ export default function KYCResubmissionModal({
           </Button>
         </Group>
       </div>
+
+      {/* Camera Modal */}
+      <Modal
+        opened={cameraOpen}
+        onClose={closeCamera}
+        title="Take Photo"
+        centered
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div
+            className="relative bg-black rounded-lg overflow-hidden"
+            style={{ aspectRatio: "4/3", minHeight: "400px" }}
+          >
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+              onLoadedMetadata={(e) => {
+                const video = e.currentTarget;
+                video.play().catch((err) => console.error("Play error:", err));
+              }}
+            />
+            <canvas ref={canvasRef} style={{ display: "none" }} />
+          </div>
+
+          <Alert icon={<Camera size={16} />} color="blue">
+            <Text size="sm">
+              Position your{" "}
+              {currentField === "selfiePhoto" ? "face" : "ID document"} in the
+              frame and click capture
+            </Text>
+          </Alert>
+
+          <Group justify="space-between">
+            <Button variant="light" onClick={closeCamera}>
+              Cancel
+            </Button>
+            <Button
+              onClick={capturePhoto}
+              leftSection={<Camera size={16} />}
+              style={{ backgroundColor: "#3D6B2C" }}
+            >
+              Capture Photo
+            </Button>
+          </Group>
+        </div>
+      </Modal>
     </Modal>
   );
 }
