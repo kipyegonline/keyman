@@ -31,6 +31,8 @@ export default function WalletClientComponent() {
       return await getWallet();
     },
     retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
   });
   const {
     data: userAccount,
@@ -39,6 +41,8 @@ export default function WalletClientComponent() {
   } = useQuery({
     queryKey: ["user"],
     queryFn: async () => await getUserDetails(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
   });
 
   const {
