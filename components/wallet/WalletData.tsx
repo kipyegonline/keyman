@@ -136,7 +136,7 @@ function PhoneVerificationModal({
 
   const confirmOtpMutation = useMutation({
     mutationFn: ({ phone, otp }: { phone: string; otp: string }) =>
-      confirmOTP(phone, otp),
+      confirmOTP(otp, "", phone),
     onSuccess: (data) => {
       if (data.status) {
         notifications.show({
@@ -639,7 +639,7 @@ export default function WalletData({
     }
     setSendMoneyModalOpen(true);
   };
-  //console.log(walletData, "wallet data....");
+  // console.log(walletData, "wallet data....");
   if (isLoading) return <LoadingComponent message="Preparing wallet data..." />;
   return (
     <Container size="lg" py="xl">

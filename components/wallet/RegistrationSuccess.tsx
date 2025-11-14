@@ -11,9 +11,9 @@ import {
 } from "@mantine/core";
 import { CheckCircle, Wallet, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import OTPInput from "./OTPInput";
-import { sendOTP } from "@/api/wallet";
+//import { sendOTP } from "@/api/wallet";
 import { notify } from "@/lib/notifications";
 import { getUserDetails } from "@/api/registration";
 import { useQuery } from "@tanstack/react-query";
@@ -35,7 +35,7 @@ export default function RegistrationSuccess({
 }: RegistrationSuccessProps) {
   const router = useRouter();
   const [, setShowOTPInput] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
+  //const [otpSent, setOtpSent] = useState(false);
   const [, setWalletActivated] = useState(false);
   const [showKYCModal, setShowKYCModal] = useState(false);
 
@@ -51,7 +51,7 @@ export default function RegistrationSuccess({
   const handleNavigateToWallet = () => {
     router.push("/keyman/dashboard/key-wallet");
   };
-
+  /*
   useEffect(() => {
     // Auto-send OTP when component mounts if phone number is provided
     if (phoneNumber && !otpSent) {
@@ -78,7 +78,7 @@ export default function RegistrationSuccess({
       console.error("Error sending OTP:", error);
       notify.error("Failed to send OTP. Please try again.");
     }
-  };
+  };*/
 
   const handleOTPVerificationSuccess = () => {
     setWalletActivated(true);
@@ -166,7 +166,7 @@ export default function RegistrationSuccess({
 
   //for current account....
   if (userAccount?.user?.account_type === "business") {
-    if (userAccount?.user?.kyc_documents_okay === "completed") {
+    if (userAccount?.user?.kyc_documents_okay.toLowerCase() === "completed") {
       return ReadyWallet;
     } else if (
       userAccount?.user?.kyc_documents_okay?.toLowerCase() === "failed"

@@ -84,8 +84,10 @@ export default function PaymentDetailsModal({
     return value;
   };
   const handleConfirmPayment = () => {
-    onClose();
-    location.reload();
+    setTimeout(() => {
+      onClose();
+      location.reload();
+    }, 1000);
   };
   return (
     <Modal

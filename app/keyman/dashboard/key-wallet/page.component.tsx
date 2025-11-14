@@ -148,7 +148,8 @@ export default function WalletClientComponent() {
   if (
     userAccount &&
     !userAccount?.user?.wallet_account_id &&
-    !userAccount?.user?.wallet_creation_status
+    (!userAccount?.user?.wallet_creation_status ||
+      userAccount?.user?.wallet_creation_status.toLowerCase() === "rejected")
   ) {
     return (
       <WalletTypeSelection
