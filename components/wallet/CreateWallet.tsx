@@ -51,6 +51,10 @@ import RegistrationSuccess from "./RegistrationSuccess";
 import { notify } from "@/lib/notifications";
 import { toDataUrlFromFile } from "@/lib/FileHandlers";
 import CameraCapture from "./CameraCapture";
+import { optimizeIDPhoto, optimizeSelfiePhoto } from "@/lib/imageOptimizer";
+
+// Maximum file size threshold (in MB) before optimization is applied
+const MAX_FILE_SIZE_MB = 5;
 
 interface CreateWalletFormData {
   firstName: string;
@@ -387,28 +391,50 @@ export default function CreateWallet() {
       formData.append("address", form.values.address);
       formData.append("email", form.values.email);
 
-      // Required photos
+      // Required photos - optimize if larger than threshold
       if (form.values.frontSidePhoto) {
-        const base64 = await toDataUrlFromFile(form.values.frontSidePhoto);
+        let photoToUpload = form.values.frontSidePhoto;
+        const fileSizeMB = photoToUpload.size / (1024 * 1024);
 
+        if (fileSizeMB > MAX_FILE_SIZE_MB) {
+          notify.info("Optimizing front ID photo...");
+          photoToUpload = await optimizeIDPhoto(photoToUpload);
+        }
+
+        const base64 = await toDataUrlFromFile(photoToUpload);
         formData.append("frontSidePhoto", (base64 as string).split(",")[1]);
-        //formData.append("frontSidePhoto", smallest);
       }
+
       if (form.values.backSidePhoto) {
-        const base64 = await toDataUrlFromFile(form.values.backSidePhoto);
+        let photoToUpload = form.values.backSidePhoto;
+        const fileSizeMB = photoToUpload.size / (1024 * 1024);
+
+        if (fileSizeMB > MAX_FILE_SIZE_MB) {
+          notify.info("Optimizing back ID photo...");
+          photoToUpload = await optimizeIDPhoto(photoToUpload);
+        }
+
+        const base64 = await toDataUrlFromFile(photoToUpload);
         formData.append(
           "backSidePhoto",
           (base64 as string).split(",")[1] as string
         );
-        // formData.append("backSidePhoto", smallest);
       }
+
       if (form.values.selfiePhoto) {
-        const base64 = await toDataUrlFromFile(form.values.selfiePhoto);
+        let photoToUpload = form.values.selfiePhoto;
+        const fileSizeMB = photoToUpload.size / (1024 * 1024);
+
+        if (fileSizeMB > MAX_FILE_SIZE_MB) {
+          notify.info("Optimizing selfie photo...");
+          photoToUpload = await optimizeSelfiePhoto(photoToUpload);
+        }
+
+        const base64 = await toDataUrlFromFile(photoToUpload);
         formData.append(
           "selfiePhoto",
           (base64 as string).split(",")[1] as string
         );
-        // formData.append("selfiePhoto", smallest);
       }
 
       // Optional documents

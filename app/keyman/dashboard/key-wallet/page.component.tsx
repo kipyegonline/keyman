@@ -124,7 +124,7 @@ export default function WalletClientComponent() {
     />
   );*/
   // Loading state
-  console.log(userAccount, wallet, "wallet render.....");
+  // console.log(userAccount, wallet, "wallet render.....");
   if (loadingUser) {
     return <WalletLoadingComponent />;
   }
