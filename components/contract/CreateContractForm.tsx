@@ -28,13 +28,19 @@ interface ContractFormData {
   scope: string;
 }
 
-const CreateContractForm: React.FC = () => {
+interface CreateContractFormProps {
+  keymanId?: string | null;
+}
+
+const CreateContractForm: React.FC<CreateContractFormProps> = ({
+  keymanId,
+}) => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const form = useForm<ContractFormData>({
     initialValues: {
-      service_provider_id: "",
+      service_provider_id: keymanId || "",
       contract_duration_in_duration: 0,
       contract_amount: 0,
       title: "",
@@ -51,7 +57,11 @@ const CreateContractForm: React.FC = () => {
       scope: (value) => (!value.trim() ? "Project scope is required" : null),
     },
   });
-
+  React.useEffect(() => {
+    if (keymanId) {
+      form.setFieldValue("service_provider_id", keymanId);
+    }
+  }, [keymanId]);
   const handleSubmit = async (values: ContractFormData) => {
     setIsLoading(true);
 

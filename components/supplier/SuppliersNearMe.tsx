@@ -19,6 +19,7 @@ import {
   Box,
   Pagination,
   Spoiler,
+  Title,
 } from "@mantine/core";
 import {
   Search,
@@ -37,6 +38,9 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { getSuppliersNearMe } from "@/api/requests";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { navigateTo } from "@/lib/helpers";
+import { useAppContext } from "@/providers/AppContext";
 
 interface ISupplierContact {
   id: string;
@@ -65,7 +69,7 @@ const SuppliersNearMe: React.FC<{
     lng: number;
   } | null>(null);
   const [useExtendedSearch, setUseExtendedSearch] = useState(false);
-
+  const { setActiveItem } = useAppContext();
   //getSuppliersNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0)
   const { data: _suppliers, isLoading } = useQuery({
     queryKey: ["suppliers_near_me"],
@@ -85,6 +89,7 @@ const SuppliersNearMe: React.FC<{
       ),
     enabled: !!userLocation && useExtendedSearch,
   });
+  const router = useRouter();
 
   // Update search query when initialSearchQuery prop changes
   useEffect(() => {
@@ -164,6 +169,14 @@ const SuppliersNearMe: React.FC<{
   };
   }, [searchQuery, suppliers]);*/
   //console.log("filteredSuppliers", filteredSuppliers);
+  const handleStartKeyContract = (supplier: ISupplierContact) => () => {
+    //console.log("Starting KeyContract with:", supplier);
+    navigateTo();
+    setActiveItem("key-contract");
+    router.push(
+      `/keyman/dashboard/key-contract/create?keyman_id=${supplier.keyman_number}`
+    );
+  };
   const perPage = 25,
     total = Math.ceil(filteredSuppliers?.length / perPage);
   const [current, setCurrent] = useState(0);
@@ -218,6 +231,41 @@ const SuppliersNearMe: React.FC<{
             Connect with trusted construction suppliers in your area
           </Text>
         </div>
+
+        {/* Introductory Section */}
+        <Paper
+          p="xl"
+          radius="md"
+          withBorder
+          style={{ borderColor: "#3D6B2C20" }}
+        >
+          <Stack gap="md">
+            <Title
+              order={2}
+              style={{
+                color: "#3D6B2C",
+                fontSize: "1.75rem",
+                fontWeight: 600,
+              }}
+            >
+              {`You've got the right stores — now trade the right way.`}
+            </Title>
+            <Text size="md" c="dimmed" style={{ lineHeight: 1.6 }}>
+              Find a store → Create a contract → Escrow holds your money →
+              Delivery → Release.
+            </Text>
+            <Text
+              size="md"
+              style={{
+                fontStyle: "italic",
+                color: "#3D6B2C",
+                fontWeight: 500,
+              }}
+            >
+              Here, trust is the currency.
+            </Text>
+          </Stack>
+        </Paper>
 
         {/* Location Alert */}
         {locationError && (
@@ -311,24 +359,25 @@ const SuppliersNearMe: React.FC<{
                 exitDuration={200}
               >
                 {(styles) => (
-                  <Link href={`${url}${supplier.id}`}>
-                    <Card
-                      shadow="md"
-                      padding="lg"
-                      radius="lg"
-                      style={{
-                        ...styles,
-                        border: "1px solid #E5E7EB",
-                        transition: "all 0.3s ease",
-                        cursor: "pointer",
-                        animationDelay: `${index * 100}ms`,
-                      }}
-                      className="hover:shadow-xl hover:scale-105 hover:border-[#3D6B2C]"
-                    >
-                      <Stack gap="md">
-                        {/* Header */}
+                  <Card
+                    shadow="md"
+                    padding="lg"
+                    radius="lg"
+                    style={{
+                      ...styles,
+                      border: "1px solid #E5E7EB",
+                      transition: "all 0.3s ease",
+                      cursor: "pointer",
+                      animationDelay: `${index * 100}ms`,
+                    }}
+                    className="hover:shadow-xl hover:scale-105 hover:border-[#3D6B2C]"
+                  >
+                    <Stack gap="md">
+                      {/* Header */}
 
-                        <Group justify="space-between" align="flex-start">
+                      <Group justify="space-between" align="flex-start">
+                        <Link href={`${url}${supplier.id}`}>
+                          {" "}
                           <Avatar
                             // size="lg"
                             radius="md"
@@ -347,22 +396,24 @@ const SuppliersNearMe: React.FC<{
                             {supplier?.photo &&
                               supplier?.photo?.length === 0 && <User />}
                           </Avatar>
+                        </Link>
 
-                          <Badge
-                            color="orange"
-                            variant="light"
-                            size="sm"
-                            style={{
-                              backgroundColor: "#FFF7ED",
-                              color: "#F08C23",
-                            }}
-                          >
-                            {supplier.keyman_number}
-                          </Badge>
-                        </Group>
+                        <Badge
+                          color="orange"
+                          variant="light"
+                          size="sm"
+                          style={{
+                            backgroundColor: "#FFF7ED",
+                            color: "#F08C23",
+                          }}
+                        >
+                          {supplier.keyman_number}
+                        </Badge>
+                      </Group>
 
-                        {/* Supplier Name */}
-
+                      {/* Supplier Name */}
+                      <Link href={`${url}${supplier.id}`}>
+                        {" "}
                         <Text
                           size="lg"
                           fw={600}
@@ -379,102 +430,106 @@ const SuppliersNearMe: React.FC<{
                             />
                           )}
                         </Text>
+                      </Link>
 
-                        {supplier &&
-                        supplier?.comments &&
-                        (supplier?.comments as string)?.length > 0 ? (
-                          <Spoiler
-                            showLabel="see more"
-                            hideLabel="less"
-                            maxHeight={50}
-                          >
-                            <Text size="sm" c="dimmed">
-                              {supplier.comments}
-                            </Text>
-                          </Spoiler>
-                        ) : (
-                          <Text c="dimmed">No description....</Text>
-                        )}
-
-                        <Divider />
-
-                        {/* Contact Info */}
-                        <Stack gap="xs" display={"none"}>
-                          <Group gap="xs">
-                            <Phone size={16} style={{ color: "#6B7280" }} />
-                            <Text
-                              size="sm"
-                              c="dimmed"
-                              style={{ fontSize: "0.875rem" }}
-                            >
-                              {supplier.phone}
-                            </Text>
-                          </Group>
-                          <Group gap="xs">
-                            <Mail size={16} style={{ color: "#6B7280" }} />
-                            <Text
-                              size="sm"
-                              c="dimmed"
-                              style={{ fontSize: "0.875rem" }}
-                              lineClamp={1}
-                            >
-                              {supplier.email}
-                            </Text>
-                          </Group>
-                        </Stack>
-
-                        {/* Action Buttons */}
-                        <Group justify="center" gap="xs" mt="md">
-                          {[...Array(5)].map((item, i) => (
-                            <Star
-                              size={20}
-                              key={i}
-                              color={
-                                supplier?.supplier_rating !== null
-                                  ? i < Number(supplier?.supplier_rating)
-                                    ? "orange"
-                                    : "gray"
-                                  : i <= 0
-                                  ? "orange"
-                                  : "gray"
-                              }
-                            />
-                          ))}
-                        </Group>
-                        <Group
-                          justify="apart"
-                          gap="xs"
-                          mt="md"
-                          display={"none"}
+                      <Box>
+                        <Button
+                          fullWidth
+                          onClick={handleStartKeyContract(supplier)}
                         >
-                          <Button
-                            variant="outline"
+                          Start KeyContract
+                        </Button>
+                      </Box>
+
+                      {supplier &&
+                      supplier?.comments &&
+                      (supplier?.comments as string)?.length > 0 ? (
+                        <Spoiler
+                          showLabel="see more"
+                          hideLabel="less"
+                          maxHeight={50}
+                        >
+                          <Text size="sm" c="dimmed">
+                            {supplier.comments}
+                          </Text>
+                        </Spoiler>
+                      ) : (
+                        <Text c="dimmed">No description....</Text>
+                      )}
+
+                      <Divider />
+
+                      {/* Contact Info */}
+                      <Stack gap="xs" display={"none"}>
+                        <Group gap="xs">
+                          <Phone size={16} style={{ color: "#6B7280" }} />
+                          <Text
                             size="sm"
-                            leftSection={<Phone size={16} />}
-                            onClick={() => handleCall(supplier.phone)}
-                            style={{
-                              borderColor: "#3D6B2C",
-                              color: "#3D6B2C",
-                              flex: 1,
-                            }}
+                            c="dimmed"
+                            style={{ fontSize: "0.875rem" }}
                           >
-                            Call
-                          </Button>
-                          <Button
+                            {supplier.phone}
+                          </Text>
+                        </Group>
+                        <Group gap="xs">
+                          <Mail size={16} style={{ color: "#6B7280" }} />
+                          <Text
                             size="sm"
-                            leftSection={<MessageCircle size={16} />}
-                            onClick={() => handleRequestQuote(supplier)}
-                            style={{
-                              backgroundColor: "#F08C23",
-                              flex: 1,
-                            }}
+                            c="dimmed"
+                            style={{ fontSize: "0.875rem" }}
+                            lineClamp={1}
                           >
-                            Quote
-                          </Button>
+                            {supplier.email}
+                          </Text>
                         </Group>
                       </Stack>
-                    </Card>
-                  </Link>
+
+                      {/* Action Buttons */}
+                      <Group justify="center" gap="xs" mt="md">
+                        {[...Array(5)].map((item, i) => (
+                          <Star
+                            size={20}
+                            key={i}
+                            color={
+                              supplier?.supplier_rating !== null
+                                ? i < Number(supplier?.supplier_rating)
+                                  ? "orange"
+                                  : "gray"
+                                : i <= 0
+                                ? "orange"
+                                : "gray"
+                            }
+                          />
+                        ))}
+                      </Group>
+                      <Group justify="apart" gap="xs" mt="md" display={"none"}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          leftSection={<Phone size={16} />}
+                          onClick={() => handleCall(supplier.phone)}
+                          style={{
+                            borderColor: "#3D6B2C",
+                            color: "#3D6B2C",
+                            flex: 1,
+                          }}
+                        >
+                          Call
+                        </Button>
+                        <Button
+                          size="sm"
+                          leftSection={<MessageCircle size={16} />}
+                          onClick={() => handleRequestQuote(supplier)}
+                          style={{
+                            backgroundColor: "#F08C23",
+                            flex: 1,
+                          }}
+                        >
+                          Quote
+                        </Button>
+                      </Group>
+                    </Stack>
+                  </Card>
                 )}
               </Transition>
             </Grid.Col>
