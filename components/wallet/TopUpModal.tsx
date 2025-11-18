@@ -46,11 +46,12 @@ export default function TopUpModal({
       topUpWallet(data),
     onSuccess: (data) => {
       setIsTopUpLoading(false);
-      if (data.success) {
+
+      if (data.status) {
         setTopUpResponse(data);
         notifications.show({
           title: "Success",
-          message: "Top up initiated! Complete the payment on your phone.",
+          message: data.message,
           color: "green",
         });
       } else {

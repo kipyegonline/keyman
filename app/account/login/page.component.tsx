@@ -42,7 +42,7 @@ const KeymanLogin: React.FC = () => {
 
   const handleSubmit = async (values: LoginFormValues) => {
     setLoading(true);
-    const response = await login(values.email, values.password);
+    const response = await login(values.email.trim(), values.password);
     setLoading(false);
     if (response.status) {
       loginUser(response.user, response.token);
@@ -151,10 +151,8 @@ const KeymanLogin: React.FC = () => {
               size="md"
               className="bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition-colors duration-200"
               disabled={
-                !form.isValid() ||
-                !form.values.email ||
-                !form.values.password ||
-                loading
+                // !form.isValid() ||
+                !form.values.email || !form.values.password || loading
               }
             >
               Sign In
