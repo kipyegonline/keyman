@@ -431,6 +431,19 @@ export default function CreatePersonalWallet() {
     // Effect to run when 'active' changes
     if (active > 0) window.scrollTo(0, 0);
   }, [active]);
+
+  // Cleanup camera stream on unmount
+  React.useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+      }
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+    };
+  }, [cameraStream]);
+
   const nextStep = () => {
     if (active === 0) {
       const validation = form.validate();
@@ -630,7 +643,9 @@ export default function CreatePersonalWallet() {
     const isVideoField = fieldName === "selfiePhoto";
     const isPhotoField =
       fieldName === "frontSidePhoto" || fieldName === "backSidePhoto";
-    const acceptedTypes = isVideoField ? "video/*" : "image/*";
+    const acceptedTypes = isVideoField
+      ? "video/*"
+      : "image/jpeg,image/jpg,image/png";
     const file = form.values[fieldName] as File | null;
     const isVideo = file?.type.startsWith("video/");
 

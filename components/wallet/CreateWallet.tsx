@@ -265,11 +265,29 @@ export default function CreateWallet() {
   };
 
   const takePhoto = useCallback(() => {
-    if (!cameraStream || !videoRef.current || !canvasRef.current) return;
+    if (!cameraStream || !videoRef.current || !canvasRef.current) {
+      notify.error("Camera not ready. Please try again.");
+      return;
+    }
 
     try {
       const video = videoRef.current;
       const canvas = canvasRef.current;
+
+      // Check if video is ready
+      if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+        notify.error("Video not ready. Please wait a moment and try again.");
+        return;
+      }
+
+      // Check if video has valid dimensions
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        notify.error(
+          "Camera not initialized properly. Please close and try again."
+        );
+        return;
+      }
+
       const context = canvas.getContext("2d");
 
       if (!context) {
@@ -295,6 +313,8 @@ export default function CreateWallet() {
             handleFilePreview(file, "selfiePhoto");
             stopCamera();
             setCameraModalOpen(false);
+          } else {
+            notify.error("Failed to create photo. Please try again.");
           }
         },
         "image/jpeg",
@@ -339,6 +359,15 @@ export default function CreateWallet() {
     // Effect to run when 'active' changes
     if (active > 0) window.scrollTo(0, 0);
   }, [active]);
+
+  // Cleanup camera stream on unmount
+  React.useEffect(() => {
+    return () => {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [cameraStream]);
   const nextStep = () => {
     if (active === 0) {
       const validation = form.validate();
@@ -506,7 +535,7 @@ export default function CreateWallet() {
     allowCamera?: boolean;
     description?: string;
   }) => {
-    const acceptedTypes = "image/*";
+    const acceptedTypes = "image/jpeg,image/jpg,image/png";
     const file = form.values[fieldName] as File | null;
     const isSelfieField = fieldName === "selfiePhoto";
     const isPhotoField =
