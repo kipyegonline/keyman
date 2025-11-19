@@ -546,7 +546,251 @@ export default function PricelistDashboard({
       setCartSpinner(!true);
     }
   };
+  const AddComponent = (
+    <Modal
+      opened={addModalOpened}
+      onClose={handleAddModalClose}
+      title={
+        <Group>
+          <Avatar size="sm" radius="xl" style={{ backgroundColor: "#3D6B2C" }}>
+            <Plus size={16} color="white" />
+          </Avatar>
+          <Text fw={600}>Add New Item</Text>
+        </Group>
+      }
+      size="lg"
+      radius="lg"
+      centered
+    >
+      <Stack gap="md">
+        {/* Validation Errors */}
+        {validationErrors.length > 0 && (
+          <Alert
+            icon={<AlertCircle size={16} />}
+            title="Please fix the following errors:"
+            color="red"
+            variant="light"
+          >
+            <ul style={{ margin: 0, paddingLeft: 20 }}>
+              {validationErrors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </Alert>
+        )}
 
+        {/* Item Name */}
+        <TextInput
+          label="Item Name"
+          placeholder="Enter item name"
+          value={addForm.name}
+          onChange={(e) => handleFormUpdate("add", "name", e.target.value)}
+          leftSection={<Package size={16} />}
+          size="lg"
+          required
+          radius="md"
+          //maxLength={20}
+          error={validationErrors.some((error) => error.includes("Item name"))}
+        />
+
+        {/* Swahili Name */}
+        <TextInput
+          label="Swahili Name"
+          placeholder="Enter Swahili name"
+          value={addForm.swahili_name}
+          onChange={(e) =>
+            handleFormUpdate("add", "swahili_name", e.target.value)
+          }
+          leftSection={<Package size={16} />}
+          size="lg"
+          radius="md"
+          //maxLength={20}
+          error={validationErrors.some((error) =>
+            error.includes("Swahili name")
+          )}
+        />
+
+        {/* Description */}
+        <Textarea
+          label="Description"
+          placeholder="Enter item description"
+          value={addForm.description || ""}
+          onChange={(e) =>
+            handleFormUpdate("add", "description", e.target.value || "")
+          }
+          size="lg"
+          radius="md"
+          minRows={3}
+          error={validationErrors.some((error) =>
+            error.includes("Description")
+          )}
+          // maxLength={50}
+        />
+
+        {/* Item Type */}
+        <Select
+          label="Item Type"
+          value={addForm.type}
+          onChange={(value) =>
+            handleFormUpdate("add", "type", (value as Pricelist["type"]) || "")
+          }
+          leftSection={<Package size={16} />}
+          data={services}
+          size="lg"
+          required
+          radius="md"
+          error={validationErrors.some((error) => error.includes("Item type"))}
+        />
+
+        {/* Price */}
+        <NumberInput
+          label="Price (KES)"
+          placeholder="Enter price"
+          value={Number(addForm.price || 0)}
+          onChange={(value) => handleFormUpdate("add", "price", +value || 0)}
+          leftSection={<HandCoins size={16} />}
+          thousandSeparator=","
+          decimalScale={2}
+          size="lg"
+          required
+          radius="md"
+          min={0}
+          error={validationErrors.some((error) => error.includes("Price"))}
+        />
+        {/**Metrics */}
+        <TextInput
+          label="Metrics (Kgs/Litres/Metres)"
+          size="lg"
+          onChange={(e) =>
+            handleFormUpdate("add", "metrics", e.target.value || "")
+          }
+          radius="md"
+          required
+          placeholder="Enter item metrics unit"
+          maxLength={10}
+          value={addForm?.metrics}
+          error={validationErrors.some((error) => error.includes("Metrics"))}
+        />
+        {/* Weight */}
+        <NumberInput
+          label="Weight (Kg)"
+          placeholder="Enter item metrics unit"
+          value={Number(addForm.weight_in_kgs || 0)}
+          onChange={(value) =>
+            handleFormUpdate("add", "weight_in_kgs", +value || 0)
+          }
+          leftSection={<Weight size={16} />}
+          decimalScale={2}
+          size="lg"
+          //required
+          radius="md"
+          min={0}
+          error={validationErrors.some((error) => error.includes("Weight"))}
+        />
+
+        {/* Transportation Type */}
+        <Select
+          label="Transportation Type"
+          value={addForm.transportation_type}
+          onChange={(value) =>
+            handleFormUpdate(
+              "add",
+              "transportation_type",
+              (value as Pricelist["transportation_type"]) || "TUKTUK"
+            )
+          }
+          data={[
+            { value: "TUKTUK", label: "🛺 TukTuk" },
+            { value: "PICKUP", label: "🚛 Pickup" },
+            { value: "LORRY", label: "🚚 Lorry" },
+          ]}
+          size="lg"
+          required
+          radius="md"
+          error={validationErrors.some((error) =>
+            error.includes("Transportation type")
+          )}
+        />
+
+        {/* Image Upload */}
+        <FileInput
+          label="Item Image (Optional)"
+          description="Upload an image of the item (Max 5MB, JPEG/PNG/WebP)"
+          placeholder="Choose image file"
+          value={file}
+          onChange={setfile}
+          leftSection={<ImageIcon size={16} />}
+          accept="image/jpeg,image/jpg,image/png,image/webp"
+          size="lg"
+          radius="md"
+          clearable
+          error={validationErrors.some(
+            (error) => error.includes("Image") || error.includes("format")
+          )}
+          styles={{
+            input: {
+              cursor: "pointer",
+              "&::placeholder": {
+                color: "#868e96",
+              },
+            },
+          }}
+        />
+
+        {/* Image Preview */}
+        {file && (
+          <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
+            <Group>
+              <Avatar
+                size="lg"
+                radius="md"
+                src={URL.createObjectURL(file)}
+                alt="Item preview"
+              >
+                <ImageIcon size={24} />
+              </Avatar>
+              <Box style={{ flex: 1 }}>
+                <Text size="sm" fw={500}>
+                  {file.name}
+                </Text>
+                <Text size="xs" c="dimmed">
+                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                </Text>
+              </Box>
+              <ActionIcon
+                variant="light"
+                color="red"
+                onClick={() => setfile(null)}
+              >
+                <X size={16} />
+              </ActionIcon>
+            </Group>
+          </Paper>
+        )}
+
+        <Group justify="flex-end" mt="xl">
+          <Button
+            variant="light"
+            color="gray"
+            leftSection={<X size={16} />}
+            onClick={handleAddModalClose}
+            radius="xl"
+          >
+            Cancel
+          </Button>
+          <Button
+            color="#3D6B2C"
+            leftSection={<Upload size={16} />}
+            onClick={handleAddItem}
+            loading={addLoading}
+            radius="xl"
+          >
+            Add Item
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
+  );
   const EditComponent = (
     <Modal
       opened={modalOpened}
@@ -911,7 +1155,7 @@ export default function PricelistDashboard({
                 color="red"
                 leftSection={<Trash2 size={16} />}
                 onClick={() => {
-                  if (confirm("Clear cark")) clearCart();
+                  if (confirm("Clear cart")) clearCart();
                 }}
                 radius="xl"
               >
@@ -1089,261 +1333,7 @@ export default function PricelistDashboard({
       {EditComponent}
 
       {/* Add Item Modal */}
-      <Modal
-        opened={addModalOpened}
-        onClose={handleAddModalClose}
-        title={
-          <Group>
-            <Avatar
-              size="sm"
-              radius="xl"
-              style={{ backgroundColor: "#3D6B2C" }}
-            >
-              <Plus size={16} color="white" />
-            </Avatar>
-            <Text fw={600}>Add New Item</Text>
-          </Group>
-        }
-        size="lg"
-        radius="lg"
-        centered
-      >
-        <Stack gap="md">
-          {/* Validation Errors */}
-          {validationErrors.length > 0 && (
-            <Alert
-              icon={<AlertCircle size={16} />}
-              title="Please fix the following errors:"
-              color="red"
-              variant="light"
-            >
-              <ul style={{ margin: 0, paddingLeft: 20 }}>
-                {validationErrors.map((error, index) => (
-                  <li key={index}>{error}</li>
-                ))}
-              </ul>
-            </Alert>
-          )}
-
-          {/* Item Name */}
-          <TextInput
-            label="Item Name"
-            placeholder="Enter item name"
-            value={addForm.name}
-            onChange={(e) => handleFormUpdate("add", "name", e.target.value)}
-            leftSection={<Package size={16} />}
-            size="lg"
-            required
-            radius="md"
-            maxLength={20}
-            error={validationErrors.some((error) =>
-              error.includes("Item name")
-            )}
-          />
-
-          {/* Swahili Name */}
-          <TextInput
-            label="Swahili Name"
-            placeholder="Enter Swahili name"
-            value={addForm.swahili_name}
-            onChange={(e) =>
-              handleFormUpdate("add", "swahili_name", e.target.value)
-            }
-            leftSection={<Package size={16} />}
-            size="lg"
-            radius="md"
-            maxLength={20}
-            error={validationErrors.some((error) =>
-              error.includes("Swahili name")
-            )}
-          />
-
-          {/* Description */}
-          <Textarea
-            label="Description"
-            placeholder="Enter item description"
-            value={addForm.description || ""}
-            onChange={(e) =>
-              handleFormUpdate("add", "description", e.target.value || "")
-            }
-            size="lg"
-            radius="md"
-            minRows={3}
-            error={validationErrors.some((error) =>
-              error.includes("Description")
-            )}
-            maxLength={50}
-          />
-
-          {/* Item Type */}
-          <Select
-            label="Item Type"
-            value={addForm.type}
-            onChange={(value) =>
-              handleFormUpdate(
-                "add",
-                "type",
-                (value as Pricelist["type"]) || ""
-              )
-            }
-            leftSection={<Package size={16} />}
-            data={services}
-            size="lg"
-            required
-            radius="md"
-            error={validationErrors.some((error) =>
-              error.includes("Item type")
-            )}
-          />
-
-          {/* Price */}
-          <NumberInput
-            label="Price (KES)"
-            placeholder="Enter price"
-            value={Number(addForm.price || 0)}
-            onChange={(value) => handleFormUpdate("add", "price", +value || 0)}
-            leftSection={<HandCoins size={16} />}
-            thousandSeparator=","
-            decimalScale={2}
-            size="lg"
-            required
-            radius="md"
-            min={0}
-            error={validationErrors.some((error) => error.includes("Price"))}
-          />
-          {/**Metrics */}
-          <TextInput
-            label="Metrics (Kgs/Litres/Metres)"
-            size="lg"
-            onChange={(e) =>
-              handleFormUpdate("add", "metrics", e.target.value || "")
-            }
-            radius="md"
-            required
-            placeholder="Enter item metrics unit"
-            maxLength={10}
-            value={addForm?.metrics}
-            error={validationErrors.some((error) => error.includes("Metrics"))}
-          />
-          {/* Weight */}
-          <NumberInput
-            label="Weight (Kg)"
-            placeholder="Enter item metrics unit"
-            value={Number(addForm.weight_in_kgs || 0)}
-            onChange={(value) =>
-              handleFormUpdate("add", "weight_in_kgs", +value || 0)
-            }
-            leftSection={<Weight size={16} />}
-            decimalScale={2}
-            size="lg"
-            required
-            radius="md"
-            min={0}
-            error={validationErrors.some((error) => error.includes("Weight"))}
-          />
-
-          {/* Transportation Type */}
-          <Select
-            label="Transportation Type"
-            value={addForm.transportation_type}
-            onChange={(value) =>
-              handleFormUpdate(
-                "add",
-                "transportation_type",
-                (value as Pricelist["transportation_type"]) || "TUKTUK"
-              )
-            }
-            data={[
-              { value: "TUKTUK", label: "🛺 TukTuk" },
-              { value: "PICKUP", label: "🚛 Pickup" },
-              { value: "LORRY", label: "🚚 Lorry" },
-            ]}
-            size="lg"
-            required
-            radius="md"
-            error={validationErrors.some((error) =>
-              error.includes("Transportation type")
-            )}
-          />
-
-          {/* Image Upload */}
-          <FileInput
-            label="Item Image (Optional)"
-            description="Upload an image of the item (Max 5MB, JPEG/PNG/WebP)"
-            placeholder="Choose image file"
-            value={file}
-            onChange={setfile}
-            leftSection={<ImageIcon size={16} />}
-            accept="image/jpeg,image/jpg,image/png,image/webp"
-            size="lg"
-            radius="md"
-            clearable
-            error={validationErrors.some(
-              (error) => error.includes("Image") || error.includes("format")
-            )}
-            styles={{
-              input: {
-                cursor: "pointer",
-                "&::placeholder": {
-                  color: "#868e96",
-                },
-              },
-            }}
-          />
-
-          {/* Image Preview */}
-          {file && (
-            <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
-              <Group>
-                <Avatar
-                  size="lg"
-                  radius="md"
-                  src={URL.createObjectURL(file)}
-                  alt="Item preview"
-                >
-                  <ImageIcon size={24} />
-                </Avatar>
-                <Box style={{ flex: 1 }}>
-                  <Text size="sm" fw={500}>
-                    {file.name}
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </Text>
-                </Box>
-                <ActionIcon
-                  variant="light"
-                  color="red"
-                  onClick={() => setfile(null)}
-                >
-                  <X size={16} />
-                </ActionIcon>
-              </Group>
-            </Paper>
-          )}
-
-          <Group justify="flex-end" mt="xl">
-            <Button
-              variant="light"
-              color="gray"
-              leftSection={<X size={16} />}
-              onClick={handleAddModalClose}
-              radius="xl"
-            >
-              Cancel
-            </Button>
-            <Button
-              color="#3D6B2C"
-              leftSection={<Upload size={16} />}
-              onClick={handleAddItem}
-              loading={addLoading}
-              radius="xl"
-            >
-              Add Item
-            </Button>
-          </Group>
-        </Stack>
-      </Modal>
+      {AddComponent}
     </section>
   );
 }
@@ -1522,9 +1512,9 @@ export const PricelistItem: React.FC<{
                     radius="lg"
                     className="h-full w-full object-cover"
                     style={{
-                      aspectRatio: '1/1',
-                      maxWidth: '100%',
-                      maxHeight: '100%'
+                      aspectRatio: "1/1",
+                      maxWidth: "100%",
+                      maxHeight: "100%",
                     }}
                   />
                 </Box>
