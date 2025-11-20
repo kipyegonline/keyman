@@ -43,6 +43,12 @@ const services = [
   { label: "Professional Services", value: "professional_services" },
 ];
 
+const transportationTypes = [
+  { value: "TUKTUK", label: "🛺 TukTuk" },
+  { value: "PICKUP", label: "🚛 Pickup" },
+  { value: "LORRY", label: "🚚 Lorry" },
+];
+
 export const AddItemModal = React.memo<AddItemModalProps>(
   ({ opened, onClose, addForm, file, setFile, onSubmit, loading }) => {
     return (
@@ -127,7 +133,7 @@ export const AddItemModal = React.memo<AddItemModalProps>(
             label="Metrics (Kgs/Litres/Metres)"
             size="lg"
             radius="md"
-            required
+            //required
             placeholder="Enter item metrics unit"
             maxLength={10}
             {...addForm.getInputProps("metrics")}
@@ -148,11 +154,7 @@ export const AddItemModal = React.memo<AddItemModalProps>(
           {/* Transportation Type */}
           <Select
             label="Transportation Type"
-            data={[
-              { value: "TUKTUK", label: "🛺 TukTuk" },
-              { value: "PICKUP", label: "🚛 Pickup" },
-              { value: "LORRY", label: "🚚 Lorry" },
-            ]}
+            data={transportationTypes}
             size="lg"
             required
             radius="md"

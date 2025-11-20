@@ -83,6 +83,12 @@ export type WholePriceList = Pricelist & Picha;
 
 /* disable-eslint */
 
+const transportationFilterOptions = [
+  { value: "TUKTUK", label: "🛺 TukTuk" },
+  { value: "PICKUP", label: "🚛 Pickup" },
+  { value: "LORRY", label: "🚚 Lorry" },
+];
+
 const getItemEmoji = (type: string, name: string): string => {
   if (name.toLowerCase().includes("tile")) return "🏺";
   if (name.toLowerCase().includes("cement")) return "🏗️";
@@ -176,10 +182,10 @@ export default function PricelistDashboard({
         value === "Select Type" ? "Item type is required" : null,
       price: (value) =>
         !value || value <= 0 ? "Price must be greater than 0" : null,
-      metrics: (value) =>
+      /* metrics: (value) =>
         !value || value.trim().length === 0 ? "Metrics is required" : null,
       weight_in_kgs: (value) =>
-        value === undefined || value < 0 ? "Weight must be 0 or greater" : null,
+        value === undefined || value < 0 ? "Weight must be 0 or greater" : null,*/
       transportation_type: (value) =>
         !value ? "Transportation type is required" : null,
     },
@@ -681,11 +687,7 @@ export default function PricelistDashboard({
             <Select
               placeholder="Filter by transport"
               leftSection={<Filter size={16} />}
-              data={[
-                { value: "TUKTUK", label: "🛺 TukTuk" },
-                { value: "PICKUP", label: "🚛 Pickup" },
-                { value: "LORRY", label: "🚚 Lorry" },
-              ]}
+              data={transportationFilterOptions}
               value={filterType}
               onChange={setFilterType}
               clearable

@@ -19,6 +19,12 @@ import { UseFormReturnType } from "@mantine/form";
 import { Edit3, HandCoins, Weight, ImageIcon, Save, X } from "lucide-react";
 import { Pricelist } from "./priceList";
 
+const transportationTypes = [
+  { value: "TUKTUK", label: "🛺 TukTuk" },
+  { value: "PICKUP", label: "🚛 Pickup" },
+  { value: "LORRY", label: "🚚 Lorry" },
+];
+
 interface EditItemModalProps {
   opened: boolean;
   onClose: () => void;
@@ -101,11 +107,7 @@ export const EditItemModal = React.memo<EditItemModalProps>(
 
             <Select
               label="Transportation Type"
-              data={[
-                { value: "TUKTUK", label: "🛺 TukTuk" },
-                { value: "PICKUP", label: "🚛 Pickup" },
-                { value: "LORRY", label: "🚚 Lorry" },
-              ]}
+              data={transportationTypes}
               display="none"
               size="lg"
               radius="md"
