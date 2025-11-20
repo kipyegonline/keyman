@@ -27,6 +27,7 @@ import {
   Loader,
   Image,
 } from "@mantine/core";
+import { useForm } from "@mantine/form";
 import { toDataUrlFromFile, DataURIToBlob } from "@/lib/FileHandlers";
 import {
   Edit3,
@@ -41,7 +42,6 @@ import {
   HandCoins,
   Coins,
   Package,
-  AlertCircle,
   //Delete,
   Trash2,
   ImageIcon,
@@ -151,56 +151,75 @@ export default function PricelistDashboard({
   /*eslint-disable*/
   const [selectedItem, setSelectedItem] = useState<Pricelist | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
-  const [editForm, setEditForm] = useState<Pricelist | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [current, setCurrent] = useState(0);
 
-  // Edit Modal States
-
   // Add Item Modal States
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [file, setfile] = useState<File | null>(null);
-  const [addForm, setAddForm] = useState<Pricelist>({
-    description: "",
-    name: "",
-    price: 0,
-    swahili_name: "",
-    transportation_type: "TUKTUK",
-    type: "Select Type",
-    weight_in_kgs: 0,
-    image: null,
-  });
   const [addLoading, setAddLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
 
-  // Memoize validation error checks for better performance
-  const fieldErrors = React.useMemo(
-    () => ({
-      itemName: validationErrors.some((error) => error.includes("Item name")),
-      swahiliName: validationErrors.some((error) =>
-        error.includes("Swahili name")
-      ),
-      description: validationErrors.some((error) =>
-        error.includes("Description")
-      ),
-      itemType: validationErrors.some((error) => error.includes("Item type")),
-      price: validationErrors.some((error) => error.includes("Price")),
-      metrics: validationErrors.some((error) => error.includes("Metrics")),
-      weight: validationErrors.some((error) => error.includes("Weight")),
-      transportationType: validationErrors.some((error) =>
-        error.includes("Transportation type")
-      ),
-      image: validationErrors.some((error) => error.includes("Image")),
-    }),
-    [validationErrors]
-  );
+  // Use Mantine form for optimized performance and validation (Add Form)
+  const addForm = useForm<Pricelist>({
+    initialValues: {
+      description: "",
+      name: "",
+      price: 0,
+      swahili_name: "",
+      transportation_type: "TUKTUK",
+      type: "Select Type",
+      weight_in_kgs: 0,
+      image: null,
+      metrics: "",
+      stock: "",
+    },
+    validate: {
+      name: (value) =>
+        !value || value.trim().length === 0 ? "Item name is required" : null,
+      description: (value) =>
+        !value || value.trim().length === 0 ? "Description is required" : null,
+      type: (value) =>
+        value === "Select Type" ? "Item type is required" : null,
+      price: (value) =>
+        !value || value <= 0 ? "Price must be greater than 0" : null,
+      metrics: (value) =>
+        !value || value.trim().length === 0 ? "Metrics is required" : null,
+      weight_in_kgs: (value) =>
+        value === undefined || value < 0 ? "Weight must be 0 or greater" : null,
+      transportation_type: (value) =>
+        !value ? "Transportation type is required" : null,
+    },
+  });
+
+  // Use Mantine form for edit modal (optimized performance and validation)
+  const editForm = useForm<Pricelist>({
+    initialValues: {
+      description: "",
+      name: "",
+      price: 0,
+      swahili_name: "",
+      transportation_type: "TUKTUK",
+      type: "goods",
+      weight_in_kgs: 0,
+      image: null,
+      metrics: "",
+      stock: "",
+      item_id: "",
+    },
+    validate: {
+      price: (value) =>
+        !value || value <= 0 ? "Price must be greater than 0" : null,
+      description: (value) =>
+        !value || value.trim().length === 0 ? "Description is required" : null,
+    },
+  });
 
   const [cartSpinner, setCartSpinner] = useState(false);
 
@@ -247,7 +266,15 @@ export default function PricelistDashboard({
 
   const handleEditClick = (item: Pricelist) => {
     setSelectedItem(item);
-    setEditForm({ ...item });
+    editForm.setValues({
+      ...item,
+      price: item.price || 0,
+      description: item.description || "",
+      metrics: item.metrics || "",
+      stock: item.stock || "",
+      transportation_type: item.transportation_type || "TUKTUK",
+      weight_in_kgs: item.weight_in_kgs || 0,
+    });
     setModalOpened(true);
   };
   const handleDeleteClick = async (item: Pricelist) => {
@@ -267,15 +294,20 @@ export default function PricelistDashboard({
   };
 
   const handleSavePrice = async () => {
-    if (!editForm || !selectedItem) return;
+    if (!selectedItem) return;
 
+    // Validate form
+    if (editForm.validate().hasErrors) {
+      return;
+    }
+
+    const values = editForm.values;
     const formdata = new FormData();
-    formdata.append("items[1][item_id]", editForm?.item_id as string);
-    formdata.append("items[1][price]", editForm?.price.toString() as string);
-    //formdata.append("items[1][image]", fileInput.files[0], "Screenshot 2025-07-22 at 08.40.19.png");
-    formdata.append("items[1][stock]", editForm?.stock as string);
-    formdata.append("items[1][description]", editForm?.description as string);
-    formdata.append("items[1][metrics]", editForm?.metrics as string);
+    formdata.append("items[1][item_id]", values.item_id as string);
+    formdata.append("items[1][price]", values.price.toString());
+    formdata.append("items[1][stock]", values.stock || "");
+    formdata.append("items[1][description]", values.description);
+    formdata.append("items[1][metrics]", values.metrics || "");
     if (file) {
       const file64 = await toDataUrlFromFile(file);
 
@@ -315,86 +347,21 @@ export default function PricelistDashboard({
 
     setIsLoading(false);
     if (response.status) {
-      notify.success(`Price updated for ${editForm.name}`);
+      notify.success(`Price updated for ${values.name}`);
       setfile(null);
-      setEditForm(null);
+      editForm.reset();
       setTimeout(() => {
         setSuccessMessage("");
         setModalOpened(false);
       }, 2000);
-      setSuccessMessage(`Price updated for ${editForm.name}`);
+      setSuccessMessage(`Price updated for ${values.name}`);
       refetchPricelist();
     } else notify.error(response.message);
   };
 
-  // Add Item Functions
-  const validateAddForm = (): boolean => {
-    const errors: string[] = [];
-
-    if (!addForm.name.trim()) {
-      errors.push("Item name is required");
-    }
-
-    /*if (!addForm.swahili_name.trim()) {
-      errors.push("Swahili name is required");
-    }*/
-
-    if (!addForm.description.trim()) {
-      errors.push("Description is required");
-    }
-
-    if (!addForm.type.trim() || addForm.type === "Select Type") {
-      errors.push("Item type is required");
-    }
-
-    if (!addForm.price || Number(addForm.price) <= 0) {
-      errors.push("Price must be greater than 0");
-    }
-
-    if (!addForm.weight_in_kgs || Number(addForm.weight_in_kgs) <= 0) {
-      errors.push("Weight must be greater than 0");
-    }
-
-    if (!addForm.transportation_type) {
-      errors.push("Transportation type is required");
-    }
-
-    // Image validation (optional but with size check)
-    if (addForm.image) {
-      const maxSizeInMB = 5;
-      const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
-
-      if (addForm.image.size > maxSizeInBytes) {
-        errors.push(`Image size must be less than ${maxSizeInMB}MB`);
-      }
-
-      const allowedTypes = [
-        "image/jpeg",
-        "image/jpg",
-        "image/png",
-        "image/webp",
-      ];
-      if (!allowedTypes.includes(addForm.image.type)) {
-        errors.push("Image must be in JPEG, PNG, or WebP format");
-      }
-    }
-
-    setValidationErrors(errors);
-    return errors.length === 0;
-  };
-  // Optimized form update with stable callback
-  const handleFormUpdate = React.useCallback(
-    (formType: "edit" | "add", field: string, value: any) => {
-      if (formType === "edit") {
-        setEditForm((prev) => (prev ? { ...prev, [field]: value } : null));
-      } else {
-        setAddForm((prev) => ({ ...prev, [field]: value }));
-      }
-    },
-    []
-  );
   const handleAddItem = async () => {
-    if (!validateAddForm()) {
+    // Validate form using Mantine's built-in validation
+    if (addForm.validate().hasErrors) {
       return;
     }
 
@@ -403,21 +370,22 @@ export default function PricelistDashboard({
     try {
       // Create FormData object
       const formData = new FormData();
+      const values = addForm.values;
 
       // Append all form fields
       formData.append("supplier_detail_id", supplierId as string);
-      formData.append("name", addForm.name);
+      formData.append("name", values.name);
       formData.append(
         "swahili_name",
-        addForm.swahili_name.trim().length === 0
-          ? addForm.name
-          : addForm.swahili_name
+        values.swahili_name.trim().length === 0
+          ? values.name
+          : values.swahili_name
       );
-      formData.append("description", addForm.description);
-      formData.append("type", addForm.type);
-      formData.append("price", addForm.price.toString());
-      formData.append("weight_in_kgs", addForm.weight_in_kgs.toString());
-      formData.append("transportation_type", addForm.transportation_type);
+      formData.append("description", values.description);
+      formData.append("type", values.type);
+      formData.append("price", values.price.toString());
+      formData.append("weight_in_kgs", values.weight_in_kgs.toString());
+      formData.append("transportation_type", values.transportation_type);
 
       // Append image if it exists
       if (file) {
@@ -432,19 +400,9 @@ export default function PricelistDashboard({
       const response = await createItem(formData);
 
       if (response.status) {
-        setSuccessMessage(`New item "${addForm.name}" added successfully`);
+        setSuccessMessage(`New item "${values.name}" added successfully`);
         setAddModalOpened(false);
-        setAddForm({
-          description: "",
-          name: "",
-          price: 0,
-          swahili_name: "",
-          transportation_type: "TUKTUK",
-          type: "Select Type",
-          weight_in_kgs: 0,
-          image: null,
-        });
-        setValidationErrors([]);
+        addForm.reset();
         setfile(null);
 
         // Optional: Refresh the items list
@@ -467,17 +425,7 @@ export default function PricelistDashboard({
 
   const handleAddModalClose = () => {
     setAddModalOpened(false);
-    setValidationErrors([]);
-    setAddForm({
-      description: "",
-      name: "",
-      price: 0,
-      swahili_name: "",
-      transportation_type: "TUKTUK",
-      type: "Select Type",
-      weight_in_kgs: 0,
-      image: null,
-    });
+    addForm.reset();
     setfile(null);
   };
   const filteredItems = React.useMemo(() => {
@@ -586,87 +534,52 @@ export default function PricelistDashboard({
       centered
     >
       <Stack gap="md">
-        {/* Validation Errors */}
-        {validationErrors.length > 0 && (
-          <Alert
-            icon={<AlertCircle size={16} />}
-            title="Please fix the following errors:"
-            color="red"
-            variant="light"
-          >
-            <ul style={{ margin: 0, paddingLeft: 20 }}>
-              {validationErrors.map((error, index) => (
-                <li key={index}>{error}</li>
-              ))}
-            </ul>
-          </Alert>
-        )}
-
         {/* Item Name */}
         <TextInput
           label="Item Name"
           placeholder="Enter item name"
-          value={addForm.name}
-          onChange={(e) => handleFormUpdate("add", "name", e.target.value)}
           leftSection={<Package size={16} />}
           size="lg"
           required
           radius="md"
-          //maxLength={20}
-          error={validationErrors.some((error) => error.includes("Item name"))}
+          {...addForm.getInputProps("name")}
         />
 
         {/* Swahili Name */}
         <TextInput
           label="Swahili Name"
           placeholder="Enter Swahili name"
-          value={addForm.swahili_name}
-          onChange={(e) =>
-            handleFormUpdate("add", "swahili_name", e.target.value)
-          }
           leftSection={<Package size={16} />}
           size="lg"
           radius="md"
-          //maxLength={20}
-          error={fieldErrors.swahiliName}
+          {...addForm.getInputProps("swahili_name")}
         />
 
         {/* Description */}
         <Textarea
           label="Description"
           placeholder="Enter item description"
-          value={addForm.description || ""}
-          onChange={(e) =>
-            handleFormUpdate("add", "description", e.target.value || "")
-          }
           size="lg"
           radius="md"
           minRows={3}
-          error={fieldErrors.description}
-          // maxLength={50}
+          {...addForm.getInputProps("description")}
         />
 
         {/* Item Type */}
         <Select
           label="Item Type"
-          value={addForm.type}
-          onChange={(value) =>
-            handleFormUpdate("add", "type", (value as Pricelist["type"]) || "")
-          }
           leftSection={<Package size={16} />}
           data={services}
           size="lg"
           required
           radius="md"
-          error={fieldErrors.itemType}
+          {...addForm.getInputProps("type")}
         />
 
         {/* Price */}
         <NumberInput
           label="Price (KES)"
           placeholder="Enter price"
-          value={Number(addForm.price || 0)}
-          onChange={(value) => handleFormUpdate("add", "price", +value || 0)}
           leftSection={<HandCoins size={16} />}
           thousandSeparator=","
           decimalScale={2}
@@ -674,50 +587,33 @@ export default function PricelistDashboard({
           required
           radius="md"
           min={0}
-          error={fieldErrors.price}
+          {...addForm.getInputProps("price")}
         />
         {/**Metrics */}
         <TextInput
           label="Metrics (Kgs/Litres/Metres)"
           size="lg"
-          onChange={(e) =>
-            handleFormUpdate("add", "metrics", e.target.value || "")
-          }
           radius="md"
           required
           placeholder="Enter item metrics unit"
           maxLength={10}
-          value={addForm?.metrics}
-          error={fieldErrors.metrics}
+          {...addForm.getInputProps("metrics")}
         />
         {/* Weight */}
         <NumberInput
           label="Weight (Kg)"
           placeholder="Enter item metrics unit"
-          value={Number(addForm.weight_in_kgs || 0)}
-          onChange={(value) =>
-            handleFormUpdate("add", "weight_in_kgs", +value || 0)
-          }
           leftSection={<Weight size={16} />}
           decimalScale={2}
           size="lg"
-          //required
           radius="md"
           min={0}
-          error={fieldErrors.weight}
+          {...addForm.getInputProps("weight_in_kgs")}
         />
 
         {/* Transportation Type */}
         <Select
           label="Transportation Type"
-          value={addForm.transportation_type}
-          onChange={(value) =>
-            handleFormUpdate(
-              "add",
-              "transportation_type",
-              (value as Pricelist["transportation_type"]) || "TUKTUK"
-            )
-          }
           data={[
             { value: "TUKTUK", label: "🛺 TukTuk" },
             { value: "PICKUP", label: "🚛 Pickup" },
@@ -726,7 +622,7 @@ export default function PricelistDashboard({
           size="lg"
           required
           radius="md"
-          error={fieldErrors.transportationType}
+          {...addForm.getInputProps("transportation_type")}
         />
 
         {/* Image Upload */}
@@ -741,7 +637,6 @@ export default function PricelistDashboard({
           size="lg"
           radius="md"
           clearable
-          error={fieldErrors.image}
           styles={{
             input: {
               cursor: "pointer",
@@ -812,7 +707,7 @@ export default function PricelistDashboard({
       onClose={() => {
         setModalOpened(false);
         setfile(null);
-        setEditForm(null);
+        editForm.reset();
       }}
       title={
         <Group>
@@ -826,53 +721,42 @@ export default function PricelistDashboard({
       radius="lg"
       centered
     >
-      {editForm && (
+      {selectedItem && (
         <Stack gap="md">
           <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
             <Text size="lg" fw={600} mb="xs">
-              {getItemEmoji(editForm.type, editForm.name)} {editForm.name}
+              {getItemEmoji(editForm.values.type, editForm.values.name)} {editForm.values.name}
             </Text>
             <Text size="sm" c="dimmed">
-              {editForm.swahili_name}
+              {editForm.values.swahili_name}
             </Text>
           </Paper>
 
           <NumberInput
             label="Price (KES)"
             placeholder="Enter new price"
-            value={Number(editForm.price || 0)}
-            onChange={(value) => handleFormUpdate("edit", "price", +value)}
             leftSection={<HandCoins size={16} />}
             thousandSeparator=","
             decimalScale={2}
             size="lg"
             required
             radius="md"
+            min={0}
+            {...editForm.getInputProps("price")}
           />
           {/* Description */}
           <Textarea
             label="Description"
             placeholder="Enter item description"
-            value={editForm.description || ""}
-            onChange={(e) =>
-              handleFormUpdate("edit", "description", e.currentTarget.value)
-            }
             size="lg"
             radius="md"
             minRows={3}
             maxLength={500}
+            {...editForm.getInputProps("description")}
           />
 
           <Select
             label="Transportation Type"
-            value={editForm.transportation_type}
-            onChange={(value) =>
-              handleFormUpdate(
-                "edit",
-                "transportation_type",
-                (value as Pricelist["transportation_type"]) || "TUKTUK"
-              )
-            }
             data={[
               { value: "TUKTUK", label: "🛺 TukTuk" },
               { value: "PICKUP", label: "🚛 Pickup" },
@@ -881,41 +765,34 @@ export default function PricelistDashboard({
             display="none"
             size="lg"
             radius="md"
+            {...editForm.getInputProps("transportation_type")}
           />
 
           <NumberInput
             label="Weight (kg)"
-            value={Number(editForm.weight_in_kgs || 0)}
-            onChange={(value) =>
-              handleFormUpdate("edit", "weight_in_kgs", +value || 0)
-            }
             leftSection={<Weight size={16} />}
             decimalScale={2}
             size="lg"
             display="none"
             radius="md"
+            min={0}
+            {...editForm.getInputProps("weight_in_kgs")}
           />
           {/**Stock */}
           <TextInput
             label="Stock"
             placeholder="Enter item stock"
-            value={editForm.stock}
             size="lg"
-            onChange={(e) =>
-              handleFormUpdate("edit", "stock", e.target.value || "")
-            }
             radius="md"
+            {...editForm.getInputProps("stock")}
           />
           {/**metrics */}
           <TextInput
             label="Metrics"
             placeholder="Enter item Metrics (kgs/litres)"
-            value={editForm.metrics}
             size="lg"
-            onChange={(e) =>
-              handleFormUpdate("edit", "metrics", e.target.value || "")
-            }
             radius="md"
+            {...editForm.getInputProps("metrics")}
           />
           {/* Image Upload */}
           <FileInput
@@ -929,7 +806,6 @@ export default function PricelistDashboard({
             size="lg"
             radius="md"
             clearable
-            error={fieldErrors.image}
             styles={{
               input: {
                 cursor: "pointer",
