@@ -1,19 +1,15 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Card,
   Text,
   Badge,
   Button,
-  Modal,
-  TextInput,
-  Select,
   Group,
   ActionIcon,
   Title,
   Paper,
   Stack,
-  NumberInput,
   Tooltip,
   Transition,
   Box,
@@ -22,44 +18,40 @@ import {
   Divider,
   Alert,
   Pagination,
-  Textarea,
-  FileInput,
   Loader,
   Image,
+  TextInput,
+  Select,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { toDataUrlFromFile, DataURIToBlob } from "@/lib/FileHandlers";
 import {
   Edit3,
-  Weight,
-  Save,
-  X,
   Search,
   Filter,
   Plus,
   TrendingUp,
   CheckCircle2,
-  HandCoins,
   Coins,
-  Package,
   //Delete,
   Trash2,
-  ImageIcon,
-  Upload,
   ShoppingCart,
-  Minus,
   Store,
+  Weight,
 } from "lucide-react";
 import { updateSupplierPriceList } from "@/api/supplier";
 import { notify } from "@/lib/notifications";
 import { createItem, deleteItem } from "@/api/items";
 import { ICartItem, ICartState, useCart } from "@/providers/CartContext";
-import { DeliveryDate, DeliveryLocation } from "../keyman-bot/DeliveryLocation";
+
 import { getProjects } from "@/api/projects";
 import { useQuery } from "@tanstack/react-query";
 import { Project } from "@/types";
 import { CreateRequestPayload } from "@/types/requests";
 import { createRequest } from "@/api/requests";
+import { AddItemModal } from "./AddItemModal";
+import { EditItemModal } from "./EditItemModal";
+import { CartModal as CartModalComponent } from "./CartModal";
 
 export interface Pricelist {
   id?: string;
@@ -116,11 +108,6 @@ const getTransportationIcon = (type: string) => {
       return "🚚";
   }
 };
-const services = [
-  { label: "Goods", value: "goods" },
-  { label: "Services", value: "services" },
-  { label: "Professional Services", value: "professional_services" },
-];
 
 const getTransportationColor = (type: string) => {
   switch (type.toLowerCase()) {
@@ -240,10 +227,13 @@ export default function PricelistDashboard({
     setModalOpen: setCartModalOpened,
   } = useCart();
 
-  // Update the handleAddCart function
-  const handleAddCart = async (item: ICartItem) => {
-    addToCart(item);
-  };
+  // Memoized handlers to prevent re-renders
+  const handleAddCart = useCallback(
+    (item: ICartItem) => {
+      addToCart(item);
+    },
+    [addToCart]
+  );
   React.useEffect(() => {
     if (deleting) {
       setTimeout(() => {
@@ -264,34 +254,40 @@ export default function PricelistDashboard({
     else wordCount++;
   };
 
-  const handleEditClick = (item: Pricelist) => {
-    setSelectedItem(item);
-    editForm.setValues({
-      ...item,
-      price: item.price || 0,
-      description: item.description || "",
-      metrics: item.metrics || "",
-      stock: item.stock || "",
-      transportation_type: item.transportation_type || "TUKTUK",
-      weight_in_kgs: item.weight_in_kgs || 0,
-    });
-    setModalOpened(true);
-  };
-  const handleDeleteClick = async (item: Pricelist) => {
-    if (confirm("Delete " + item.name + "?")) {
-      setDeleting(true);
-      const response = await deleteItem(item?.id as string);
+  const handleEditClick = useCallback(
+    (item: Pricelist) => {
+      setSelectedItem(item);
+      editForm.setValues({
+        ...item,
+        price: item.price || 0,
+        description: item.description || "",
+        metrics: item.metrics || "",
+        stock: item.stock || "",
+        transportation_type: item.transportation_type || "TUKTUK",
+        weight_in_kgs: item.weight_in_kgs || 0,
+      });
+      setModalOpened(true);
+    },
+    [editForm]
+  );
+  const handleDeleteClick = useCallback(
+    async (item: Pricelist) => {
+      if (confirm("Delete " + item.name + "?")) {
+        setDeleting(true);
+        const response = await deleteItem(item?.id as string);
 
-      setDeleting(false);
-      if (response.status) {
-        setTimeout(() => {
-          setSuccessMessage("");
-        }, 3000);
-        setSuccessMessage(` ${item.name} deleted successfully `);
-        refetchPricelist();
-      } else notify.error(response.message);
-    }
-  };
+        setDeleting(false);
+        if (response.status) {
+          setTimeout(() => {
+            setSuccessMessage("");
+          }, 3000);
+          setSuccessMessage(` ${item.name} deleted successfully `);
+          refetchPricelist();
+        } else notify.error(response.message);
+      }
+    },
+    [refetchPricelist]
+  );
 
   const handleSavePrice = async () => {
     if (!selectedItem) return;
@@ -423,11 +419,11 @@ export default function PricelistDashboard({
     }
   };
 
-  const handleAddModalClose = () => {
+  const handleAddModalClose = useCallback(() => {
     setAddModalOpened(false);
     addForm.reset();
     setfile(null);
-  };
+  }, [addForm]);
   const filteredItems = React.useMemo(() => {
     let filtered = items || [];
 
@@ -456,7 +452,13 @@ export default function PricelistDashboard({
     setDate("");
     clearCart();
   };
-  const handleCheckout = async () => {
+  const handleEditModalClose = useCallback(() => {
+    setModalOpened(false);
+    setfile(null);
+    editForm.reset();
+  }, [editForm]);
+
+  const handleCheckout = useCallback(async () => {
     const selectedLocation = locations?.projects?.find(
       (loc: Project) => loc.id === location
     );
@@ -516,561 +518,66 @@ export default function PricelistDashboard({
     } finally {
       setCartSpinner(!true);
     }
-  };
-  const AddComponent = (
-    <Modal
-      opened={addModalOpened}
-      onClose={handleAddModalClose}
-      title={
-        <Group>
-          <Avatar size="sm" radius="xl" style={{ backgroundColor: "#3D6B2C" }}>
-            <Plus size={16} color="white" />
-          </Avatar>
-          <Text fw={600}>Add New Item</Text>
-        </Group>
-      }
-      size="lg"
-      radius="lg"
-      centered
-    >
-      <Stack gap="md">
-        {/* Item Name */}
-        <TextInput
-          label="Item Name"
-          placeholder="Enter item name"
-          leftSection={<Package size={16} />}
-          size="lg"
-          required
-          radius="md"
-          {...addForm.getInputProps("name")}
-        />
+  }, [locations, date, location, cart.items, clearCart, setCartModalOpened]);
 
-        {/* Swahili Name */}
-        <TextInput
-          label="Swahili Name"
-          placeholder="Enter Swahili name"
-          leftSection={<Package size={16} />}
-          size="lg"
-          radius="md"
-          {...addForm.getInputProps("swahili_name")}
-        />
-
-        {/* Description */}
-        <Textarea
-          label="Description"
-          placeholder="Enter item description"
-          size="lg"
-          radius="md"
-          minRows={3}
-          {...addForm.getInputProps("description")}
-        />
-
-        {/* Item Type */}
-        <Select
-          label="Item Type"
-          leftSection={<Package size={16} />}
-          data={services}
-          size="lg"
-          required
-          radius="md"
-          {...addForm.getInputProps("type")}
-        />
-
-        {/* Price */}
-        <NumberInput
-          label="Price (KES)"
-          placeholder="Enter price"
-          leftSection={<HandCoins size={16} />}
-          thousandSeparator=","
-          decimalScale={2}
-          size="lg"
-          required
-          radius="md"
-          min={0}
-          {...addForm.getInputProps("price")}
-        />
-        {/**Metrics */}
-        <TextInput
-          label="Metrics (Kgs/Litres/Metres)"
-          size="lg"
-          radius="md"
-          required
-          placeholder="Enter item metrics unit"
-          maxLength={10}
-          {...addForm.getInputProps("metrics")}
-        />
-        {/* Weight */}
-        <NumberInput
-          label="Weight (Kg)"
-          placeholder="Enter item metrics unit"
-          leftSection={<Weight size={16} />}
-          decimalScale={2}
-          size="lg"
-          radius="md"
-          min={0}
-          {...addForm.getInputProps("weight_in_kgs")}
-        />
-
-        {/* Transportation Type */}
-        <Select
-          label="Transportation Type"
-          data={[
-            { value: "TUKTUK", label: "🛺 TukTuk" },
-            { value: "PICKUP", label: "🚛 Pickup" },
-            { value: "LORRY", label: "🚚 Lorry" },
-          ]}
-          size="lg"
-          required
-          radius="md"
-          {...addForm.getInputProps("transportation_type")}
-        />
-
-        {/* Image Upload */}
-        <FileInput
-          label="Item Image (Optional)"
-          description="Upload an image of the item (Max 5MB, JPEG/PNG/WebP)"
-          placeholder="Choose image file"
-          value={file}
-          onChange={setfile}
-          leftSection={<ImageIcon size={16} />}
-          accept="image/jpeg,image/jpg,image/png,image/webp"
-          size="lg"
-          radius="md"
-          clearable
-          styles={{
-            input: {
-              cursor: "pointer",
-              "&::placeholder": {
-                color: "#868e96",
-              },
-            },
-          }}
-        />
-
-        {/* Image Preview */}
-        {file && (
-          <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
-            <Group>
-              <Avatar
-                size="lg"
-                radius="md"
-                src={URL.createObjectURL(file)}
-                alt="Item preview"
-              >
-                <ImageIcon size={24} />
-              </Avatar>
-              <Box style={{ flex: 1 }}>
-                <Text size="sm" fw={500}>
-                  {file.name}
-                </Text>
-                <Text size="xs" c="dimmed">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
-                </Text>
-              </Box>
-              <ActionIcon
-                variant="light"
-                color="red"
-                onClick={() => setfile(null)}
-              >
-                <X size={16} />
-              </ActionIcon>
-            </Group>
-          </Paper>
-        )}
-
-        <Group justify="flex-end" mt="xl">
-          <Button
-            variant="light"
-            color="gray"
-            leftSection={<X size={16} />}
-            onClick={handleAddModalClose}
-            radius="xl"
-          >
-            Cancel
-          </Button>
-          <Button
-            color="#3D6B2C"
-            leftSection={<Upload size={16} />}
-            onClick={handleAddItem}
-            loading={addLoading}
-            radius="xl"
-          >
-            Add Item
-          </Button>
-        </Group>
-      </Stack>
-    </Modal>
+  // Memoized callback factories to prevent inline function creation in map
+  const createDeleteHandler = useCallback(
+    (item: Pricelist) => () => handleDeleteClick(item),
+    [handleDeleteClick]
   );
-  const EditComponent = (
-    <Modal
-      opened={modalOpened}
-      onClose={() => {
-        setModalOpened(false);
-        setfile(null);
-        editForm.reset();
-      }}
-      title={
-        <Group>
-          <Avatar size="sm" radius="xl" style={{ backgroundColor: "#3D6B2C" }}>
-            <Edit3 size={16} color="white" />
-          </Avatar>
-          <Text fw={600}>Update Item Price</Text>
-        </Group>
-      }
-      size="md"
-      radius="lg"
-      centered
-    >
-      {selectedItem && (
-        <Stack gap="md">
-          <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
-            <Text size="lg" fw={600} mb="xs">
-              {getItemEmoji(editForm.values.type, editForm.values.name)} {editForm.values.name}
-            </Text>
-            <Text size="sm" c="dimmed">
-              {editForm.values.swahili_name}
-            </Text>
-          </Paper>
 
-          <NumberInput
-            label="Price (KES)"
-            placeholder="Enter new price"
-            leftSection={<HandCoins size={16} />}
-            thousandSeparator=","
-            decimalScale={2}
-            size="lg"
-            required
-            radius="md"
-            min={0}
-            {...editForm.getInputProps("price")}
-          />
-          {/* Description */}
-          <Textarea
-            label="Description"
-            placeholder="Enter item description"
-            size="lg"
-            radius="md"
-            minRows={3}
-            maxLength={500}
-            {...editForm.getInputProps("description")}
-          />
-
-          <Select
-            label="Transportation Type"
-            data={[
-              { value: "TUKTUK", label: "🛺 TukTuk" },
-              { value: "PICKUP", label: "🚛 Pickup" },
-              { value: "LORRY", label: "🚚 Lorry" },
-            ]}
-            display="none"
-            size="lg"
-            radius="md"
-            {...editForm.getInputProps("transportation_type")}
-          />
-
-          <NumberInput
-            label="Weight (kg)"
-            leftSection={<Weight size={16} />}
-            decimalScale={2}
-            size="lg"
-            display="none"
-            radius="md"
-            min={0}
-            {...editForm.getInputProps("weight_in_kgs")}
-          />
-          {/**Stock */}
-          <TextInput
-            label="Stock"
-            placeholder="Enter item stock"
-            size="lg"
-            radius="md"
-            {...editForm.getInputProps("stock")}
-          />
-          {/**metrics */}
-          <TextInput
-            label="Metrics"
-            placeholder="Enter item Metrics (kgs/litres)"
-            size="lg"
-            radius="md"
-            {...editForm.getInputProps("metrics")}
-          />
-          {/* Image Upload */}
-          <FileInput
-            label="Item Image (Optional)"
-            description="Upload an image of the item (Max 5MB, JPEG/PNG/WebP)"
-            placeholder="Choose image file"
-            value={file}
-            onChange={setfile}
-            leftSection={<ImageIcon size={16} />}
-            accept="image/jpeg,image/jpg,image/png,image/webp"
-            size="lg"
-            radius="md"
-            clearable
-            styles={{
-              input: {
-                cursor: "pointer",
-                "&::placeholder": {
-                  color: "#868e96",
-                },
-              },
-            }}
-          />
-
-          {/* Image Preview */}
-          {file && (
-            <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
-              <Group>
-                <Avatar
-                  size="lg"
-                  radius="md"
-                  src={URL.createObjectURL(file)}
-                  alt="Item preview"
-                >
-                  <ImageIcon size={24} />
-                </Avatar>
-                <Box style={{ flex: 1 }}>
-                  <Text size="sm" fw={500}>
-                    {file.name}
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </Text>
-                </Box>
-                <ActionIcon
-                  variant="light"
-                  color="red"
-                  onClick={() => setfile(null)}
-                >
-                  <X size={16} />
-                </ActionIcon>
-              </Group>
-            </Paper>
-          )}
-
-          <Group justify="flex-end" mt="xl">
-            <Button
-              variant="light"
-              color="gray"
-              leftSection={<X size={16} />}
-              onClick={() => setModalOpened(false)}
-              radius="xl"
-            >
-              Cancel
-            </Button>
-            <Button
-              color="#3D6B2C"
-              leftSection={<Save size={16} />}
-              onClick={handleSavePrice}
-              loading={isLoading}
-              radius="xl"
-            >
-              Save Changes
-            </Button>
-          </Group>
-        </Stack>
-      )}
-    </Modal>
+  const createEditHandler = useCallback(
+    (item: Pricelist) => () => handleEditClick(item),
+    [handleEditClick]
   );
-  // Cart Modal Component
 
-  const CartModal = () => (
-    <Modal
-      opened={cartModalOpened}
-      onClose={() => setCartModalOpened(false)}
-      title={
-        <Group>
-          <Avatar size="sm" radius="xl" style={{ backgroundColor: "#3D6B2C" }}>
-            <ShoppingCart size={16} color="white" />
-          </Avatar>
-          <Text fw={600}>Shopping Cart ({cart.itemCount} items)</Text>
-        </Group>
-      }
-      size="lg"
-      radius="lg"
-      centered
-    >
-      <Stack gap="md">
-        {cart.items.length === 0 ? (
-          <Paper
-            p="xl"
-            radius="lg"
-            style={{ backgroundColor: "#f8f9fa", textAlign: "center" }}
-          >
-            <ShoppingCart
-              size={48}
-              style={{ margin: "0 auto 16px", opacity: 0.3 }}
-            />
-            <Text size="lg" c="dimmed" fw={500}>
-              Your cart is empty
-            </Text>
-            <Text size="sm" c="dimmed">
-              Add some items to get started!
-            </Text>
-          </Paper>
-        ) : (
-          <>
-            {/* Cart Items */}
-            <Stack gap="sm" style={{ maxHeight: "400px", overflowY: "auto" }}>
-              {cart.items.map((item) => (
-                <Paper
-                  key={item.id}
-                  p="md"
-                  radius="lg"
-                  style={{ border: "1px solid #e9ecef" }}
-                >
-                  <Flex align="center" justify="space-between" gap="md">
-                    <Flex align="center" gap="md" style={{ flex: 1 }}>
-                      <Avatar
-                        size="lg"
-                        radius="md"
-                        style={{ backgroundColor: "#f8f9fa" }}
-                      >
-                        {getItemEmoji(item.type, item.name)}
-                      </Avatar>
-                      <Box style={{ flex: 1 }}>
-                        <Text fw={600} size="sm" lineClamp={1}>
-                          {item.name}
-                        </Text>
-                        <Text size="xs" c="dimmed" lineClamp={1}>
-                          {item.swahili_name}
-                        </Text>
-                        <Text size="sm" fw={500} c="#3D6B2C" mt="xs">
-                          KES {Number(item.price).toLocaleString()}
-                        </Text>
-                      </Box>
-                    </Flex>
-
-                    <Group gap="xs">
-                      {/* Quantity Controls */}
-                      <Group
-                        gap="xs"
-                        style={{
-                          border: "1px solid #e9ecef",
-                          borderRadius: "8px",
-                          padding: "4px",
-                        }}
-                      >
-                        <ActionIcon
-                          variant="light"
-                          color="gray"
-                          size="sm"
-                          onClick={() =>
-                            updateQuantity(item.id!, item.quantity - 1)
-                          }
-                        >
-                          <Minus size={14} />
-                        </ActionIcon>
-
-                        <Text
-                          size="sm"
-                          fw={600}
-                          style={{ minWidth: "20px", textAlign: "center" }}
-                        >
-                          {item.quantity}
-                        </Text>
-
-                        <ActionIcon
-                          variant="light"
-                          color="#3D6B2C"
-                          size="sm"
-                          onClick={() =>
-                            updateQuantity(item.id!, item.quantity + 1)
-                          }
-                        >
-                          <Plus size={14} />
-                        </ActionIcon>
-                      </Group>
-
-                      {/* Remove Button */}
-                      <ActionIcon
-                        variant="light"
-                        color="red"
-                        size="sm"
-                        onClick={() => removeFromCart(item.id!)}
-                      >
-                        <Trash2 size={14} />
-                      </ActionIcon>
-                    </Group>
-                  </Flex>
-
-                  {/* Item Total */}
-                  <Flex justify="flex-end" mt="xs">
-                    <Text size="sm" fw={600} c="#3D6B2C">
-                      Subtotal: KES{" "}
-                      {(item.price * item.quantity).toLocaleString()}
-                    </Text>
-                  </Flex>
-                </Paper>
-              ))}
-            </Stack>
-
-            <Divider />
-
-            <Paper>
-              <div className="py-2 mb-2">
-                <DeliveryDate date={date} sendDate={(date) => setDate(date)} />
-              </div>
-              <div>
-                <DeliveryLocation
-                  locations={locations?.projects ?? []}
-                  sendLocation={(location) => setLocation(location)}
-                  config={{ refresh: () => refreshLocation(), location }}
-                />
-              </div>
-
-              <Divider />
-            </Paper>
-            {/* Cart Summary */}
-            <Paper
-              p="md"
-              radius="lg"
-              style={{ backgroundColor: "#f8f9fa" }}
-              display="none"
-            >
-              <Flex justify="space-between" align="center">
-                <Text size="lg" fw={600}>
-                  Total Amount:
-                </Text>
-                <Text size="xl" fw={700} c="#3D6B2C">
-                  KES {cart.total.toLocaleString()}
-                </Text>
-              </Flex>
-            </Paper>
-
-            {/* Action Buttons */}
-            <Group justify="space-between" mt="md">
-              <Button
-                variant="light"
-                color="red"
-                leftSection={<Trash2 size={16} />}
-                onClick={() => {
-                  if (confirm("Clear cart")) clearCart();
-                }}
-                radius="xl"
-              >
-                Clear Cart
-              </Button>
-
-              <Button
-                color="#3D6B2C"
-                leftSection={<CheckCircle2 size={16} />}
-                onClick={handleCheckout}
-                radius="xl"
-                size="lg"
-                loading={cartSpinner}
-              >
-                Checkout
-              </Button>
-            </Group>
-          </>
-        )}
-      </Stack>
-    </Modal>
+  const createAddCartHandler = useCallback(
+    (item: ICartItem & WholePriceList) => () => handleAddCart(item),
+    [handleAddCart]
   );
 
   return (
     <section>
-      <CartModal />
+      {/* Modals */}
+      <AddItemModal
+        opened={addModalOpened}
+        onClose={handleAddModalClose}
+        addForm={addForm}
+        file={file}
+        setFile={setfile}
+        onSubmit={handleAddItem}
+        loading={addLoading}
+      />
+
+      <EditItemModal
+        opened={modalOpened}
+        onClose={handleEditModalClose}
+        editForm={editForm}
+        file={file}
+        setFile={setfile}
+        onSubmit={handleSavePrice}
+        loading={isLoading}
+        selectedItem={selectedItem}
+        getItemEmoji={getItemEmoji}
+      />
+
+      <CartModalComponent
+        opened={cartModalOpened}
+        onClose={() => setCartModalOpened(false)}
+        cart={cart}
+        updateQuantity={updateQuantity}
+        removeFromCart={removeFromCart}
+        clearCart={clearCart}
+        onCheckout={handleCheckout}
+        cartSpinner={cartSpinner}
+        getItemEmoji={getItemEmoji}
+        locations={locations?.projects}
+        location={location}
+        setLocation={setLocation}
+        date={date}
+        setDate={setDate}
+        refreshLocation={refreshLocation}
+      />
       {/* Header Section */}
       <Paper
         p={{ base: "sm", md: "xl" }}
@@ -1199,11 +706,11 @@ export default function PricelistDashboard({
               index={index}
               cartQuantity={cart.itemCount}
               isInCart={isItemInCart(item?.id as string)}
-              handleDeleteClick={() => handleDeleteClick(item)}
-              handleEditClick={() => handleEditClick(item)}
-              handleAddCart={() =>
-                handleAddCart(item as ICartItem & WholePriceList)
-              }
+              handleDeleteClick={createDeleteHandler(item)}
+              handleEditClick={createEditHandler(item)}
+              handleAddCart={createAddCartHandler(
+                item as ICartItem & WholePriceList
+              )}
             />
           ))}
       </Flex>
@@ -1217,17 +724,11 @@ export default function PricelistDashboard({
           />
         )}
       </Box>
-
-      {/* Edit Modal */}
-      {EditComponent}
-
-      {/* Add Item Modal */}
-      {AddComponent}
     </section>
   );
 }
 
-export const PricelistItem: React.FC<{
+interface PricelistItemProps {
   item: WholePriceList;
   index: number;
   handleEditClick: () => void;
@@ -1237,260 +738,281 @@ export const PricelistItem: React.FC<{
   isInCart?: boolean;
   cartQuantity?: number;
   cardSize?: string;
-}> = ({
-  item,
-  index,
-  handleEditClick,
-  hideControls,
-  handleDeleteClick,
-  handleAddCart,
-  isInCart = false,
-  cartQuantity = 0,
-  cardSize = "",
-}) => {
-  const isuserOwned = "isUserOwned" in item;
-  const getRightImage = (item: WholePriceList | Pricelist) => {
-    if (isuserOwned) {
-      if (
-        "attachment_url" in item &&
-        item?.attachment_url &&
-        item?.attachment_url?.length > 0
-      )
-        return item?.attachment_url.at(-1);
-      //@ts-ignore
-      else return item?.photo?.[0];
-    } else {
-      if (
-        "attachment_url" in item &&
-        item?.attachment_url &&
-        item["attachment_url"].length > 0
-      )
-        return item?.attachment_url.at(-1);
-      //@ts-ignore
-      else return item?.item?.photo?.[0];
-    }
-  };
-  return (
-    <Transition
-      mounted={true}
-      transition="scale"
-      duration={300}
-      timingFunction="ease-out"
-      enterDelay={index * 100}
-    >
-      {(styles) => (
-        <Card
-          shadow="md"
-          padding="lg"
-          radius="md"
-          style={{
-            ...styles,
-            cursor: "pointer",
-            transition: "all 0.3s ease",
-            border: "1px solid #f0f0f0",
-            "&:hover": {
-              transform: "translateY(-8px)",
-              boxShadow: "0 20px 40px rgba(61, 107, 44, 0.15)",
-            },
-          }}
-          //className={cardSize}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-8px)";
-            e.currentTarget.style.boxShadow =
-              "0 20px 40px rgba(61, 107, 44, 0.15)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
-          }}
-          className="hover:translate-y-[-8px] hover:shadow-[0_20px_40px_rgba(61,107,44,0.15)]"
-          w={{
-            base: "100%", // Mobile: 1 card per row (full width)
-            sm: "calc(50% - 8px)", // Medium: 2 cards per row
-            lg: "calc(33.333% - 12px)", // Large: 3 cards per row
-          }}
-          maw="100%" // Ensure it never exceeds container width
-        >
-          {isInCart && (
-            <Badge
-              variant="filled"
-              color="#3D6B2C"
-              size="sm"
-              style={{
-                position: "absolute",
-                top: 10,
-                left: 10,
-                zIndex: 1,
-              }}
-            >
-              In Cart ({cartQuantity})
-            </Badge>
-          )}
-          <Flex justify={"flex-end"}>
-            {hideControls ? null : (
-              <div className="flex gap-x-4 items-center">
-                <Tooltip label="Edit Price">
-                  <ActionIcon
-                    variant="light"
-                    color="#3D6B2C"
-                    size="lg"
-                    radius="xl"
-                    onClick={handleEditClick}
-                  >
-                    <Edit3 size={18} />
-                  </ActionIcon>
-                </Tooltip>
-                {isuserOwned ? null : (
-                  <Tooltip label="Delete Item">
-                    <ActionIcon
-                      variant="light"
-                      color="red"
-                      size="lg"
-                      radius="xl"
-                      onClick={handleDeleteClick}
-                    >
-                      <Trash2 size={18} />
-                    </ActionIcon>
-                  </Tooltip>
-                )}
-                {isuserOwned ? null : (
-                  <Tooltip label="Add to cart">
-                    <ActionIcon
-                      variant="light"
-                      color="orange"
-                      size="lg"
-                      radius="xl"
-                      onClick={handleAddCart}
-                    >
-                      {isInCart ? (
-                        <CheckCircle2 size={18} />
-                      ) : (
-                        <ShoppingCart size={18} />
-                      )}
-                    </ActionIcon>
-                  </Tooltip>
-                )}
-              </div>
-            )}
-          </Flex>
-          <Stack gap="md">
-            {/* Item Header */}
-            <Flex justify="space-between" align="flex-start">
-              <Box
-                style={{ flexGrow: 1 }}
-                className="flex flex-col md:flex-row justify-between items-center"
+}
+
+export const PricelistItem = React.memo<PricelistItemProps>(
+  ({
+    item,
+    index,
+    handleEditClick,
+    hideControls,
+    handleDeleteClick,
+    handleAddCart,
+    isInCart = false,
+    cartQuantity = 0,
+    cardSize = "",
+  }) => {
+    const isuserOwned = "isUserOwned" in item;
+    const getRightImage = (item: WholePriceList | Pricelist) => {
+      if (isuserOwned) {
+        if (
+          "attachment_url" in item &&
+          item?.attachment_url &&
+          item?.attachment_url?.length > 0
+        )
+          return item?.attachment_url.at(-1);
+        //@ts-ignore
+        else return item?.photo?.[0];
+      } else {
+        if (
+          "attachment_url" in item &&
+          item?.attachment_url &&
+          item["attachment_url"].length > 0
+        )
+          return item?.attachment_url.at(-1);
+        //@ts-ignore
+        else return item?.item?.photo?.[0];
+      }
+    };
+    return (
+      <Transition
+        mounted={true}
+        transition="scale"
+        duration={300}
+        timingFunction="ease-out"
+        enterDelay={index * 100}
+      >
+        {(styles) => (
+          <Card
+            shadow="md"
+            padding="lg"
+            radius="md"
+            style={{
+              ...styles,
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              border: "1px solid #f0f0f0",
+              "&:hover": {
+                transform: "translateY(-8px)",
+                boxShadow: "0 20px 40px rgba(61, 107, 44, 0.15)",
+              },
+            }}
+            //className={cardSize}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-8px)";
+              e.currentTarget.style.boxShadow =
+                "0 20px 40px rgba(61, 107, 44, 0.15)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.1)";
+            }}
+            className="hover:translate-y-[-8px] hover:shadow-[0_20px_40px_rgba(61,107,44,0.15)]"
+            w={{
+              base: "100%", // Mobile: 1 card per row (full width)
+              sm: "calc(50% - 8px)", // Medium: 2 cards per row
+              lg: "calc(33.333% - 12px)", // Large: 3 cards per row
+            }}
+            maw="100%" // Ensure it never exceeds container width
+          >
+            {isInCart && (
+              <Badge
+                variant="filled"
+                color="#3D6B2C"
+                size="sm"
+                style={{
+                  position: "absolute",
+                  top: 10,
+                  left: 10,
+                  zIndex: 1,
+                }}
               >
-                <Box>
-                  {" "}
-                  <Text size="xl" mb="xs">
-                    {getItemEmoji(item.type, item.name)}
-                  </Text>
-                  <Text fw={600} size="md" lineClamp={2} mb="xs">
-                    {item.name}
-                  </Text>
-                  <Text size="sm" c="dimmed" lineClamp={1}>
-                    {item.swahili_name}
-                  </Text>
-                </Box>
-
-                <Box className="w-full md:w-24 h-auto md:h-24 mt-2 overflow-hidden rounded-lg">
-                  <Image
-                    src={getRightImage(item)}
-                    alt={`${item.name} image`}
-                    fit="cover"
-                    radius="lg"
-                    className="h-full w-full object-cover"
-                    style={{
-                      aspectRatio: "1/1",
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                    }}
-                  />
-                </Box>
-              </Box>
+                In Cart ({cartQuantity})
+              </Badge>
+            )}
+            <Flex justify={"flex-end"}>
+              {hideControls ? null : (
+                <div className="flex gap-x-4 items-center">
+                  <Tooltip label="Edit Price">
+                    <ActionIcon
+                      variant="light"
+                      color="#3D6B2C"
+                      size="lg"
+                      radius="xl"
+                      onClick={handleEditClick}
+                    >
+                      <Edit3 size={18} />
+                    </ActionIcon>
+                  </Tooltip>
+                  {isuserOwned ? null : (
+                    <Tooltip label="Delete Item">
+                      <ActionIcon
+                        variant="light"
+                        color="red"
+                        size="lg"
+                        radius="xl"
+                        onClick={handleDeleteClick}
+                      >
+                        <Trash2 size={18} />
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
+                  {isuserOwned ? null : (
+                    <Tooltip label="Add to cart">
+                      <ActionIcon
+                        variant="light"
+                        color="orange"
+                        size="lg"
+                        radius="xl"
+                        onClick={handleAddCart}
+                      >
+                        {isInCart ? (
+                          <CheckCircle2 size={18} />
+                        ) : (
+                          <ShoppingCart size={18} />
+                        )}
+                      </ActionIcon>
+                    </Tooltip>
+                  )}
+                </div>
+              )}
             </Flex>
-
-            <Divider />
-
-            {/* Price Section */}
-            {item.price && (
-              <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
-                <Flex align="center" justify="space-between">
+            <Stack gap="md">
+              {/* Item Header */}
+              <Flex justify="space-between" align="flex-start">
+                <Box
+                  style={{ flexGrow: 1 }}
+                  className="flex flex-col md:flex-row justify-between items-center"
+                >
                   <Box>
-                    <Text size="xs" c="dimmed" mb={2}>
-                      Current Price
+                    {" "}
+                    <Text size="xl" mb="xs">
+                      {getItemEmoji(item.type, item.name)}
                     </Text>
-                    <Text size="xl" fw={700} c="#3D6B2C">
-                      KES {Number(item.price).toLocaleString()}
+                    <Text fw={600} size="md" lineClamp={2} mb="xs">
+                      {item.name}
+                    </Text>
+                    <Text size="sm" c="dimmed" lineClamp={1}>
+                      {item.swahili_name}
                     </Text>
                   </Box>
-                  <Avatar
-                    size="md"
-                    radius="xl"
-                    style={{ backgroundColor: "#3D6B2C" }}
-                  >
-                    <Coins size={20} color="white" />
-                  </Avatar>
-                </Flex>
-              </Paper>
-            )}
 
-            {/* Item Details */}
-            <Group justify="space-between">
-              <Badge
-                variant="light"
-                color={getTransportationColor(item.transportation_type)}
-                size="md"
-                radius="xl"
-              >
-                {getTransportationIcon(item.transportation_type)}{" "}
-                {item.transportation_type}
-              </Badge>
+                  <Box className="w-full md:w-24 h-auto md:h-24 mt-2 overflow-hidden rounded-lg">
+                    <Image
+                      src={getRightImage(item)}
+                      alt={`${item.name} image`}
+                      fit="cover"
+                      radius="lg"
+                      className="h-full w-full object-cover"
+                      style={{
+                        aspectRatio: "1/1",
+                        maxWidth: "100%",
+                        maxHeight: "100%",
+                      }}
+                    />
+                  </Box>
+                </Box>
+              </Flex>
 
-              <Group gap="xs" display="none">
-                <Weight size={14} />
-                <Text size="sm" c="dimmed">
-                  {item.weight_in_kgs}kg
-                </Text>
+              <Divider />
+
+              {/* Price Section */}
+              {item.price && (
+                <Paper
+                  p="md"
+                  radius="lg"
+                  style={{ backgroundColor: "#f8f9fa" }}
+                >
+                  <Flex align="center" justify="space-between">
+                    <Box>
+                      <Text size="xs" c="dimmed" mb={2}>
+                        Current Price
+                      </Text>
+                      <Text size="xl" fw={700} c="#3D6B2C">
+                        KES {Number(item.price).toLocaleString()}
+                      </Text>
+                    </Box>
+                    <Avatar
+                      size="md"
+                      radius="xl"
+                      style={{ backgroundColor: "#3D6B2C" }}
+                    >
+                      <Coins size={20} color="white" />
+                    </Avatar>
+                  </Flex>
+                </Paper>
+              )}
+
+              {/* Item Details */}
+              <Group justify="space-between">
+                <Badge
+                  variant="light"
+                  color={getTransportationColor(item.transportation_type)}
+                  size="md"
+                  radius="xl"
+                >
+                  {getTransportationIcon(item.transportation_type)}{" "}
+                  {item.transportation_type}
+                </Badge>
+
+                <Group gap="xs" display="none">
+                  <Weight size={14} />
+                  <Text size="sm" c="dimmed">
+                    {item.weight_in_kgs}kg
+                  </Text>
+                </Group>
+
+                {item?.stock && +item?.stock > 1 && (
+                  <Group gap="xs">
+                    <Store size={14} />
+                    <Badge
+                      variant="light"
+                      color="#3D6B2C"
+                      size="md"
+                      radius="xl"
+                    >
+                      {item?.stock}in stock
+                    </Badge>
+                  </Group>
+                )}
+
+                {item?.metrics && (
+                  <Group gap="xs">
+                    <Badge
+                      variant="light"
+                      color="#3D6B2C"
+                      size="md"
+                      radius="xl"
+                    >
+                      {item?.metrics}
+                    </Badge>
+                  </Group>
+                )}
               </Group>
 
-              {item?.stock && +item?.stock > 1 && (
-                <Group gap="xs">
-                  <Store size={14} />
-                  <Badge variant="light" color="#3D6B2C" size="md" radius="xl">
-                    {item?.stock}in stock
-                  </Badge>
-                </Group>
+              {/* Edit Button */}
+              {hideControls ? null : (
+                <Button
+                  fullWidth
+                  variant="light"
+                  color="#3D6B2C"
+                  leftSection={<TrendingUp size={16} />}
+                  radius="xl"
+                  onClick={handleEditClick}
+                >
+                  Update Price
+                </Button>
               )}
+            </Stack>
+          </Card>
+        )}
+      </Transition>
+    );
+  }
+);
 
-              {item?.metrics && (
-                <Group gap="xs">
-                  <Badge variant="light" color="#3D6B2C" size="md" radius="xl">
-                    {item?.metrics}
-                  </Badge>
-                </Group>
-              )}
-            </Group>
+PricelistItem.displayName = "PricelistItem";
 
-            {/* Edit Button */}
-            {hideControls ? null : (
-              <Button
-                fullWidth
-                variant="light"
-                color="#3D6B2C"
-                leftSection={<TrendingUp size={16} />}
-                radius="xl"
-                onClick={handleEditClick}
-              >
-                Update Price
-              </Button>
-            )}
-          </Stack>
-        </Card>
-      )}
-    </Transition>
-  );
-};
 // Add this cart button component to your header section
 type CartButtonProps = {
   cart: ICartState;
