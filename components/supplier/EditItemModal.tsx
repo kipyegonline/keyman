@@ -15,6 +15,7 @@ import {
   Box,
   Text,
 } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { UseFormReturnType } from "@mantine/form";
 import { Edit3, HandCoins, Weight, ImageIcon, Save, X } from "lucide-react";
 import { Pricelist } from "./priceList";
@@ -49,6 +50,8 @@ export const EditItemModal = React.memo<EditItemModalProps>(
     selectedItem,
     getItemEmoji,
   }) => {
+    const isMobile = useMediaQuery("(max-width: 768px)");
+
     return (
       <Modal
         opened={opened}
@@ -105,14 +108,52 @@ export const EditItemModal = React.memo<EditItemModalProps>(
               {...editForm.getInputProps("description")}
             />
 
-            <Select
-              label="Transportation Type"
-              data={transportationTypes}
-              display="none"
-              size="lg"
-              radius="md"
-              {...editForm.getInputProps("transportation_type")}
-            />
+            {isMobile ? (
+              <Box display="none">
+                <Text size="sm" fw={500} mb={4}>
+                  Transportation Type
+                </Text>
+                <select
+                  {...editForm.getInputProps("transportation_type")}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    fontSize: "16px",
+                    border: "1px solid #dee2e6",
+                    borderRadius: "8px",
+                    backgroundColor: "white",
+                    color: "#495057",
+                    cursor: "pointer",
+                    outline: "none",
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                    appearance: "none",
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23495057' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: "no-repeat",
+                    backgroundPosition: "right 12px center",
+                    paddingRight: "36px",
+                  }}
+                >
+                  <option value="" disabled>
+                    Select transportation type
+                  </option>
+                  {transportationTypes.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
+                    </option>
+                  ))}
+                </select>
+              </Box>
+            ) : (
+              <Select
+                label="Transportation Type"
+                data={transportationTypes}
+                display="none"
+                size="lg"
+                radius="md"
+                {...editForm.getInputProps("transportation_type")}
+              />
+            )}
 
             <NumberInput
               label="Weight (kg)"

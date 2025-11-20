@@ -23,6 +23,7 @@ import {
   TextInput,
   Select,
 } from "@mantine/core";
+import { useMediaQuery } from "@mantine/hooks";
 import { useForm } from "@mantine/form";
 import { toDataUrlFromFile, DataURIToBlob } from "@/lib/FileHandlers";
 import {
@@ -142,6 +143,7 @@ export default function PricelistDashboard({
   refetchPricelist: () => void;
 }) {
   /*eslint-disable*/
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const [selectedItem, setSelectedItem] = useState<Pricelist | null>(null);
   const [modalOpened, setModalOpened] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -684,15 +686,47 @@ export default function PricelistDashboard({
             radius="xl"
           />
           <Group>
-            <Select
-              placeholder="Filter by transport"
-              leftSection={<Filter size={16} />}
-              data={transportationFilterOptions}
-              value={filterType}
-              onChange={setFilterType}
-              clearable
-              radius="xl"
-            />
+            {isMobile ? (
+              <select
+                value={filterType || ""}
+                onChange={(e) => setFilterType(e.target.value || null)}
+                style={{
+                  padding: "10px 16px",
+                  fontSize: "14px",
+                  border: "1px solid #dee2e6",
+                  borderRadius: "20px",
+                  backgroundColor: "white",
+                  color: "#495057",
+                  cursor: "pointer",
+                  outline: "none",
+                  minWidth: "180px",
+                  WebkitAppearance: "none",
+                  MozAppearance: "none",
+                  appearance: "none",
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23495057' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 12px center",
+                  paddingRight: "36px",
+                }}
+              >
+                <option value="">Filter by transport</option>
+                {transportationFilterOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <Select
+                placeholder="Filter by transport"
+                leftSection={<Filter size={16} />}
+                data={transportationFilterOptions}
+                value={filterType}
+                onChange={setFilterType}
+                clearable
+                radius="xl"
+              />
+            )}
           </Group>
         </Group>
       </Paper>
