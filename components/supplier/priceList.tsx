@@ -180,6 +180,28 @@ export default function PricelistDashboard({
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
 
+  // Memoize validation error checks for better performance
+  const fieldErrors = React.useMemo(
+    () => ({
+      itemName: validationErrors.some((error) => error.includes("Item name")),
+      swahiliName: validationErrors.some((error) =>
+        error.includes("Swahili name")
+      ),
+      description: validationErrors.some((error) =>
+        error.includes("Description")
+      ),
+      itemType: validationErrors.some((error) => error.includes("Item type")),
+      price: validationErrors.some((error) => error.includes("Price")),
+      metrics: validationErrors.some((error) => error.includes("Metrics")),
+      weight: validationErrors.some((error) => error.includes("Weight")),
+      transportationType: validationErrors.some((error) =>
+        error.includes("Transportation type")
+      ),
+      image: validationErrors.some((error) => error.includes("Image")),
+    }),
+    [validationErrors]
+  );
+
   const [cartSpinner, setCartSpinner] = useState(false);
 
   const { data: locations, refetch: refreshLocation } = useQuery({
@@ -360,6 +382,7 @@ export default function PricelistDashboard({
     setValidationErrors(errors);
     return errors.length === 0;
   };
+  // Optimized form update with stable callback
   const handleFormUpdate = React.useCallback(
     (formType: "edit" | "add", field: string, value: any) => {
       if (formType === "edit") {
@@ -605,9 +628,7 @@ export default function PricelistDashboard({
           size="lg"
           radius="md"
           //maxLength={20}
-          error={validationErrors.some((error) =>
-            error.includes("Swahili name")
-          )}
+          error={fieldErrors.swahiliName}
         />
 
         {/* Description */}
@@ -621,9 +642,7 @@ export default function PricelistDashboard({
           size="lg"
           radius="md"
           minRows={3}
-          error={validationErrors.some((error) =>
-            error.includes("Description")
-          )}
+          error={fieldErrors.description}
           // maxLength={50}
         />
 
@@ -639,7 +658,7 @@ export default function PricelistDashboard({
           size="lg"
           required
           radius="md"
-          error={validationErrors.some((error) => error.includes("Item type"))}
+          error={fieldErrors.itemType}
         />
 
         {/* Price */}
@@ -655,7 +674,7 @@ export default function PricelistDashboard({
           required
           radius="md"
           min={0}
-          error={validationErrors.some((error) => error.includes("Price"))}
+          error={fieldErrors.price}
         />
         {/**Metrics */}
         <TextInput
@@ -669,7 +688,7 @@ export default function PricelistDashboard({
           placeholder="Enter item metrics unit"
           maxLength={10}
           value={addForm?.metrics}
-          error={validationErrors.some((error) => error.includes("Metrics"))}
+          error={fieldErrors.metrics}
         />
         {/* Weight */}
         <NumberInput
@@ -685,7 +704,7 @@ export default function PricelistDashboard({
           //required
           radius="md"
           min={0}
-          error={validationErrors.some((error) => error.includes("Weight"))}
+          error={fieldErrors.weight}
         />
 
         {/* Transportation Type */}
@@ -707,9 +726,7 @@ export default function PricelistDashboard({
           size="lg"
           required
           radius="md"
-          error={validationErrors.some((error) =>
-            error.includes("Transportation type")
-          )}
+          error={fieldErrors.transportationType}
         />
 
         {/* Image Upload */}
@@ -724,9 +741,7 @@ export default function PricelistDashboard({
           size="lg"
           radius="md"
           clearable
-          error={validationErrors.some(
-            (error) => error.includes("Image") || error.includes("format")
-          )}
+          error={fieldErrors.image}
           styles={{
             input: {
               cursor: "pointer",
@@ -914,9 +929,7 @@ export default function PricelistDashboard({
             size="lg"
             radius="md"
             clearable
-            error={validationErrors.some(
-              (error) => error.includes("Image") || error.includes("format")
-            )}
+            error={fieldErrors.image}
             styles={{
               input: {
                 cursor: "pointer",
