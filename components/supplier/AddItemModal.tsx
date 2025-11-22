@@ -122,7 +122,9 @@ export const AddItemModal = React.memo<AddItemModalProps>(
                   width: "100%",
                   padding: "12px 16px",
                   fontSize: "16px",
-                  border: "1px solid #dee2e6",
+                  border: addForm.errors.type
+                    ? "1px solid red"
+                    : "1px solid #dee2e6",
                   borderRadius: "8px",
                   backgroundColor: "white",
                   color: "#495057",
@@ -137,15 +139,18 @@ export const AddItemModal = React.memo<AddItemModalProps>(
                   paddingRight: "36px",
                 }}
               >
-                <option value="" disabled>
-                  Select item type
-                </option>
+                <option value="">Select item type</option>
                 {services.map((service) => (
                   <option key={service.value} value={service.value}>
                     {service.label}
                   </option>
                 ))}
               </select>
+              {addForm.errors.type && (
+                <Text size="xs" color="red" mt={4}>
+                  {addForm.errors.type}
+                </Text>
+              )}
             </Box>
           ) : (
             <Select

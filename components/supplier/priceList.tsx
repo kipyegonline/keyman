@@ -201,7 +201,7 @@ export default function PricelistDashboard({
       price: 0,
       swahili_name: "",
       transportation_type: "TUKTUK",
-      type: "goods",
+      type: "Select Type",
       weight_in_kgs: 0,
       image: null,
       metrics: "",
