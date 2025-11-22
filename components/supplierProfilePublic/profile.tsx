@@ -403,11 +403,11 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-3">
+          <div className="flexy items-center gap-2 mt-3 hidden">
             <ThemeIcon variant="light" color="#F08C23" size="sm">
               <Clock className="w-3 h-3" />
             </ThemeIcon>
-            <div>
+            <div className="hidden">
               <Text size="sm" className="font-medium text-gray-900">
                 Response: {supplierData.responseTime}
               </Text>
@@ -502,7 +502,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
           </Accordion.Item>
 
           {/* Follow Us */}
-          <Accordion.Item value="social">
+          <Accordion.Item value="social" className="hidden">
             <Accordion.Control>Follow Us</Accordion.Control>
             <Accordion.Panel>
               <div className="flex justify-between gap-1">
@@ -525,15 +525,20 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               </div>
             </Accordion.Panel>
           </Accordion.Item>
+          {/* Follow Us */}
+          <Accordion.Item value="social">
+            <Accordion.Control>Follow Us</Accordion.Control>
+            <Accordion.Panel>
+              {/* Social Share Component Placeholder */}
+              <div className="mt-4">
+                <SocialShare
+                  url={`https://www.keymanstores.com/supplier/${supplier?.id}`}
+                  title={supplier?.name ?? "Supplier"}
+                />
+              </div>
+            </Accordion.Panel>
+          </Accordion.Item>
         </Accordion>
-
-        {/* Social Share Component Placeholder */}
-        <div className="mt-4">
-          <SocialShare
-            url={`https://www.keymanstores.com/supplier/${supplier?.id}`}
-            title={supplier?.name ?? "Supplier"}
-          />
-        </div>
       </div>
 
       {/* Unverified Contract Modal */}

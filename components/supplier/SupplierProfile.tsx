@@ -404,7 +404,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flexy hidden items-center gap-3">
             <ThemeIcon variant="light" color="#F08C23" size="sm">
               <Clock className="w-4 h-4" />
             </ThemeIcon>
@@ -554,15 +554,21 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               </div>
             </Accordion.Panel>
           </Accordion.Item>
+          {/* Follow Us */}
+          <Accordion.Item value="social">
+            <Accordion.Control>Follow Us</Accordion.Control>
+            <Accordion.Panel>
+              {" "}
+              {/* Social Share Component */}
+              <div className="mt-4">
+                <SocialShare
+                  url={`https://www.keymanstores.com/supplier/${supplier?.id}`}
+                  title={supplier?.name ?? "Supplier"}
+                />
+              </div>
+            </Accordion.Panel>
+          </Accordion.Item>
         </Accordion>
-
-        {/* Social Share Component */}
-        <div className="mt-4">
-          <SocialShare
-            url={`https://www.keymanstores.com/supplier/${supplier?.id}`}
-            title={supplier?.name ?? "Supplier"}
-          />
-        </div>
       </div>
 
       {/* Unverified Contract Modal */}
