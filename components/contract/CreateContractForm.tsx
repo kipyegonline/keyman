@@ -16,7 +16,7 @@ import {
 import { useForm } from "@mantine/form";
 //import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
-import { CheckCircle, ArrowLeft } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { createContract } from "@/api/contract";
 import { notify } from "@/lib/notifications";
 
@@ -30,10 +30,12 @@ interface ContractFormData {
 
 interface CreateContractFormProps {
   keymanId?: string | null;
+  onComplete?: (data: ContractFormData) => void;
 }
 
 const CreateContractForm: React.FC<CreateContractFormProps> = ({
   keymanId,
+  onComplete,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -66,6 +68,14 @@ const CreateContractForm: React.FC<CreateContractFormProps> = ({
     setIsLoading(true);
 
     try {
+      // If onComplete is provided, use wizard mode
+      if (onComplete) {
+        onComplete(values);
+        setIsLoading(false);
+        return;
+      }
+
+      // Original flow - create contract directly
       const contractData = {
         service_provider_id: values.service_provider_id,
         status: "pending",
@@ -97,10 +107,6 @@ const CreateContractForm: React.FC<CreateContractFormProps> = ({
     }
   };
 
-  const handleBack = () => {
-    router.push("/keyman/dashboard/key-contract");
-  };
-
   return (
     <Card
       shadow="sm"
@@ -112,20 +118,9 @@ const CreateContractForm: React.FC<CreateContractFormProps> = ({
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
           {/* Header */}
-          <Group justify="space-between" align="center">
-            <Title order={2} className="text-gray-800">
-              Contract Details
-            </Title>
-            <Button
-              variant="light"
-              color="orange"
-              leftSection={<ArrowLeft size={16} />}
-              onClick={handleBack}
-              disabled={isLoading}
-            >
-              Back to Contracts
-            </Button>
-          </Group>
+          <Title order={2} className="text-gray-800">
+            Contract Details
+          </Title>
 
           <Alert
             color="green"
@@ -196,6 +191,7 @@ const CreateContractForm: React.FC<CreateContractFormProps> = ({
               </Title>
               <TextInput
                 label="Service Provider ID (optional)"
+                readOnly={!!keymanId}
                 placeholder="Enter KS number (e.g., KS12345)"
                 description="Enter the unique KS number for your service provider"
                 // required
@@ -207,14 +203,16 @@ const CreateContractForm: React.FC<CreateContractFormProps> = ({
 
           {/* Submit Button */}
           <Group justify="flex-end" className="pt-4">
-            <Button
-              variant="outline"
-              color="orange"
-              onClick={handleBack}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
+            {!onComplete && (
+              <Button
+                variant="outline"
+                color="orange"
+                onClick={() => router.push("/keyman/dashboard/key-contract")}
+                disabled={isLoading}
+              >
+                Cancel
+              </Button>
+            )}
             <Button
               type="submit"
               loading={isLoading}
@@ -224,7 +222,11 @@ const CreateContractForm: React.FC<CreateContractFormProps> = ({
                 isLoading ? <Loader size={16} /> : <CheckCircle size={16} />
               }
             >
-              {isLoading ? "Creating Contract..." : "Create Contract"}
+              {isLoading
+                ? "Creating Contract..."
+                : onComplete
+                ? "Continue"
+                : "Create Contract"}
             </Button>
           </Group>
         </Stack>

@@ -1,8 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Container, Title, Text, Stack } from "@mantine/core";
 import { useSearchParams } from "next/navigation";
-import CreateContractForm from "@/components/contract/CreateContractForm";
+import ContractWizard from "@/components/contract/ContractWizard";
+import { useQuery } from "@tanstack/react-query";
+import { getSupplierDetails } from "@/api/supplier";
 
 export default function CreateContractPage() {
   const searchParams = useSearchParams();
@@ -15,20 +16,15 @@ export default function CreateContractPage() {
     }
   }, [searchParams]);
 
-  return (
-    <Container size="md" className="py-8">
-      <Stack gap="lg">
-        <div className="text-center">
-          <Title order={1} className="text-gray-900 mb-2">
-            Create New Contract
-          </Title>
-          <Text size="lg" c="gray.6">
-            Fill out the details to create a contract with your service provider
-          </Text>
-        </div>
-
-        <CreateContractForm keymanId={keymanId} />
-      </Stack>
-    </Container>
-  );
+  const { data: supplier } = useQuery({
+    queryKey: ["supplier", keymanId],
+    queryFn: async () => getSupplierDetails(keymanId!),
+    enabled: !!keymanId,
+  });
+  const _supplier = React.useMemo(() => {
+    if (supplier?.supplier) {
+      return supplier.supplier;
+    } else return null;
+  }, [supplier]);
+  return <ContractWizard supplier={_supplier} />;
 }
