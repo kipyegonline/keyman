@@ -13,6 +13,7 @@ import {
   Badge,
   ScrollArea,
   Divider,
+  Image,
 } from "@mantine/core";
 import { Search, Plus, Minus, Trash2, X, ShoppingBag } from "lucide-react";
 import { WholePriceList } from "../supplier/priceList";
@@ -238,7 +239,22 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
                           justify="space-between"
                           align="flex-start"
                           wrap="nowrap"
+                          gap="xs"
                         >
+                          {/* Item Image */}
+                          {item.attachment_url &&
+                            item.attachment_url.length > 0 &&
+                            false && (
+                              <Image
+                                src={item?.attachment_url?.[0]}
+                                alt={item.name}
+                                width={50}
+                                height={50}
+                                radius="md"
+                                fit="cover"
+                                fallbackSrc="https://placehold.co/50x50?text=No+Image"
+                              />
+                            )}
                           <Box style={{ flex: 1, minWidth: 0 }}>
                             <Text size="sm" fw={600} lineClamp={1}>
                               {item.name}

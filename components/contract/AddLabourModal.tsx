@@ -17,6 +17,7 @@ interface LabourItem {
   name: string;
   description: string;
   amount: number;
+  quantity: number;
 }
 
 interface AddLabourModalProps {
@@ -34,12 +35,14 @@ const AddLabourModal: React.FC<AddLabourModalProps> = ({
     name: "",
     description: "",
     amount: 0,
+    quantity: 1,
   });
 
   const [errors, setErrors] = useState({
     name: "",
     description: "",
     amount: "",
+    quantity: "",
   });
 
   const validateForm = () => {
@@ -47,6 +50,7 @@ const AddLabourModal: React.FC<AddLabourModalProps> = ({
       name: "",
       description: "",
       amount: "",
+      quantity: "",
     };
 
     if (!formData.name.trim()) {
@@ -61,6 +65,10 @@ const AddLabourModal: React.FC<AddLabourModalProps> = ({
       newErrors.amount = "Amount must be greater than 0";
     }
 
+    if (!formData.quantity || formData.quantity <= 0) {
+      newErrors.quantity = "Quantity must be at least 1";
+    }
+
     setErrors(newErrors);
 
     return !Object.values(newErrors).some((error) => error !== "");
@@ -72,6 +80,7 @@ const AddLabourModal: React.FC<AddLabourModalProps> = ({
         name: formData.name,
         description: formData.description,
         amount: formData.amount,
+        quantity: formData.quantity,
       });
 
       // Reset form
@@ -79,6 +88,7 @@ const AddLabourModal: React.FC<AddLabourModalProps> = ({
         name: "",
         description: "",
         amount: 0,
+        quantity: 1,
       });
 
       onClose();
@@ -91,11 +101,13 @@ const AddLabourModal: React.FC<AddLabourModalProps> = ({
       name: "",
       description: "",
       amount: 0,
+      quantity: 1,
     });
     setErrors({
       name: "",
       description: "",
       amount: "",
+      quantity: "",
     });
     onClose();
   };
@@ -142,21 +154,53 @@ const AddLabourModal: React.FC<AddLabourModalProps> = ({
           size="md"
         />
 
-        {/* Amount */}
-        <NumberInput
-          label="Amount (KES)"
-          placeholder="Enter labour cost"
-          value={formData.amount}
-          onChange={(value) =>
-            setFormData({ ...formData, amount: value as number })
-          }
-          error={errors.amount}
-          required
-          min={0}
-          thousandSeparator=","
-          size="md"
-          leftSection={<Text size="sm">Ksh</Text>}
-        />
+        {/* Quantity and Amount */}
+        <Group grow>
+          <NumberInput
+            label="Quantity"
+            placeholder="Number needed"
+            value={formData.quantity}
+            onChange={(value) =>
+              setFormData({ ...formData, quantity: value as number })
+            }
+            error={errors.quantity}
+            required
+            min={1}
+            size="md"
+            description="Number of labourers needed"
+          />
+
+          <NumberInput
+            label="Amount per Unit (KES)"
+            placeholder="Enter cost per labourer"
+            value={formData.amount}
+            onChange={(value) =>
+              setFormData({ ...formData, amount: value as number })
+            }
+            error={errors.amount}
+            required
+            min={0}
+            thousandSeparator=","
+            size="md"
+            leftSection={<Text size="sm">Ksh</Text>}
+          />
+        </Group>
+
+        {/* Total Cost Display */}
+        {formData.quantity > 0 && formData.amount > 0 && (
+          <Group
+            justify="space-between"
+            p="sm"
+            style={{ backgroundColor: "#f0fdf4", borderRadius: "8px" }}
+          >
+            <Text size="sm" fw={500} c="dimmed">
+              Total Cost
+            </Text>
+            <Text size="lg" fw={700} c="green.7">
+              Ksh {(formData.quantity * formData.amount).toLocaleString()}
+            </Text>
+          </Group>
+        )}
 
         {/* Actions */}
         <Group justify="flex-end" mt="md">

@@ -40,11 +40,15 @@ interface Milestone {
   id: string;
   name: string;
   deliverables: string;
+  description: string;
   amount: number;
+  quantity: number;
+  type: "materials" | "labour";
   duration_in_days: number;
   supplier_id?: string;
   supplier_name?: string;
   verified?: boolean;
+  unit_price?: number;
 }
 
 interface ISupplierContact {
@@ -69,6 +73,8 @@ const ContractWizard: React.FC<ContractWizardProps> = ({
     null
   );
   const [phases, setPhases] = useState<Phase[]>([]);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+
   React.useEffect(() => {
     if (supplier) {
       setSelectedStore(supplier);
@@ -76,18 +82,26 @@ const ContractWizard: React.FC<ContractWizardProps> = ({
     }
   }, [supplier]);
 
+  // Scroll to top when step changes
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [active]);
+
   const handleContractComplete = (data: ContractData) => {
     setContractData(data);
+    setCompletedSteps((prev) => [...new Set([...prev, 1])]);
     setActive(2);
   };
 
   const handleStoreSelect = (store: ISupplierContact) => {
     setSelectedStore(store);
+    setCompletedSteps((prev) => [...new Set([...prev, 0])]);
     setActive(1);
   };
 
   const handlePhasesComplete = (phasesData: Phase[]) => {
     setPhases(phasesData);
+    setCompletedSteps((prev) => [...new Set([...prev, 2])]);
     setActive(3);
   };
 
@@ -100,7 +114,7 @@ const ContractWizard: React.FC<ContractWizardProps> = ({
   const handleBackToContracts = () => {
     router.push("/keyman/dashboard/key-contract");
   };
-
+  console.log(contractData);
   return (
     <Container size="xl" py="xl">
       <Stack gap="xl">
@@ -120,30 +134,43 @@ const ContractWizard: React.FC<ContractWizardProps> = ({
         <Paper shadow="xs" p="md" radius="lg">
           <Stepper
             active={active}
-            onStepClick={setActive}
+            onStepClick={(stepIndex) => {
+              // Only allow clicking on completed steps or previous steps
+              if (completedSteps.includes(stepIndex) || stepIndex < active) {
+                setActive(stepIndex);
+              }
+            }}
             size="md"
             radius="md"
             color="green.7"
             completedIcon={<CheckCircle2 size={20} />}
+            allowNextStepsSelect={false}
           >
-            <Stepper.Step label="Select Store" description="Choose a store">
+            <Stepper.Step
+              label="Select Store"
+              description="Choose a store"
+              allowStepClick={completedSteps.includes(0)}
+            >
               {/* Step 0 content is rendered below */}
             </Stepper.Step>
             <Stepper.Step
               label="Contract Details"
               description="Basic information"
+              allowStepClick={completedSteps.includes(1)}
             >
               {/* Step 1 content is rendered below */}
             </Stepper.Step>
             <Stepper.Step
               label="Phases & Milestones"
               description="Define deliverables"
+              allowStepClick={completedSteps.includes(2)}
             >
               {/* Step 2 content is rendered below */}
             </Stepper.Step>
             <Stepper.Step
               label="Review & Submit"
               description="Final confirmation"
+              allowStepClick={completedSteps.includes(3)}
             >
               {/* Step 3 content is rendered below */}
             </Stepper.Step>
@@ -164,6 +191,8 @@ const ContractWizard: React.FC<ContractWizardProps> = ({
             <CreateContractForm
               keymanId={selectedStore?.keyman_number || null}
               onComplete={handleContractComplete}
+              initialData={contractData}
+              storeName={selectedStore?.name || null}
             />
           )}
 
@@ -173,6 +202,7 @@ const ContractWizard: React.FC<ContractWizardProps> = ({
               onComplete={handlePhasesComplete}
               onBack={() => handleBack(1)}
               supplier={selectedStore}
+              initialPhases={phases}
             />
           )}
 

@@ -10,21 +10,48 @@ import {
   Paper,
   Box,
   Badge,
+  Grid,
+  ThemeIcon,
+  Divider,
 } from "@mantine/core";
-import { ArrowLeft, ArrowRight, Plus, BadgeCheck } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Plus,
+  BadgeCheck,
+  DollarSign,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getSupplierPriceList } from "@/api/supplier";
 import { WholePriceList } from "../supplier/priceList";
 import LabourSection from "./LabourSection";
 import AddMaterialsModal from "./AddMaterialsModal";
 
-interface MaterialItem {
+interface MilestoneItem {
+  id: string;
+  name: string;
+  description: string;
+  amount: number;
+  quantity: number;
+  type: "materials" | "labour";
+  unit_price?: number;
+}
+
+interface MaterialInput {
   id: string;
   name: string;
   description: string;
   amount: number;
   quantity: number;
   unit_price: number;
+}
+
+interface LabourInput {
+  id: string;
+  name: string;
+  description: string;
+  amount: number;
+  quantity: number;
 }
 
 interface ContractData {
@@ -39,11 +66,15 @@ interface Milestone {
   id: string;
   name: string;
   deliverables: string;
+  description: string;
   amount: number;
+  quantity: number;
+  type: "materials" | "labour";
   duration_in_days: number;
   supplier_id?: string;
   supplier_name?: string;
   verified?: boolean;
+  unit_price?: number;
 }
 
 interface Phase {
@@ -70,6 +101,7 @@ interface PhasesAndMilestonesProps {
   onComplete: (phases: Phase[]) => void;
   onBack: () => void;
   supplier: ISupplierContact | null;
+  initialPhases?: Phase[];
 }
 
 const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
@@ -77,6 +109,7 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
   onComplete,
   onBack,
   supplier,
+  initialPhases,
 }) => {
   const { data: priceList } = useQuery({
     queryKey: ["pricelist", supplier?.id],
@@ -88,215 +121,390 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
       return priceList.price_list as WholePriceList[];
     } else return [];
   }, [priceList]);
-  const [phases] = useState<Phase[]>([
-    {
-      id: "1",
-      name: "Phase 1",
-      description: "",
-      milestones: [],
-    },
-  ]);
 
+  // Initialize milestones from initialPhases if provided
+  const [milestones, setMilestones] = useState<MilestoneItem[]>(() => {
+    if (initialPhases && initialPhases.length > 0 && initialPhases[0].milestones) {
+      return initialPhases[0].milestones.map((m) => ({
+        id: m.id,
+        name: m.name,
+        description: m.description || m.deliverables,
+        amount: m.amount,
+        quantity: m.quantity,
+        type: m.type,
+        unit_price: m.unit_price,
+      }));
+    }
+    return [];
+  });
   const [materialsModalOpened, setMaterialsModalOpened] = useState(false);
-  const [selectedMaterials, setSelectedMaterials] = useState<MaterialItem[]>(
-    []
-  );
 
-  const handleAddMaterials = (materials: MaterialItem[]) => {
-    setSelectedMaterials(materials);
+  // Separate materials and labour for display
+  const materials = milestones.filter((m) => m.type === "materials");
+
+  const handleAddMaterials = (items: MaterialInput[]) => {
+    const materialItems: MilestoneItem[] = items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      amount: item.amount,
+      quantity: item.quantity,
+      type: "materials" as const,
+      unit_price: item.unit_price,
+    }));
+    setMilestones([...milestones, ...materialItems]);
+  };
+
+  const handleLabourChange = (items: LabourInput[]) => {
+    // Remove old labour items and add new ones
+    const nonLabourMilestones = milestones.filter((m) => m.type !== "labour");
+    const labourItems: MilestoneItem[] = items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      description: item.description,
+      amount: item.amount * item.quantity, // Total amount
+      quantity: item.quantity,
+      type: "labour" as const,
+      unit_price: item.amount, // Store unit price
+    }));
+    setMilestones([...nonLabourMilestones, ...labourItems]);
   };
 
   const handleContinue = () => {
-    // Validate phases have at least one milestone
-    const hasValidPhases = phases.some((phase) => phase.milestones.length > 0);
-
-    if (!hasValidPhases) {
+    // Validate at least one milestone exists
+    if (milestones.length === 0) {
       // Show error notification
       return;
     }
 
+    // Build phases with milestones
+    const phases: Phase[] = [
+      {
+        id: "1",
+        name: "Phase 1",
+        description: "",
+        milestones: milestones.map((m) => ({
+          id: m.id,
+          name: m.name,
+          deliverables: m.description,
+          description: m.description,
+          amount: m.amount,
+          quantity: m.quantity,
+          type: m.type,
+          duration_in_days: 1,
+          unit_price: m.unit_price,
+        })),
+      },
+    ];
+
     onComplete(phases);
   };
+  // Calculate totals
+  const materialsTotal = materials.reduce((sum, m) => sum + m.amount, 0);
+  const labourTotal = milestones
+    .filter((m) => m.type === "labour")
+    .reduce((sum, m) => sum + m.amount, 0);
+  const grandTotal = materialsTotal + labourTotal;
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-KE", {
+      style: "currency",
+      currency: "KES",
+    }).format(amount);
+  };
+
   console.log(_priceList);
   return (
-    <Card shadow="sm" padding="lg" radius="lg">
-      <Stack gap="xl">
-        {/* Header */}
-        <Box>
-          <Title order={2} mb="xs">
-            Phases & Milestones
-          </Title>
-          <Text size="sm" c="dimmed">
-            Divide your contract into phases. Receive payment in escrow upon
-            completion of each phase.
-          </Text>
-
-          <Paper p="md" mt="md" radius="md" bg="green.0">
-            <Group gap="xs">
-              <Badge color="green" variant="light" size="sm">
-                ✓
-              </Badge>
-              <Text size="sm" c="green.8">
-                This contract follows the Keyman Stores 12 Principles of Fair
-                Trade
-              </Text>
-            </Group>
-          </Paper>
-        </Box>
-
-        {/* Contract Summary */}
-        {contractData && (
-          <Paper p="md" radius="md" withBorder>
-            <Group justify="space-between">
+    <Box>
+      <Grid gutter="lg">
+        {/* Main Content - Left Column */}
+        <Grid.Col span={{ base: 12, md: 8 }}>
+          <Card shadow="sm" padding="lg" radius="lg">
+            <Stack gap="xl">
+              {/* Header */}
               <Box>
-                <Text size="lg" fw={600}>
-                  {contractData.title}
-                </Text>
+                <Title order={2} mb="xs">
+                  Phases & Milestones
+                </Title>
                 <Text size="sm" c="dimmed">
-                  {contractData.contract_duration_in_duration} days
+                  Divide your contract into phases. Receive payment in escrow
+                  upon completion of each phase.
                 </Text>
-              </Box>
-              <Box ta="right">
-                <Text size="xs" c="dimmed">
-                  Total Value
-                </Text>
-                <Text size="xl" fw={700} c="green.7">
-                  Ksh {contractData.contract_amount.toLocaleString()}
-                </Text>
-              </Box>
-            </Group>
-          </Paper>
-        )}
 
-        {/* Supplier Information */}
-        {supplier && (
-          <Paper p="lg" radius="md" withBorder>
-            <Group justify="space-between" align="center" mb="md">
-              <Box>
-                <Group gap="xs" mb="xs">
-                  <Title order={3} style={{ color: "#3D6B2C" }}>
-                    {supplier.name}{" "}
-                    {(supplier?.is_user_verified as number) > 0 && false && (
-                      <BadgeCheck
-                        size={28}
-                        fill="#3D6B2C"
-                        stroke="white"
-                        className="inline-block relative -top-1"
-                      />
-                    )}
-                  </Title>
-                  {supplier.is_user_verified > 0 && (
-                    <BadgeCheck size={24} fill="#3D6B2C" stroke="white" />
-                  )}
-                </Group>
-                <Badge color="orange" variant="light" size="md">
-                  {supplier.keyman_number}
-                </Badge>
-              </Box>
-              {_priceList?.length > 0 && (
-                <Button
-                  variant="outline"
-                  color="green.7"
-                  leftSection={<Plus size={16} />}
-                  onClick={() => setMaterialsModalOpened(true)}
-                >
-                  Add Materials
-                </Button>
-              )}
-            </Group>
-          </Paper>
-        )}
-
-        {/* Selected Materials Display */}
-        {selectedMaterials.length > 0 && (
-          <Paper p="lg" radius="md" withBorder bg="blue.0">
-            <Group justify="space-between" mb="md">
-              <Text size="sm" fw={600}>
-                Selected Materials ({selectedMaterials.length})
-              </Text>
-              <Text size="lg" fw={700} c="green.7">
-                Ksh{" "}
-                {selectedMaterials
-                  .reduce((sum, m) => sum + m.amount, 0)
-                  .toLocaleString()}
-              </Text>
-            </Group>
-            <Stack gap="xs">
-              {selectedMaterials.map((material) => (
-                <Paper
-                  key={material.id}
-                  p="sm"
-                  radius="md"
-                  withBorder
-                  bg="white"
-                >
-                  <Group justify="space-between">
-                    <Box style={{ flex: 1 }}>
-                      <Text size="sm" fw={600}>
-                        {material.name}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {material.description}
-                      </Text>
-                    </Box>
-                    <Group gap="md">
-                      <Badge size="lg" variant="light" color="blue">
-                        Qty: {material.quantity}
-                      </Badge>
-                      <Text size="sm" fw={600} c="green.7">
-                        Ksh {material.amount.toLocaleString()}
-                      </Text>
-                    </Group>
+                <Paper p="md" mt="md" radius="md" bg="green.0">
+                  <Group gap="xs">
+                    <Badge color="green" variant="light" size="sm">
+                      ✓
+                    </Badge>
+                    <Text size="sm" c="green.8">
+                      This contract follows the Keyman Stores 12 Principles of
+                      Fair Trade
+                    </Text>
                   </Group>
                 </Paper>
-              ))}
+              </Box>
+
+              {/* Contract Summary */}
+              {contractData && (
+                <Paper p="md" radius="md" withBorder>
+                  <Group justify="space-between">
+                    <Box>
+                      <Text size="lg" fw={600}>
+                        {contractData.title}
+                      </Text>
+                      <Text size="sm" c="dimmed">
+                        {contractData.contract_duration_in_duration} days
+                      </Text>
+                    </Box>
+                    <Box ta="right">
+                      <Text size="xs" c="dimmed">
+                        Total Value
+                      </Text>
+                      <Text size="xl" fw={700} c="green.7">
+                        Ksh {contractData.contract_amount.toLocaleString()}
+                      </Text>
+                    </Box>
+                  </Group>
+                </Paper>
+              )}
+
+              {/* Supplier Information */}
+              {supplier && (
+                <Paper p="lg" radius="md" withBorder>
+                  <Group justify="space-between" align="center" mb="md">
+                    <Box>
+                      <Group gap="xs" mb="xs">
+                        <Title order={3} style={{ color: "#3D6B2C" }}>
+                          {supplier.name}{" "}
+                          {(supplier?.is_user_verified as number) > 0 &&
+                            false && (
+                              <BadgeCheck
+                                size={28}
+                                fill="#3D6B2C"
+                                stroke="white"
+                                className="inline-block relative -top-1"
+                              />
+                            )}
+                        </Title>
+                        {supplier.is_user_verified > 0 && (
+                          <BadgeCheck size={24} fill="#3D6B2C" stroke="white" />
+                        )}
+                      </Group>
+                      <Badge color="orange" variant="light" size="md">
+                        {supplier.keyman_number}
+                      </Badge>
+                    </Box>
+                    {_priceList?.length > 0 && (
+                      <Button
+                        variant="outline"
+                        color="green.7"
+                        leftSection={<Plus size={16} />}
+                        onClick={() => setMaterialsModalOpened(true)}
+                      >
+                        Add Materials
+                      </Button>
+                    )}
+                  </Group>
+                </Paper>
+              )}
+
+              {/* Phase 1 Section */}
+              <LabourSection
+                phaseName="Phase 1"
+                onLabourChange={(items) => handleLabourChange(items)}
+              />
+
+              {/* Add Materials Modal */}
+              <AddMaterialsModal
+                opened={materialsModalOpened}
+                onClose={() => setMaterialsModalOpened(false)}
+                onSave={handleAddMaterials}
+                priceList={_priceList}
+              />
+
+              {/* Add More Phases */}
+              <Button
+                variant="subtle"
+                color="green.7"
+                leftSection={<Plus size={16} />}
+                fullWidth
+              >
+                Add Phase
+              </Button>
+
+              {/* Actions */}
+              <Group justify="space-between" mt="xl">
+                <Button
+                  variant="subtle"
+                  leftSection={<ArrowLeft size={16} />}
+                  onClick={onBack}
+                  color="gray"
+                >
+                  Back
+                </Button>
+
+                <Button
+                  rightSection={<ArrowRight size={16} />}
+                  onClick={handleContinue}
+                  color="green.7"
+                  size="md"
+                >
+                  Continue to Review
+                </Button>
+              </Group>
             </Stack>
-          </Paper>
-        )}
+          </Card>
+        </Grid.Col>
 
-        {/* Phase 1 Section */}
-        <LabourSection phaseName="Phase 1" />
+        {/* Sidebar - Right Column */}
+        <Grid.Col span={{ base: 12, md: 4 }}>
+          <Stack gap="md">
+            {/* Financial Summary */}
+            <Card
+              shadow="sm"
+              padding="lg"
+              radius="md"
+              className="bg-gradient-to-br from-green-50 to-emerald-50"
+            >
+              <Group gap="xs" mb="md">
+                <ThemeIcon
+                  size="lg"
+                  style={{ backgroundColor: "#388E3C" }}
+                  variant="filled"
+                >
+                  <DollarSign size={20} color="white" />
+                </ThemeIcon>
+                <Text fw={600} size="lg" className="text-gray-800">
+                  Cost Summary
+                </Text>
+              </Group>
 
-        {/* Add Materials Modal */}
-        <AddMaterialsModal
-          opened={materialsModalOpened}
-          onClose={() => setMaterialsModalOpened(false)}
-          onSave={handleAddMaterials}
-          priceList={_priceList}
-        />
+              <Stack gap="md">
+                <Group justify="space-between">
+                  <Text size="sm" c="dimmed">
+                    Total Cost
+                  </Text>
+                  <Text size="lg" fw={700} className="text-green-700">
+                    {formatCurrency(grandTotal)}
+                  </Text>
+                </Group>
 
-        {/* Add More Phases */}
-        <Button
-          variant="subtle"
-          color="green.7"
-          leftSection={<Plus size={16} />}
-          fullWidth
-        >
-          Add Phase
-        </Button>
+                {(materials.length > 0 ||
+                  milestones.some((m) => m.type === "labour")) && (
+                  <>
+                    <Divider />
+                    <div>
+                      <Text
+                        size="sm"
+                        fw={600}
+                        mb="xs"
+                        className="text-gray-700"
+                      >
+                        Cost Breakdown
+                      </Text>
 
-        {/* Actions */}
-        <Group justify="space-between" mt="xl">
-          <Button
-            variant="subtle"
-            leftSection={<ArrowLeft size={16} />}
-            onClick={onBack}
-            color="gray"
-          >
-            Back
-          </Button>
+                      {materials.length > 0 && (
+                        <Group justify="space-between" mb="xs">
+                          <Text size="xs" c="dimmed">
+                            Materials ({materials.length} items)
+                          </Text>
+                          <Text size="xs" fw={500}>
+                            {formatCurrency(materialsTotal)}
+                          </Text>
+                        </Group>
+                      )}
 
-          <Button
-            rightSection={<ArrowRight size={16} />}
-            onClick={handleContinue}
-            color="green.7"
-            size="md"
-          >
-            Continue to Review
-          </Button>
-        </Group>
-      </Stack>
-    </Card>
+                      {labourTotal > 0 && (
+                        <Group justify="space-between" mb="xs">
+                          <Text size="xs" c="dimmed">
+                            Labour (
+                            {
+                              milestones.filter((m) => m.type === "labour")
+                                .length
+                            }{" "}
+                            items)
+                          </Text>
+                          <Text size="xs" fw={500}>
+                            {formatCurrency(labourTotal)}
+                          </Text>
+                        </Group>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {milestones.length === 0 && (
+                  <Paper
+                    p="md"
+                    className="bg-white border border-gray-200"
+                    radius="md"
+                  >
+                    <Text size="sm" c="dimmed" ta="center">
+                      No items added yet
+                    </Text>
+                  </Paper>
+                )}
+
+                {milestones.length > 0 && (
+                  <Paper
+                    p="sm"
+                    className="bg-white border border-green-100"
+                    radius="md"
+                  >
+                    <Group justify="space-between">
+                      <Text size="sm" c="dimmed">
+                        Total Items
+                      </Text>
+                      <Badge variant="light" color="green" size="lg">
+                        {milestones.length}
+                      </Badge>
+                    </Group>
+                  </Paper>
+                )}
+              </Stack>
+            </Card>
+
+            {/* Phase Information */}
+            <Card shadow="sm" padding="lg" radius="md">
+              <Text fw={600} size="lg" className="text-gray-800 mb-md">
+                Phase Details
+              </Text>
+
+              <Stack gap="sm">
+                <Group justify="space-between">
+                  <Text size="sm" c="dimmed">
+                    Current Phase
+                  </Text>
+                  <Badge variant="light" color="blue">
+                    Phase 1
+                  </Badge>
+                </Group>
+
+                <Divider />
+
+                <Group justify="space-between">
+                  <Text size="sm" c="dimmed">
+                    Materials
+                  </Text>
+                  <Text size="sm" fw={500}>
+                    {materials.length}
+                  </Text>
+                </Group>
+
+                <Group justify="space-between">
+                  <Text size="sm" c="dimmed">
+                    Labour Items
+                  </Text>
+                  <Text size="sm" fw={500}>
+                    {milestones.filter((m) => m.type === "labour").length}
+                  </Text>
+                </Group>
+              </Stack>
+            </Card>
+          </Stack>
+        </Grid.Col>
+      </Grid>
+    </Box>
   );
 };
 

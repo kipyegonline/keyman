@@ -16,6 +16,8 @@ import {
 } from "@mantine/core";
 import { ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { createContract } from "@/api/contract";
+import { notify } from "@/lib/notifications";
 
 interface ContractData {
   service_provider_id: string;
@@ -29,11 +31,15 @@ interface Milestone {
   id: string;
   name: string;
   deliverables: string;
+  description: string;
   amount: number;
+  quantity: number;
+  type: "materials" | "labour";
   duration_in_days: number;
   supplier_id?: string;
   supplier_name?: string;
   verified?: boolean;
+  unit_price?: number;
 }
 
 interface Phase {
@@ -59,21 +65,69 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
   const router = useRouter();
 
   const handleSubmit = async () => {
+    if (!contractData) {
+      setError(
+        "Contract data is missing. Please go back and fill in the required fields."
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
 
     try {
-      // Submit contract logic will be implemented here
-      // await createContract({ contractData, phases });
+      // Prepare the contract data with milestones in contract_json
+      const contractPayload = {
+        service_provider_id: contractData.service_provider_id,
+        status: "pending",
+        contract_duration_in_duration:
+          contractData.contract_duration_in_duration,
+        contract_amount: contractData.contract_amount,
+        contract_json: JSON.stringify({
+          title: contractData.title,
+          scope: contractData.scope,
+          phases: phases.map((phase) => ({
+            id: phase.id,
+            name: phase.name,
+            description: phase.description,
+            milestones: phase.milestones.map((milestone) => ({
+              id: milestone.id,
+              name: milestone.name,
+              description: milestone.description,
+              deliverables: milestone.deliverables,
+              amount: milestone.amount,
+              quantity: milestone.quantity,
+              type: milestone.type,
+              duration_in_days: milestone.duration_in_days,
+              unit_price: milestone.unit_price,
+              supplier_id: milestone.supplier_id,
+              supplier_name: milestone.supplier_name,
+              verified: milestone.verified,
+            })),
+          })),
+        }),
+      };
+      console.log("Contract Payload:", contractPayload, phases);
+      return false;
+      const response = await createContract(contractPayload);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (response.status) {
+        notify.success("Contract created successfully");
 
-      // Navigate to contracts list or success page
-      router.push("/keyman/dashboard/key-contract");
+        // Navigate to the newly created contract details
+        router.push(`/keyman/dashboard/key-contract/${response?.contract?.id}`);
+      } else {
+        notify.error(
+          response.message || "Failed to create contract. Please try again."
+        );
+        setError(
+          response.message || "Failed to create contract. Please try again."
+        );
+      }
     } catch (err) {
+      console.error("Error creating contract:", err);
+      notify.error("Failed to create contract. Please try again.");
       setError("Failed to create contract. Please try again.");
-      console.error(err);
     } finally {
       setIsSubmitting(false);
     }
@@ -170,14 +224,32 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
                 <Stack gap="xs" pl="md">
                   {phase.milestones.map((milestone) => (
                     <Group key={milestone.id} justify="space-between">
-                      <Text size="sm" c="dimmed">
-                        • {milestone.name}
-                      </Text>
+                      <Box style={{ flex: 1 }}>
+                        <Group gap="xs">
+                          <Text size="sm" c="dimmed">
+                            • {milestone.name}
+                          </Text>
+                          <Badge
+                            size="xs"
+                            variant="light"
+                            color={
+                              milestone.type === "materials" ? "blue" : "orange"
+                            }
+                          >
+                            {milestone.type}
+                          </Badge>
+                          {milestone.quantity > 0 && (
+                            <Badge size="xs" variant="outline">
+                              Qty: {milestone.quantity}
+                            </Badge>
+                          )}
+                        </Group>
+                      </Box>
                       <Group gap="md">
-                        <Text size="sm">
+                        <Text size="sm" fw={500}>
                           Ksh {milestone.amount.toLocaleString()}
                         </Text>
-                        <Text size="sm" c="dimmed">
+                        <Text size="xs" c="dimmed" style={{ minWidth: "60px" }}>
                           {milestone.duration_in_days} day
                           {milestone.duration_in_days !== 1 ? "s" : ""}
                         </Text>

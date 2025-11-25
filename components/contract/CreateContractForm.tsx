@@ -31,22 +31,27 @@ interface ContractFormData {
 interface CreateContractFormProps {
   keymanId?: string | null;
   onComplete?: (data: ContractFormData) => void;
+  initialData?: ContractFormData | null;
+  storeName?: string | null;
 }
 
 const CreateContractForm: React.FC<CreateContractFormProps> = ({
   keymanId,
   onComplete,
+  initialData,
+  storeName,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const form = useForm<ContractFormData>({
     initialValues: {
-      service_provider_id: keymanId || "",
-      contract_duration_in_duration: 0,
-      contract_amount: 0,
-      title: "",
-      scope: "",
+      service_provider_id: initialData?.service_provider_id || keymanId || "",
+      contract_duration_in_duration:
+        initialData?.contract_duration_in_duration || 0,
+      contract_amount: initialData?.contract_amount || 0,
+      title: initialData?.title || "",
+      scope: initialData?.scope || "",
     },
     validate: {
       /* service_provider_id: (value) =>
@@ -189,6 +194,18 @@ const CreateContractForm: React.FC<CreateContractFormProps> = ({
               <Title order={4} className="text-gray-700 mb-3">
                 Service Provider Information
               </Title>
+              {storeName && (
+                <Alert
+                  color="orange"
+                  title="Selected Store"
+                  icon={<CheckCircle size={16} />}
+                  mb="md"
+                >
+                  <Text size="sm" fw={600}>
+                    {storeName}
+                  </Text>
+                </Alert>
+              )}
               <TextInput
                 label="Service Provider ID (optional)"
                 readOnly={!!keymanId}

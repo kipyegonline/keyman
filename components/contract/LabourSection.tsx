@@ -1,6 +1,15 @@
 "use client";
 import React, { useState } from "react";
-import { Stack, Group, Button, Title, Text, Paper, Box } from "@mantine/core";
+import {
+  Stack,
+  Group,
+  Button,
+  Title,
+  Text,
+  Paper,
+  Box,
+  Badge,
+} from "@mantine/core";
 import { Plus, Trash2 } from "lucide-react";
 import AddLabourModal from "./AddLabourModal";
 
@@ -9,11 +18,12 @@ interface LabourItem {
   name: string;
   description: string;
   amount: number;
+  quantity: number;
 }
 
 interface LabourSectionProps {
   phaseName?: string;
-  onLabourChange?: (items: LabourItem[], total: number) => void;
+  onLabourChange?: (items: LabourItem[]) => void;
 }
 
 const LabourSection: React.FC<LabourSectionProps> = ({
@@ -33,8 +43,7 @@ const LabourSection: React.FC<LabourSectionProps> = ({
 
     // Notify parent of changes
     if (onLabourChange) {
-      const total = updatedItems.reduce((sum, item) => sum + item.amount, 0);
-      onLabourChange(updatedItems, total);
+      onLabourChange(updatedItems);
     }
   };
 
@@ -44,13 +53,12 @@ const LabourSection: React.FC<LabourSectionProps> = ({
 
     // Notify parent of changes
     if (onLabourChange) {
-      const total = updatedItems.reduce((sum, item) => sum + item.amount, 0);
-      onLabourChange(updatedItems, total);
+      onLabourChange(updatedItems);
     }
   };
 
   const totalLabourAmount = labourItems.reduce(
-    (sum, item) => sum + item.amount,
+    (sum, item) => sum + item.amount * item.quantity,
     0
   );
 
@@ -75,16 +83,26 @@ const LabourSection: React.FC<LabourSectionProps> = ({
                 <Paper key={labour.id} p="md" radius="md" withBorder>
                   <Group justify="space-between" align="flex-start">
                     <Box style={{ flex: 1 }}>
-                      <Text size="sm" fw={600} mb="xs">
-                        {labour.name}
-                      </Text>
+                      <Group gap="xs" mb="xs">
+                        <Text size="sm" fw={600}>
+                          {labour.name}
+                        </Text>
+                        <Badge size="sm" variant="light" color="blue">
+                          Qty: {labour.quantity}
+                        </Badge>
+                      </Group>
                       <Text size="xs" c="dimmed" lineClamp={2}>
                         {labour.description}
+                      </Text>
+                      <Text size="xs" c="dimmed" mt="xs">
+                        Ksh {labour.amount.toLocaleString()} per unit ×{" "}
+                        {labour.quantity} = Ksh{" "}
+                        {(labour.amount * labour.quantity).toLocaleString()}
                       </Text>
                     </Box>
                     <Group gap="sm" wrap="nowrap">
                       <Text size="sm" fw={600} c="green.7">
-                        Ksh {labour.amount.toLocaleString()}
+                        Ksh {(labour.amount * labour.quantity).toLocaleString()}
                       </Text>
                       <Button
                         variant="subtle"
