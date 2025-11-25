@@ -47,6 +47,7 @@ import {
   Navigation,
   Globe,
   ImageDown,
+  Factory,
 } from "lucide-react";
 import { becomeSupplier } from "@/api/supplier";
 import Link from "next/link";
@@ -75,6 +76,7 @@ export interface SupplierInfo {
   has_pos?: boolean;
   has_inventory?: boolean;
   is_escrow_only?: boolean;
+  is_manufacturer?: boolean;
   photo?: File | null;
   comments?: string;
   referred_by?: string;
@@ -342,6 +344,7 @@ const SupplierRegistrationForm: React.FC<{
       has_pos: false,
       has_inventory: false,
       is_escrow_only: false,
+      is_manufacturer: false,
       photo: null,
       comments: "",
       referred_by: "",
@@ -413,6 +416,9 @@ const SupplierRegistrationForm: React.FC<{
           formData.append(`categories[${i}]`, v);
         });
         //formData.append(key, JSON.stringify(value));
+      } else if (key === "is_manufacturer") {
+        // Convert boolean to 1 or 0
+        formData.append(key, value ? "1" : "0");
       } else if (value !== undefined && value !== null) {
         if (key !== "photo") {
           formData.append(key, value.toString());
@@ -642,6 +648,20 @@ const SupplierRegistrationForm: React.FC<{
                         />
                       )}
                       {categoriesError}
+                    </Grid.Col>
+
+                    <Grid.Col span={12}>
+                      <Card className="p-4 border border-gray-200 rounded-lg bg-gradient-to-r from-green-50 to-orange-50">
+                        <Checkbox
+                          label="Manufacturer/Factory"
+                          description="Check this if you manufacture or produce goods"
+                          icon={() => <Factory size={16} />}
+                          color="#3D6B2C"
+                          {...form.getInputProps("is_manufacturer", {
+                            type: "checkbox",
+                          })}
+                        />
+                      </Card>
                     </Grid.Col>
 
                     <Grid.Col span={12}>

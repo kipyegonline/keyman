@@ -319,29 +319,6 @@ export default function PricelistDashboard({
       formdata.append("items[1][image]", file_, file.name);
     }
 
-    /*
-    formData.append("item_id", editForm?.item_id as string);
-    formData.append("price", editForm?.price.toString() as string);
-    formData.append("description", editForm?.description as string);
-    formData.append("stock", editForm?.stock as string);
-    formData.append("metrics", editForm?.metrics as string);
-
-    // Append image if it exists
-    if (file) {
-      const file64 = await toDataUrlFromFile(file);
-
-      const file_ = DataURIToBlob(file64 as string);
-
-      formData.append("image", file_, file.name);
-    }*/
-    /*
-    const payload: [{ item_id: string; price: number }] = [
-      {
-        item_id: editForm?.item_id as string,
-        price: +editForm?.price as number,
-      },
-    ];*/
-
     setIsLoading(true);
 
     const response = await updateSupplierPriceList(
