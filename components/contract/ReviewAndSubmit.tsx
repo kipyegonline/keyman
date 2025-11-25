@@ -16,7 +16,7 @@ import {
 } from "@mantine/core";
 import { ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { createContract } from "@/api/contract";
+import { createContract, createMilestone } from "@/api/contract";
 import { notify } from "@/lib/notifications";
 
 interface ContractData {
@@ -77,7 +77,8 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
 
     try {
       // Prepare the contract data with milestones in contract_json
-      const contractPayload = {
+      // Original flow - create contract directly
+      const contractpayload = {
         service_provider_id: contractData.service_provider_id,
         status: "pending",
         contract_duration_in_duration:
@@ -86,36 +87,54 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
         contract_json: JSON.stringify({
           title: contractData.title,
           scope: contractData.scope,
-          phases: phases.map((phase) => ({
-            id: phase.id,
-            name: phase.name,
-            description: phase.description,
-            milestones: phase.milestones.map((milestone) => ({
-              id: milestone.id,
-              name: milestone.name,
-              description: milestone.description,
-              deliverables: milestone.deliverables,
-              amount: milestone.amount,
-              quantity: milestone.quantity,
-              type: milestone.type,
-              duration_in_days: milestone.duration_in_days,
-              unit_price: milestone.unit_price,
-              supplier_id: milestone.supplier_id,
-              supplier_name: milestone.supplier_name,
-              verified: milestone.verified,
-            })),
-          })),
         }),
       };
-      console.log("Contract Payload:", contractPayload, phases);
-      return false;
-      const response = await createContract(contractPayload);
+      console.log("Submitting contract...", contractpayload, phases);
+
+      const response = await createContract(contractpayload);
 
       if (response.status) {
-        notify.success("Contract created successfully");
+        const contractId = response.contract.id;
+        const milestones = phases[0].milestones;
+        const milestoneResponses = [];
 
-        // Navigate to the newly created contract details
-        router.push(`/keyman/dashboard/key-contract/${response?.contract?.id}`);
+        // Submit each milestone
+        for (const milestone of milestones) {
+          const milestonePayload = {
+            keyman_contract_id: contractId,
+            name: milestone.name.trim(),
+            description: milestone.description.trim(),
+            status: "pending",
+            start_date: new Date().toISOString(),
+            end_date: new Date().toISOString(),
+            amount: milestone.amount,
+          };
+
+          const milestoneResponse = await createMilestone(milestonePayload);
+          milestoneResponses.push(milestoneResponse);
+        }
+
+        // Check if all milestones were created successfully
+        const allMilestonesSuccess = milestoneResponses.every(
+          (res) => res.status === true
+        );
+
+        if (allMilestonesSuccess) {
+          notify.success("Contract and all milestones created successfully");
+          // Navigate to the newly created contract details
+          router.push(`/keyman/dashboard/key-contract/${contractId}`);
+        } else {
+          // Some milestones failed
+          const failedCount = milestoneResponses.filter(
+            (res) => !res.status
+          ).length;
+          notify.error(
+            `Contract created but ${failedCount} milestone(s) failed to create`
+          );
+          setError(
+            `Contract created but ${failedCount} milestone(s) failed to create. Please edit the contract to add missing milestones.`
+          );
+        }
       } else {
         notify.error(
           response.message || "Failed to create contract. Please try again."
