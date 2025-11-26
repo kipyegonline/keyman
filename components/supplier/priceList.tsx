@@ -39,6 +39,7 @@ import {
   ShoppingCart,
   Store,
   Weight,
+  ZoomIn,
 } from "lucide-react";
 import { updateSupplierPriceList } from "@/api/supplier";
 import { notify } from "@/lib/notifications";
@@ -53,6 +54,7 @@ import { createRequest } from "@/api/requests";
 import { AddItemModal } from "./AddItemModal";
 import { EditItemModal } from "./EditItemModal";
 import { CartModal as CartModalComponent } from "./CartModal";
+import { ImageGalleryModal } from "./ImageGalleryModal";
 
 export interface Pricelist {
   id?: string;
@@ -64,8 +66,10 @@ export interface Pricelist {
   type: "goods" | "services" | "professional_services" | "Select Type";
   weight_in_kgs: number;
   image?: File | null;
+  images?: File[];
   item_id?: string;
   attachment_url?: string[];
+  imagesToDelete?: string[];
 
   added_by_supplier_id?: string;
   stock?: string;
@@ -155,8 +159,13 @@ export default function PricelistDashboard({
   // Add Item Modal States
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [file, setfile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [addLoading, setAddLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Edit Modal Image States
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
   const [location, setLocation] = useState("");
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
@@ -172,6 +181,7 @@ export default function PricelistDashboard({
       type: "Select Type",
       weight_in_kgs: 0,
       image: null,
+      images: [],
       metrics: "",
       stock: "",
     },
@@ -204,9 +214,12 @@ export default function PricelistDashboard({
       type: "Select Type",
       weight_in_kgs: 0,
       image: null,
+      images: [],
+      imagesToDelete: [],
       metrics: "",
       stock: "",
       item_id: "",
+      attachment_url: [],
     },
     validate: {
       price: (value) =>
@@ -251,6 +264,18 @@ export default function PricelistDashboard({
     }
   }, [deleting]);
 
+  // Cleanup object URLs to prevent memory leaks
+  React.useEffect(() => {
+    return () => {
+      files.forEach((file) => {
+        URL.revokeObjectURL(URL.createObjectURL(file));
+      });
+      newFiles.forEach((file) => {
+        URL.revokeObjectURL(URL.createObjectURL(file));
+      });
+    };
+  }, [files, newFiles]);
+
   const handleSearchQuery = (value: string) => {
     if (searchTerm.length > 2) {
       if (value.length > wordCount) {
@@ -265,6 +290,8 @@ export default function PricelistDashboard({
   const handleEditClick = useCallback(
     (item: Pricelist) => {
       setSelectedItem(item);
+      setNewFiles([]);
+      setImagesToDelete([]);
       editForm.setValues({
         ...item,
         price: item.price || 0,
@@ -273,6 +300,9 @@ export default function PricelistDashboard({
         stock: item.stock || "",
         transportation_type: item.transportation_type || "TUKTUK",
         weight_in_kgs: item.weight_in_kgs || 0,
+        attachment_url: item.attachment_url || [],
+        images: [],
+        imagesToDelete: [],
       });
       setModalOpened(true);
     },
@@ -297,6 +327,109 @@ export default function PricelistDashboard({
     [refetchPricelist]
   );
 
+  // Handler for adding multiple files (Add Modal)
+  const handleFilesAdd = useCallback(
+    (selectedFiles: File[] | null) => {
+      if (!selectedFiles || selectedFiles.length === 0) return;
+
+      const remainingSlots = 5 - files.length;
+      const filesToAdd = Array.from(selectedFiles).slice(0, remainingSlots);
+
+      // Validate file sizes
+      const validFiles = filesToAdd.filter((file) => {
+        if (file.size > 5 * 1024 * 1024) {
+          notify.error(`${file.name} exceeds 5MB limit`);
+          return false;
+        }
+        return true;
+      });
+
+      if (validFiles.length > 0) {
+        setFiles((prev) => {
+          const updated = [...prev, ...validFiles];
+          addForm.setFieldValue("images", updated);
+          return updated;
+        });
+      }
+    },
+    [files, addForm]
+  );
+
+  // Handler for removing a file (Add Modal)
+  const handleRemoveFile = useCallback(
+    (index: number) => {
+      setFiles((prev) => {
+        const updated = prev.filter((_, i) => i !== index);
+        addForm.setFieldValue("images", updated);
+        return updated;
+      });
+    },
+    [addForm]
+  );
+
+  // Handler for adding new images in Edit Modal
+  const handleAddNewImages = useCallback(
+    (selectedFiles: File[] | null) => {
+      if (!selectedFiles || selectedFiles.length === 0) return;
+
+      const currentTotal =
+        (editForm.values.attachment_url?.length || 0) +
+        newFiles.length -
+        imagesToDelete.length;
+
+      const remainingSlots = 5 - currentTotal;
+      const filesToAdd = Array.from(selectedFiles).slice(0, remainingSlots);
+
+      const validFiles = filesToAdd.filter((file) => {
+        if (file.size > 5 * 1024 * 1024) {
+          notify.error(`${file.name} exceeds 5MB limit`);
+          return false;
+        }
+        return true;
+      });
+
+      if (validFiles.length > 0) {
+        setNewFiles((prev) => {
+          const updated = [...prev, ...validFiles];
+          editForm.setFieldValue("images", updated);
+          return updated;
+        });
+      }
+    },
+    [newFiles, imagesToDelete, editForm]
+  );
+
+  // Handler for marking existing images for deletion
+  const handleMarkImageForDeletion = useCallback(
+    (url: string) => {
+      setImagesToDelete((prev) => {
+        let updated;
+        if (prev.includes(url)) {
+          // Unmark if already marked
+          updated = prev.filter((u) => u !== url);
+        } else {
+          // Mark for deletion
+          updated = [...prev, url];
+        }
+        editForm.setFieldValue("imagesToDelete", updated);
+        return updated;
+      });
+    },
+    [editForm]
+  );
+
+  // Handler for removing new uploaded files in Edit Modal
+  const handleRemoveNewFile = useCallback(
+    (index: number) => {
+      setNewFiles((prev) => {
+        const updated = prev.filter((_, i) => i !== index);
+        editForm.setFieldValue("images", updated);
+        return updated;
+      });
+    },
+    [editForm]
+  );
+
   const handleSavePrice = async () => {
     if (!selectedItem) return;
 
@@ -312,11 +445,20 @@ export default function PricelistDashboard({
     formdata.append("items[1][stock]", values.stock || "");
     formdata.append("items[1][description]", values.description);
     formdata.append("items[1][metrics]", values.metrics || "");
-    if (file) {
-      const file64 = await toDataUrlFromFile(file);
 
-      const file_ = DataURIToBlob(file64 as string);
-      formdata.append("items[1][image]", file_, file.name);
+    // Append new images
+    if (newFiles.length > 0) {
+      for (let i = 0; i < newFiles.length; i++) {
+        const file = newFiles[i];
+        const file64 = await toDataUrlFromFile(file);
+        const file_ = DataURIToBlob(file64 as string);
+        formdata.append(`items[1][image][${i}]`, file_, file.name);
+      }
+    }
+
+    // Append images to delete
+    if (imagesToDelete.length > 0) {
+      formdata.append("delete_images", JSON.stringify(imagesToDelete));
     }
 
     setIsLoading(true);
@@ -330,6 +472,8 @@ export default function PricelistDashboard({
     if (response.status) {
       notify.success(`Price updated for ${values.name}`);
       setfile(null);
+      setNewFiles([]);
+      setImagesToDelete([]);
       editForm.reset();
       setTimeout(() => {
         setSuccessMessage("");
@@ -368,13 +512,16 @@ export default function PricelistDashboard({
       formData.append("weight_in_kgs", values.weight_in_kgs.toString());
       formData.append("transportation_type", values.transportation_type);
 
-      // Append image if it exists
-      if (file) {
-        const file64 = await toDataUrlFromFile(file);
+      // Append multiple images if they exist
+      if (files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const file64 = await toDataUrlFromFile(file);
+          const file_ = DataURIToBlob(file64 as string);
 
-        const file_ = DataURIToBlob(file64 as string);
-
-        formData.append("image", file_, file.name);
+          // Append as indexed array
+          formData.append(`image[${i}]`, file_, file.name);
+        }
       }
 
       // Send the request
@@ -385,6 +532,7 @@ export default function PricelistDashboard({
         setAddModalOpened(false);
         addForm.reset();
         setfile(null);
+        setFiles([]);
 
         // Optional: Refresh the items list
         refetchPricelist();
@@ -393,12 +541,13 @@ export default function PricelistDashboard({
           setSuccessMessage("");
         }, 3000);
       } else {
-        notify.error("Something went wrong, try again later");
-        console.log(response);
+        throw new Error(response.message);
       }
     } catch (error) {
       console.error("Error adding item:", error);
-      notify.error("Failed to add item. Please try again.");
+      if (error instanceof Error)
+        notify.error(error?.message || "Failed to add item. Please try again.");
+      else notify.error("Failed to add item. Please try again.");
     } finally {
       setAddLoading(false);
     }
@@ -408,6 +557,7 @@ export default function PricelistDashboard({
     setAddModalOpened(false);
     addForm.reset();
     setfile(null);
+    setFiles([]);
   }, [addForm]);
   const filteredItems = React.useMemo(() => {
     let filtered = items || [];
@@ -520,7 +670,7 @@ export default function PricelistDashboard({
     (item: ICartItem & WholePriceList) => () => handleAddCart(item),
     [handleAddCart]
   );
-
+  console.log("items", items);
   return (
     <section>
       {/* Modals */}
@@ -530,6 +680,9 @@ export default function PricelistDashboard({
         addForm={addForm}
         file={file}
         setFile={setfile}
+        files={files}
+        onFilesAdd={handleFilesAdd}
+        onRemoveFile={handleRemoveFile}
         onSubmit={handleAddItem}
         loading={addLoading}
       />
@@ -540,6 +693,11 @@ export default function PricelistDashboard({
         editForm={editForm}
         file={file}
         setFile={setfile}
+        newFiles={newFiles}
+        imagesToDelete={imagesToDelete}
+        onAddNewImages={handleAddNewImages}
+        onMarkImageForDeletion={handleMarkImageForDeletion}
+        onRemoveNewFile={handleRemoveNewFile}
         onSubmit={handleSavePrice}
         loading={isLoading}
         selectedItem={selectedItem}
@@ -766,6 +924,9 @@ export const PricelistItem = React.memo<PricelistItemProps>(
     cardSize = "",
   }) => {
     const isuserOwned = "isUserOwned" in item;
+    const [galleryOpened, setGalleryOpened] = React.useState(false);
+    const [isHovered, setIsHovered] = React.useState(false);
+
     const getRightImage = (item: WholePriceList | Pricelist) => {
       if (isuserOwned) {
         if (
@@ -787,6 +948,41 @@ export const PricelistItem = React.memo<PricelistItemProps>(
         else return item?.item?.photo?.[0];
       }
     };
+
+    // Get all images for gallery
+    const getAllImages = (item: WholePriceList | Pricelist): string[] => {
+      if (isuserOwned) {
+        if (
+          "attachment_url" in item &&
+          item?.attachment_url &&
+          item?.attachment_url?.length > 0
+        ) {
+          return item.attachment_url;
+        }
+        //@ts-ignore
+        else if (item?.photo && item.photo.length > 0) {
+          //@ts-ignore
+          return item.photo;
+        }
+      } else {
+        if (
+          "attachment_url" in item &&
+          item?.attachment_url &&
+          item.attachment_url.length > 0
+        ) {
+          return item.attachment_url;
+        }
+        //@ts-ignore
+        else if (item?.item?.photo && item.item.photo.length > 0) {
+          //@ts-ignore
+          return item.item.photo;
+        }
+      }
+      return [];
+    };
+
+    const images = getAllImages(item);
+    const hasMultipleImages = images.length > 1;
     return (
       <Transition
         mounted={true}
@@ -910,7 +1106,20 @@ export const PricelistItem = React.memo<PricelistItemProps>(
                     </Text>
                   </Box>
 
-                  <Box className="w-full md:w-24 h-auto md:h-24 mt-2 overflow-hidden rounded-lg">
+                  <Box
+                    className="w-full md:w-24 h-auto md:h-24 mt-2 overflow-hidden rounded-lg"
+                    style={{
+                      position: "relative",
+                      cursor: images.length > 0 ? "pointer" : "default",
+                    }}
+                    onClick={() => {
+                      if (images.length > 0) {
+                        setGalleryOpened(true);
+                      }
+                    }}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                  >
                     <Image
                       src={getRightImage(item)}
                       alt={`${item.name} image`}
@@ -923,6 +1132,44 @@ export const PricelistItem = React.memo<PricelistItemProps>(
                         maxHeight: "100%",
                       }}
                     />
+
+                    {/* Hover Overlay with Magnifying Glass */}
+                    {isHovered && images.length > 0 && (
+                      <Box
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          backgroundColor: "rgba(0, 0, 0, 0.4)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: "8px",
+                        }}
+                      >
+                        <ZoomIn size={32} color="white" />
+                      </Box>
+                    )}
+
+                    {/* Image Count Badge */}
+                    {hasMultipleImages && (
+                      <Badge
+                        size="sm"
+                        variant="filled"
+                        color="dark"
+                        style={{
+                          position: "absolute",
+                          bottom: 8,
+                          right: 8,
+                          fontSize: "11px",
+                          fontWeight: 600,
+                        }}
+                      >
+                        +{images.length - 1} more
+                      </Badge>
+                    )}
                   </Box>
                 </Box>
               </Flex>
@@ -1017,6 +1264,14 @@ export const PricelistItem = React.memo<PricelistItemProps>(
                 </Button>
               )}
             </Stack>
+
+            {/* Image Gallery Modal */}
+            <ImageGalleryModal
+              opened={galleryOpened}
+              onClose={() => setGalleryOpened(false)}
+              images={images}
+              itemName={item.name}
+            />
           </Card>
         )}
       </Transition>

@@ -14,6 +14,9 @@ import {
   Avatar,
   Box,
   Text,
+  Grid,
+  Image,
+  Badge,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
 import { UseFormReturnType } from "@mantine/form";
@@ -34,6 +37,9 @@ interface AddItemModalProps {
   addForm: UseFormReturnType<Pricelist>;
   file: File | null;
   setFile: (file: File | null) => void;
+  files: File[];
+  onFilesAdd: (files: File[] | null) => void;
+  onRemoveFile: (index: number) => void;
   onSubmit: () => void;
   loading: boolean;
 }
@@ -51,7 +57,17 @@ const transportationTypes = [
 ];
 
 export const AddItemModal = React.memo<AddItemModalProps>(
-  ({ opened, onClose, addForm, file, setFile, onSubmit, loading }) => {
+  ({
+    opened,
+    onClose,
+    addForm,
+
+    files,
+    onFilesAdd,
+    onRemoveFile,
+    onSubmit,
+    loading,
+  }) => {
     const isMobile = useMediaQuery("(max-width: 768px)");
 
     return (
@@ -253,57 +269,89 @@ export const AddItemModal = React.memo<AddItemModalProps>(
             />
           )}
 
-          {/* Image Upload */}
-          <FileInput
-            label="Item Image (Optional)"
-            description="Upload an image of the item (Max 5MB, JPEG/PNG/WebP)"
-            placeholder="Choose image file"
-            value={file}
-            onChange={setFile}
-            leftSection={<ImageIcon size={16} />}
-            accept="image/jpeg,image/jpg,image/png,image/webp"
-            size="lg"
-            radius="md"
-            clearable
-            styles={{
-              input: {
-                cursor: "pointer",
-                "&::placeholder": {
-                  color: "#868e96",
+          {/* Multiple Image Upload */}
+          <Box>
+            <Group justify="space-between" mb="xs">
+              <Text size="sm" fw={500}>
+                Item Images (Optional)
+              </Text>
+              <Badge
+                color={files.length >= 5 ? "red" : "green"}
+                variant="light"
+              >
+                {files.length}/5 images
+              </Badge>
+            </Group>
+            <FileInput
+              description="Upload up to 5 images (Max 5MB each, JPEG/PNG/WebP)"
+              placeholder="Choose image files"
+              value={undefined}
+              onChange={onFilesAdd}
+              leftSection={<ImageIcon size={16} />}
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              size="lg"
+              radius="md"
+              multiple
+              disabled={files.length >= 5}
+              styles={{
+                input: {
+                  cursor: "pointer",
+                  "&::placeholder": {
+                    color: "#868e96",
+                  },
                 },
-              },
-            }}
-          />
+              }}
+            />
+          </Box>
 
-          {/* Image Preview */}
-          {file && (
-            <Paper p="md" radius="lg" style={{ backgroundColor: "#f8f9fa" }}>
-              <Group>
-                <Avatar
-                  size="lg"
-                  radius="md"
-                  src={URL.createObjectURL(file)}
-                  alt="Item preview"
-                >
-                  <ImageIcon size={24} />
-                </Avatar>
-                <Box style={{ flex: 1 }}>
-                  <Text size="sm" fw={500}>
-                    {file.name}
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </Text>
-                </Box>
-                <ActionIcon
-                  variant="light"
-                  color="red"
-                  onClick={() => setFile(null)}
-                >
-                  <X size={16} />
-                </ActionIcon>
-              </Group>
-            </Paper>
+          {/* Image Preview Grid */}
+          {files.length > 0 && (
+            <Box>
+              <Text size="sm" fw={500} mb="sm" c="dimmed">
+                Selected Images
+              </Text>
+              <Grid>
+                {files.map((file, index) => (
+                  <Grid.Col span={{ base: 6, sm: 4 }} key={index}>
+                    <Paper
+                      p="xs"
+                      radius="md"
+                      style={{
+                        position: "relative",
+                        backgroundColor: "#f8f9fa",
+                      }}
+                    >
+                      <Image
+                        src={URL.createObjectURL(file)}
+                        height={isMobile ? 80 : 100}
+                        fit="cover"
+                        radius="md"
+                        alt={file.name}
+                      />
+                      <ActionIcon
+                        style={{
+                          position: "absolute",
+                          top: 8,
+                          right: 8,
+                        }}
+                        variant="filled"
+                        color="red"
+                        size="sm"
+                        onClick={() => onRemoveFile(index)}
+                      >
+                        <X size={12} />
+                      </ActionIcon>
+                      <Text size="xs" truncate mt={4}>
+                        {file.name}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        {(file.size / 1024 / 1024).toFixed(2)} MB
+                      </Text>
+                    </Paper>
+                  </Grid.Col>
+                ))}
+              </Grid>
+            </Box>
           )}
 
           <Group justify="flex-end" mt="xl">

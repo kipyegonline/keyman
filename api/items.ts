@@ -83,9 +83,13 @@ export const deleteItem = async (itemId: string) => {
  * @returns The created item data.
  */
 export const createItem = async (payload: FormData) => {
-  const hasImage = payload.getAll("image").length > 0;
+  // Check for images in both formats: image[0], image[1]... or single image
+  const hasImages =
+    Array.from(payload.keys()).some((key) => key.startsWith("image[")) ||
+    payload.has("image");
+
   const headers = {
-    "Content-Type": hasImage ? "multipart/form-data" : "application/json",
+    "Content-Type": hasImages ? "multipart/form-data" : "application/json",
   };
   try {
     const response = await AxiosClient.post(
