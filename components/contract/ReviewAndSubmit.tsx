@@ -89,7 +89,6 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
           scope: contractData.scope,
         }),
       };
-      console.log("Submitting contract...", contractpayload, phases);
 
       const response = await createContract(contractpayload);
 

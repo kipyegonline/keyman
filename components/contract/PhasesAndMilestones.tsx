@@ -233,7 +233,6 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
     }).format(amount);
   };
 
-  console.log(_priceList, supplier, "suppl");
   return (
     <Box>
       <Grid gutter="lg">

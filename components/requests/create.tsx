@@ -21,6 +21,7 @@ import {
   Center,
   Grid,
   Flex,
+  Image,
 } from "@mantine/core";
 import { DatePickerInput as DateInput } from "@mantine/dates";
 import { useForm, UseFormReturnType } from "@mantine/form";
@@ -204,27 +205,40 @@ const ItemsList = memo<{
                   key={item.id}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
                 >
-                  <div>
-                    <Text size="sm" fw={500}>
-                      {item.name}
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      {item.description}
-                    </Text>
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="flex-1">
+                      <Text size="sm" fw={500}>
+                        {item.name}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        {item.description}
+                      </Text>
+                    </div>
+                    {item.photo && item.photo.length > 0 && (
+                      <div
+                        style={{
+                          flexShrink: 0,
+                          width: 50,
+                          height: 50,
+                          overflow: "hidden",
+                          borderRadius: "8px",
+                        }}
+                        className="mr-2 md:mr-4"
+                      >
+                        <Image
+                          src={item.photo[0]}
+                          alt={item.name}
+                          width={50}
+                          height={50}
+                          fit="cover"
+                          radius="md"
+                        />
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <ActionIcon
-                      onClick={() => onAddItem(item)}
-                      color="green"
-                      variant="light"
-                    >
-                      <Plus size={16} />
-                    </ActionIcon>
                     {quantity > 0 && (
                       <>
-                        <Text size="sm" fw={500}>
-                          {quantity}
-                        </Text>
                         <ActionIcon
                           onClick={() => onRemoveItem(item.id)}
                           color="red"
@@ -234,6 +248,18 @@ const ItemsList = memo<{
                         </ActionIcon>
                       </>
                     )}
+                    {quantity > 0 && (
+                      <Text size="sm" fw={500}>
+                        {quantity}
+                      </Text>
+                    )}
+                    <ActionIcon
+                      onClick={() => onAddItem(item)}
+                      color="green"
+                      variant="light"
+                    >
+                      <Plus size={16} />
+                    </ActionIcon>
                   </div>
                 </div>
               );
