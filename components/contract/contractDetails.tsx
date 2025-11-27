@@ -981,7 +981,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   </Group>
                 </Card>
               )}
-              {!!contract?.service_provider_signing_date ? (
+              {true ? (
                 <ChatManager
                   chatId={contract?.chat_id}
                   currentUserId={1}
@@ -1006,6 +1006,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   />
                 </Box>
               )}
+
               {canEditMileStone && (
                 <Flex gap={"md"} direction={{ base: "column", md: "row" }}>
                   <Button

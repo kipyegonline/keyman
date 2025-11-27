@@ -174,7 +174,7 @@ const SuppliersNearMe: React.FC<{
     navigateTo();
     setActiveItem("key-contract");
     router.push(
-      `/keyman/dashboard/key-contract/create?keyman_id=${supplier.keyman_number}`
+      `/keyman/dashboard/key-contract/create?keyman_id=${supplier.id}`
     );
   };
   const perPage = 25,
