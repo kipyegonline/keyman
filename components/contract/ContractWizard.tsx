@@ -114,7 +114,7 @@ const ContractWizard: React.FC<ContractWizardProps> = ({
   const handleBackToContracts = () => {
     router.push("/keyman/dashboard/key-contract");
   };
-  console.log(contractData);
+  console.log(contractData, selectedStore);
   return (
     <Container size="xl" py="xl">
       <Stack gap="xl">

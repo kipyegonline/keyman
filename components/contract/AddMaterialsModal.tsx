@@ -140,7 +140,10 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
 
   // Calculate total
   const totalAmount = useMemo(() => {
-    return selectedMaterials.reduce((sum, item) => sum + item.amount, 0);
+    return selectedMaterials.reduce(
+      (sum, item) => sum + Number(item.amount),
+      0
+    );
   }, [selectedMaterials]);
 
   // Handle save
@@ -241,20 +244,6 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
                           wrap="nowrap"
                           gap="xs"
                         >
-                          {/* Item Image */}
-                          {item.attachment_url &&
-                            item.attachment_url.length > 0 &&
-                            false && (
-                              <Image
-                                src={item?.attachment_url?.[0]}
-                                alt={item.name}
-                                width={50}
-                                height={50}
-                                radius="md"
-                                fit="cover"
-                                fallbackSrc="https://placehold.co/50x50?text=No+Image"
-                              />
-                            )}
                           <Box style={{ flex: 1, minWidth: 0 }}>
                             <Text size="sm" fw={600} lineClamp={1}>
                               {item.name}
@@ -266,20 +255,32 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
                               Ksh {item.price.toLocaleString()}
                             </Text>
                           </Box>
+                          {/* Item Image */}
+                          {item.attachment_url &&
+                            item.attachment_url.length > 0 && (
+                              <Box
+                                style={{
+                                  flexShrink: 0,
+                                  width: 50,
+                                  height: 50,
+                                  overflow: "hidden",
+                                  borderRadius: "8px",
+                                }}
+                              >
+                                <Image
+                                  src={item?.attachment_url?.[0]}
+                                  alt={item.name}
+                                  width={50}
+                                  height={50}
+                                  radius="md"
+                                  fit="cover"
+                                  fallbackSrc="https://placehold.co/50x50?text=No+Image"
+                                />
+                              </Box>
+                            )}
                           <Group gap={4} wrap="nowrap">
-                            <ActionIcon
-                              size="sm"
-                              variant="light"
-                              color="green"
-                              onClick={() => handleAddItem(item)}
-                            >
-                              <Plus size={14} />
-                            </ActionIcon>
                             {quantity > 0 && (
                               <>
-                                <Badge size="sm" color="green" variant="filled">
-                                  {quantity}
-                                </Badge>
                                 <ActionIcon
                                   size="sm"
                                   variant="light"
@@ -291,6 +292,19 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
                                   <Minus size={14} />
                                 </ActionIcon>
                               </>
+                            )}
+                            <ActionIcon
+                              size="sm"
+                              variant="light"
+                              color="green"
+                              onClick={() => handleAddItem(item)}
+                            >
+                              <Plus size={14} />
+                            </ActionIcon>
+                            {quantity > 0 && (
+                              <Badge size="sm" color="green" variant="filled">
+                                {quantity}
+                              </Badge>
                             )}
                           </Group>
                         </Group>

@@ -23,7 +23,7 @@ interface LabourItem {
 interface AddLabourModalProps {
   opened: boolean;
   onClose: () => void;
-  onSave: (labour: Omit<LabourItem, "id">) => void;
+  onSave: (labour: LabourItem) => void;
 }
 
 const AddLabourModal: React.FC<AddLabourModalProps> = ({
@@ -81,6 +81,7 @@ const AddLabourModal: React.FC<AddLabourModalProps> = ({
         description: formData.description,
         amount: formData.amount,
         quantity: formData.quantity,
+        id: Date.now().toString(),
       });
 
       // Reset form
@@ -118,7 +119,7 @@ const AddLabourModal: React.FC<AddLabourModalProps> = ({
       onClose={handleClose}
       title={
         <Text size="lg" fw={600}>
-          Add Labour
+          Add Labour/Services
         </Text>
       }
       size="md"
@@ -157,7 +158,7 @@ const AddLabourModal: React.FC<AddLabourModalProps> = ({
         {/* Quantity and Amount */}
         <Group grow>
           <NumberInput
-            label="Quantity"
+            label="Labour"
             placeholder="Number needed"
             value={formData.quantity}
             onChange={(value) =>
@@ -171,7 +172,7 @@ const AddLabourModal: React.FC<AddLabourModalProps> = ({
           />
 
           <NumberInput
-            label="Amount per Unit (KES)"
+            label="Unit price (KES)"
             placeholder="Enter cost per labourer"
             value={formData.amount}
             onChange={(value) =>

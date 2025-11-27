@@ -155,7 +155,10 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
   const totalPhaseAmount = phases.reduce(
     (sum, phase) =>
       sum +
-      phase.milestones.reduce((mSum, milestone) => mSum + milestone.amount, 0),
+      phase.milestones.reduce(
+        (mSum, milestone) => mSum + Number(milestone.amount),
+        0
+      ),
     0
   );
 
@@ -194,7 +197,7 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
                 <Text fw={600}>{contractData.title}</Text>
               </Group>
 
-              <Group justify="space-between">
+              <Group justify="space-between" display="none">
                 <Text size="sm" c="dimmed">
                   Duration
                 </Text>

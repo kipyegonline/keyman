@@ -137,7 +137,7 @@ const LabourSection: React.FC<LabourSectionProps> = ({
                 Ksh {totalLabourAmount.toLocaleString()}
               </Text>
             </Box>
-            <Box>
+            <Box display="none">
               <Text size="sm" c="dimmed">
                 Duration
               </Text>
@@ -147,13 +147,20 @@ const LabourSection: React.FC<LabourSectionProps> = ({
             </Box>
           </Group>
 
-          <Group gap="sm" mt="md">
+          <Group gap="sm" mt="md" justify="flex-end" display={"none"}>
             <Button
-              variant="light"
-              color="green.7"
+              variant="outline"
+              color="orange"
               leftSection={<Plus size={16} />}
-              fullWidth
               onClick={() => setLabourModalOpened(true)}
+              styles={{
+                root: {
+                  "&:hover": {
+                    backgroundColor: "orange",
+                    color: "white",
+                  },
+                },
+              }}
             >
               Add Labour
             </Button>

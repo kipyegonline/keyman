@@ -13,6 +13,7 @@ import {
   Grid,
   ThemeIcon,
   Divider,
+  Avatar,
 } from "@mantine/core";
 import {
   ArrowLeft,
@@ -26,6 +27,7 @@ import { getSupplierPriceList } from "@/api/supplier";
 import { WholePriceList } from "../supplier/priceList";
 import LabourSection from "./LabourSection";
 import AddMaterialsModal from "./AddMaterialsModal";
+import AddLabourModal from "./AddLabourModal";
 
 interface MilestoneItem {
   id: string;
@@ -124,7 +126,11 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
 
   // Initialize milestones from initialPhases if provided
   const [milestones, setMilestones] = useState<MilestoneItem[]>(() => {
-    if (initialPhases && initialPhases.length > 0 && initialPhases[0].milestones) {
+    if (
+      initialPhases &&
+      initialPhases.length > 0 &&
+      initialPhases[0].milestones
+    ) {
       return initialPhases[0].milestones.map((m) => ({
         id: m.id,
         name: m.name,
@@ -138,6 +144,7 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
     return [];
   });
   const [materialsModalOpened, setMaterialsModalOpened] = useState(false);
+  const [labourModalOpened, setLabourModalOpened] = useState(false);
 
   // Separate materials and labour for display
   const materials = milestones.filter((m) => m.type === "materials");
@@ -153,6 +160,19 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
       unit_price: item.unit_price,
     }));
     setMilestones([...milestones, ...materialItems]);
+  };
+
+  const handleAddLabour = (labour: LabourInput) => {
+    const newLabour: MilestoneItem = {
+      id: labour.id,
+      name: labour.name,
+      description: labour.description,
+      amount: labour.amount * labour.quantity, // Total amount
+      quantity: labour.quantity,
+      type: "labour" as const,
+      unit_price: labour.amount, // Store unit price
+    };
+    setMilestones([...milestones, newLabour]);
   };
 
   const handleLabourChange = (items: LabourInput[]) => {
@@ -213,7 +233,7 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
     }).format(amount);
   };
 
-  console.log(_priceList);
+  console.log(_priceList, supplier, "suppl");
   return (
     <Box>
       <Grid gutter="lg">
@@ -231,12 +251,12 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
                   upon completion of each phase.
                 </Text>
 
-                <Paper p="md" mt="md" radius="md" bg="green.0">
+                <Paper p="md" mt="md" radius="md" bg="orange.0">
                   <Group gap="xs">
-                    <Badge color="green" variant="light" size="sm">
+                    <Badge color="orange" variant="light" size="sm">
                       ✓
                     </Badge>
-                    <Text size="sm" c="green.8">
+                    <Text size="sm" c="orange.8">
                       This contract follows the Keyman Stores 12 Principles of
                       Fair Trade
                     </Text>
@@ -252,7 +272,7 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
                       <Text size="lg" fw={600}>
                         {contractData.title}
                       </Text>
-                      <Text size="sm" c="dimmed">
+                      <Text size="sm" c="dimmed" display="none">
                         {contractData.contract_duration_in_duration} days
                       </Text>
                     </Box>
@@ -272,45 +292,88 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
               {supplier && (
                 <Paper p="lg" radius="md" withBorder>
                   <Group justify="space-between" align="center" mb="md">
-                    <Box>
-                      <Group gap="xs" mb="xs">
-                        <Title order={3} style={{ color: "#3D6B2C" }}>
-                          {supplier.name}{" "}
-                          {(supplier?.is_user_verified as number) > 0 &&
-                            false && (
-                              <BadgeCheck
-                                size={28}
-                                fill="#3D6B2C"
-                                stroke="white"
-                                className="inline-block relative -top-1"
-                              />
-                            )}
-                        </Title>
-                        {supplier.is_user_verified > 0 && (
-                          <BadgeCheck size={24} fill="#3D6B2C" stroke="white" />
-                        )}
+                    <Group gap="md" align="center">
+                      {/* Supplier Avatar */}
+                      <Avatar
+                        src={supplier.photo?.[0]}
+                        alt={supplier.name}
+                        size={60}
+                        radius="md"
+                      />
+                      {/* Title with verification and keyman number on same line */}
+                      <Group gap="md" align="center">
+                        <Group gap="xs">
+                          <Title
+                            order={2}
+                            style={{ color: "#3D6B2C", fontWeight: 700 }}
+                          >
+                            {supplier.name}
+                          </Title>
+                          {supplier.is_user_verified > 0 && (
+                            <BadgeCheck
+                              size={28}
+                              fill="#3D6B2C"
+                              stroke="white"
+                            />
+                          )}
+                        </Group>
+                        <Badge
+                          color="orange"
+                          variant="filled"
+                          size="lg"
+                          style={{ fontSize: "15px", fontWeight: 600 }}
+                        >
+                          {supplier.keyman_number}
+                        </Badge>
                       </Group>
-                      <Badge color="orange" variant="light" size="md">
-                        {supplier.keyman_number}
-                      </Badge>
-                    </Box>
-                    {_priceList?.length > 0 && (
+                    </Group>
+                    <Group
+                      gap="md"
+                      style={{ flexDirection: "row" }}
+                      className="flex-col sm:flex-row"
+                    >
+                      {_priceList?.length > 0 && (
+                        <Button
+                          variant="outline"
+                          color="orange"
+                          leftSection={<Plus size={16} />}
+                          onClick={() => setMaterialsModalOpened(true)}
+                          styles={{
+                            root: {
+                              "&:hover": {
+                                backgroundColor: "orange",
+                                color: "white",
+                              },
+                            },
+                          }}
+                        >
+                          Add Materials
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
-                        color="green.7"
+                        color="orange"
                         leftSection={<Plus size={16} />}
-                        onClick={() => setMaterialsModalOpened(true)}
+                        onClick={() => setLabourModalOpened(true)}
+                        styles={{
+                          root: {
+                            "&:hover": {
+                              backgroundColor: "orange",
+                              color: "white",
+                            },
+                          },
+                        }}
                       >
-                        Add Materials
+                        Services/Labour
                       </Button>
-                    )}
+                    </Group>
                   </Group>
                 </Paper>
               )}
 
               {/* Phase 1 Section */}
               <LabourSection
-                phaseName="Phase 1"
+                phaseName="Phase "
                 onLabourChange={(items) => handleLabourChange(items)}
               />
 
@@ -322,15 +385,24 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
                 priceList={_priceList}
               />
 
+              {/* Add Labour Modal */}
+              <AddLabourModal
+                opened={labourModalOpened}
+                onClose={() => setLabourModalOpened(false)}
+                onSave={handleAddLabour}
+              />
+
               {/* Add More Phases */}
-              <Button
-                variant="subtle"
-                color="green.7"
-                leftSection={<Plus size={16} />}
-                fullWidth
-              >
-                Add Phase
-              </Button>
+              {false && (
+                <Button
+                  variant="subtle"
+                  color="green.7"
+                  leftSection={<Plus size={16} />}
+                  fullWidth
+                >
+                  Add Phase
+                </Button>
+              )}
 
               {/* Actions */}
               <Group justify="space-between" mt="xl">

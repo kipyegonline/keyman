@@ -217,7 +217,7 @@ export const ChatManager: React.FC<ChatManagerProps> = ({
   return (
     <>
       {/* Floating Action Button */}
-      <Tooltip label="Discuss contract" position="right-end" withArrow>
+      <Tooltip label="Contract negotiation" position="right-end" withArrow>
         <button
           onClick={handleToggleChat}
           className="chat-manager-fab"
