@@ -12,6 +12,8 @@ import {
   Image as ImageIcon,
   File,
   Sparkles,
+  Loader2,
+  Plus,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -22,6 +24,7 @@ import {
   deleteMessage,
   markAllMessagesAsRead,
 } from "@/api/chat";
+import { getSuggestedMilestones, ISuggestedMilestone } from "@/api/contract";
 import { notify } from "@/lib/notifications";
 import "./ChatManager.css";
 import { Tooltip } from "@mantine/core";
@@ -32,6 +35,7 @@ export interface ChatManagerProps {
   recipientName?: string;
   recipientAvatar?: string;
   open?: boolean;
+  onSelectMilestone?: (milestone: ISuggestedMilestone) => void;
 }
 
 export const ChatManager: React.FC<ChatManagerProps> = ({
@@ -40,11 +44,13 @@ export const ChatManager: React.FC<ChatManagerProps> = ({
   recipientName = "Chat",
   recipientAvatar,
   open,
+  onSelectMilestone,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
@@ -57,6 +63,16 @@ export const ChatManager: React.FC<ChatManagerProps> = ({
     refetchInterval: isOpen ? 5000 : false, // Long polling every 5 seconds
     refetchOnWindowFocus: true,
   });
+
+  // Fetch AI-suggested milestones
+  const { data: suggestionsData, isLoading: isLoadingSuggestions } = useQuery({
+    queryKey: ["suggestedMilestones", chatId],
+    queryFn: () => getSuggestedMilestones(chatId),
+    enabled: isOpen && showSuggestions,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const suggestions = suggestionsData?.data?.milestones || [];
 
   const messages = messagesData?.data?.data.toReversed() || [];
   const unreadCount = messages.filter(
@@ -398,6 +414,190 @@ export const ChatManager: React.FC<ChatManagerProps> = ({
                   backgroundColor: "#f8f9fa",
                 }}
               >
+                {/* AI Suggestions Section */}
+                {showSuggestions && (
+                  <div
+                    style={{
+                      marginBottom: "16px",
+                      padding: "12px",
+                      backgroundColor:
+                        "linear-gradient(135deg, #FFF7ED 0%, #ECFDF5 100%)",
+                      background:
+                        "linear-gradient(135deg, #FFF7ED 0%, #ECFDF5 100%)",
+                      borderRadius: "12px",
+                      border: "1px solid #F08C23",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <Sparkles size={18} color="#F08C23" />
+                        <span
+                          style={{
+                            fontWeight: 600,
+                            fontSize: "14px",
+                            color: "#1f2937",
+                          }}
+                        >
+                          AI Suggestions
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setShowSuggestions(false)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          padding: "4px",
+                          display: "flex",
+                          alignItems: "center",
+                        }}
+                      >
+                        <X size={16} color="#6b7280" />
+                      </button>
+                    </div>
+
+                    {isLoadingSuggestions ? (
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          padding: "20px",
+                        }}
+                      >
+                        <Loader2
+                          size={24}
+                          color="#F08C23"
+                          className="animate-spin"
+                        />
+                      </div>
+                    ) : suggestions.length === 0 ? (
+                      <p
+                        style={{
+                          fontSize: "13px",
+                          color: "#6b7280",
+                          textAlign: "center",
+                          padding: "12px",
+                        }}
+                      >
+                        No suggestions available
+                      </p>
+                    ) : (
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "8px",
+                        }}
+                      >
+                        {suggestions.map((suggestion, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              backgroundColor: "white",
+                              borderRadius: "8px",
+                              padding: "12px",
+                              boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                              cursor: "pointer",
+                              transition: "all 0.2s",
+                            }}
+                            onClick={() => {
+                              if (onSelectMilestone) {
+                                onSelectMilestone(suggestion);
+                                setShowSuggestions(false);
+                              }
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "flex-start",
+                                marginBottom: "6px",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  fontWeight: 600,
+                                  fontSize: "13px",
+                                  color: "#1f2937",
+                                }}
+                              >
+                                {suggestion.name}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: "12px",
+                                  fontWeight: 600,
+                                  color: "#059669",
+                                }}
+                              >
+                                KES {suggestion.amount?.toLocaleString()}
+                              </span>
+                            </div>
+                            <p
+                              style={{
+                                fontSize: "12px",
+                                color: "#6b7280",
+                                margin: 0,
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              {suggestion.description}
+                            </p>
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                                marginTop: "8px",
+                              }}
+                            >
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (onSelectMilestone) {
+                                    onSelectMilestone(suggestion);
+                                    setShowSuggestions(false);
+                                  }
+                                }}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "4px",
+                                  backgroundColor: "#3D6B2C",
+                                  color: "white",
+                                  border: "none",
+                                  borderRadius: "6px",
+                                  padding: "6px 10px",
+                                  fontSize: "11px",
+                                  fontWeight: 500,
+                                  cursor: "pointer",
+                                }}
+                              >
+                                <Plus size={12} />
+                                Add as Milestone
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {isLoading && !messagesData ? (
                   <div
                     style={{
@@ -667,6 +867,30 @@ export const ChatManager: React.FC<ChatManagerProps> = ({
                     }}
                     rows={1}
                   />
+                  <Tooltip label="AI Assistant" position="top" withArrow>
+                    <button
+                      onClick={() => setShowSuggestions(!showSuggestions)}
+                      style={{
+                        backgroundColor: showSuggestions
+                          ? "#F08C23"
+                          : "#f3f4f6",
+                        border: "none",
+                        borderRadius: "8px",
+                        width: "40px",
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        transition: "all 0.2s",
+                      }}
+                    >
+                      <Sparkles
+                        size={20}
+                        color={showSuggestions ? "white" : "#F08C23"}
+                      />
+                    </button>
+                  </Tooltip>
                   <button
                     onClick={handleSendMessage}
                     disabled={

@@ -32,17 +32,14 @@ import {
   Activity,
   MoreVertical,
   Plus,
-  Sparkles,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import EditMilestoneModal from "./EditMilestoneModal";
-import CreateMilestoneModal from "./CreateMilestoneModal";
 import EditContractModal from "./EditContractModal";
 import MilestoneStatusChangeModal from "./MilestoneStatusChangeModal";
 import AcceptContractModal from "./AcceptContractModal";
 import MilestoneTimeline from "./MilestoneTimeline";
-import AiSuggestionsModal from "./AiSuggestionsModal";
 import AddMaterialsModal from "./AddMaterialsModal";
 import AddLabourModal from "./AddLabourModal";
 import {
@@ -50,8 +47,6 @@ import {
   updateMilestone,
   createMilestone,
   deleteMilestone,
-  getSuggestedMilestones,
-  ISuggestedMilestone,
 } from "@/api/contract";
 import { notify } from "@/lib/notifications";
 import ChatManager from "../chat-manager";
@@ -191,8 +186,6 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   //onEditMilestone,
 }) => {
   const [editModalOpened, setEditModalOpened] = useState(false);
-  const [createMilestoneModalOpened, setCreateMilestoneModalOpened] =
-    useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(
     null
   );
@@ -205,11 +198,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     useState(false);
   const [isAcceptingContract, setIsAcceptingContract] = useState(false);
   const [action, setAction] = useState<"start" | "complete">("start");
-  const [selectedSuggestedMilestone, setSelectedSuggestedMilestone] =
-    useState<ISuggestedMilestone | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
-  const [aiSuggestionsModalOpened, setAiSuggestionsModalOpened] =
-    useState(false);
   const [materialsModalOpened, setMaterialsModalOpened] = useState(false);
   const [labourModalOpened, setLabourModalOpened] = useState(false);
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
@@ -218,15 +207,6 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
   // Initialize query client
   const queryClient = useQueryClient();
-
-  // Fetch AI-suggested milestones
-  const { data: suggestedMilestonesData, isLoading: isLoadingSuggestions } =
-    useQuery({
-      queryKey: ["suggestedMilestones", contract.id],
-      queryFn: () => getSuggestedMilestones(contract.chat_id),
-      enabled: !!contract.id && aiSuggestionsModalOpened, // Only fetch if contract ID exists
-      staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    });
 
   const { data: priceList } = useQuery({
     queryKey: ["pricelist", contract?.service_provider_id],
@@ -239,13 +219,6 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       return priceList.price_list as WholePriceList[];
     } else return [];
   }, [priceList]);
-
-  const suggestedMilestones = React.useMemo(() => {
-    if (suggestedMilestonesData?.status) {
-      return suggestedMilestonesData?.data?.milestones;
-    }
-    return [];
-  }, [suggestedMilestonesData]);
 
   // Delete milestone mutation
   const deleteMilestoneMutation = useMutation({
@@ -341,21 +314,6 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     });
   };
 
-  const handleCreateMilestone = () => {
-    setSelectedSuggestedMilestone(null); // Clear any suggested milestone
-    setCreateMilestoneModalOpened(true);
-  };
-
-  const handleOpenAiSuggestions = () => {
-    setAiSuggestionsModalOpened(true);
-  };
-
-  const handleSelectSuggestedMilestone = (milestone: ISuggestedMilestone) => {
-    setSelectedSuggestedMilestone(milestone);
-    setAiSuggestionsModalOpened(false);
-    setCreateMilestoneModalOpened(true);
-  };
-
   const handleAddMaterials = async (items: MaterialItem[]) => {
     setMaterials((prev) => [...prev, ...items]);
 
@@ -412,7 +370,6 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         queryKey: ["contracts"],
       });
       refresh();
-      setCreateMilestoneModalOpened(false);
     } else {
       notify.error(response.message);
     }
@@ -1118,52 +1075,30 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
               {canEditMileStone && (
                 <>
-                  <Flex
-                    gap={"md"}
-                    direction={{ base: "column", md: "row" }}
-                    display={"none"}
-                  >
-                    <Button
-                      leftSection={<Plus size={16} />}
-                      onClick={handleCreateMilestone}
-                      style={{ backgroundColor: "#3D6B2C", color: "white" }}
-                      className=""
-                    >
-                      Create Milestone
-                    </Button>
-
-                    <Button
-                      leftSection={<Sparkles size={16} />}
-                      onClick={handleOpenAiSuggestions}
-                      loading={isLoadingSuggestions}
-                      style={{ backgroundColor: "#F08C23", color: "white" }}
-                    >
-                      Assistant
-                    </Button>
-                  </Flex>
-
                   {/* Add Materials and Labour Buttons */}
                   <Flex
                     gap={"md"}
                     direction={{ base: "column", md: "row" }}
                     mt="md"
                   >
-                    <Button
-                      variant="outline"
-                      color="orange"
-                      leftSection={<Plus size={16} />}
-                      onClick={() => setMaterialsModalOpened(true)}
-                      styles={{
-                        root: {
-                          "&:hover": {
-                            backgroundColor: "orange",
-                            color: "white",
+                    {_priceList?.length > 0 && (
+                      <Button
+                        variant="outline"
+                        color="orange"
+                        leftSection={<Plus size={16} />}
+                        onClick={() => setMaterialsModalOpened(true)}
+                        styles={{
+                          root: {
+                            "&:hover": {
+                              backgroundColor: "orange",
+                              color: "white",
+                            },
                           },
-                        },
-                      }}
-                    >
-                      Add Materials
-                    </Button>
+                        }}
+                      >
+                        Add Materials
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       color="orange"
@@ -1516,26 +1451,6 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         }}
         contract={contract}
         onAccept={confirmAcceptContract}
-      />
-
-      {/* AI Suggestions Modal */}
-      <AiSuggestionsModal
-        opened={aiSuggestionsModalOpened}
-        onClose={() => setAiSuggestionsModalOpened(false)}
-        suggestions={suggestedMilestones}
-        isLoading={isLoadingSuggestions}
-        onSelectMilestone={handleSelectSuggestedMilestone}
-      />
-
-      {/* Create Milestone Modal */}
-      <CreateMilestoneModal
-        opened={createMilestoneModalOpened}
-        onClose={() => {
-          setCreateMilestoneModalOpened(false);
-        }}
-        contractId={contract.id}
-        onSave={handleSaveNewMilestone}
-        suggestedMilestone={selectedSuggestedMilestone}
       />
 
       {/* Add Materials Modal */}
