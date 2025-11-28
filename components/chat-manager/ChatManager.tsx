@@ -226,7 +226,7 @@ export const ChatManager: React.FC<ChatManagerProps> = ({
             //bottom: "24px",
             //right: "24px",
             width: "80px",
-            height: "50px",
+            height: "40px",
             //borderRadius: "50%",
             borderRadius: "12px",
             backgroundColor: "#F08C23",

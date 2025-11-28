@@ -73,7 +73,11 @@ const StoreSearch: React.FC<StoreSearchProps> = ({
   const perPage = 12;
 
   // Fetch suppliers near the user
-  const { data: _suppliers, isLoading } = useQuery({
+  const {
+    data: _suppliers,
+    isLoading,
+    refetch: refetchSuppliers,
+  } = useQuery({
     queryKey: ["suppliers_near_me_contract"],
     queryFn: async () =>
       getSuppliersNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0),
@@ -81,7 +85,11 @@ const StoreSearch: React.FC<StoreSearchProps> = ({
   });
 
   // Extended search query with 400km distance
-  const { data: _extendedSuppliers, isLoading: isExtendedLoading } = useQuery({
+  const {
+    data: _extendedSuppliers,
+    isLoading: isExtendedLoading,
+    refetch: refetchExtendedSuppliers,
+  } = useQuery({
     queryKey: ["suppliers_near_me_extended_contract", 400000],
     queryFn: async () =>
       getSuppliersNearMe(
@@ -94,6 +102,15 @@ const StoreSearch: React.FC<StoreSearchProps> = ({
 
   const currentSuppliers = useExtendedSearch ? _extendedSuppliers : _suppliers;
   const currentLoading = useExtendedSearch ? isExtendedLoading : isLoading;
+
+  // Retry fetching stores
+  const handleRetryFetch = () => {
+    if (useExtendedSearch) {
+      refetchExtendedSuppliers();
+    } else {
+      refetchSuppliers();
+    }
+  };
 
   // Filter suppliers based on search query
   const filteredSuppliers: ISupplierContact[] = useMemo(() => {
@@ -200,7 +217,7 @@ const StoreSearch: React.FC<StoreSearchProps> = ({
   }
 
   return (
-    <Container size="xl" py="md">
+    <Container size="fluid" py="md">
       <Stack gap="xl">
         {/* Header Section */}
         <Box style={{ textAlign: "center" }}>
@@ -412,14 +429,27 @@ const StoreSearch: React.FC<StoreSearchProps> = ({
 
                       {/* Selection Indicator */}
                       {selectedStore?.id === supplier.id && (
-                        <Box style={{ textAlign: "center" }}>
+                        <Box
+                          style={{
+                            textAlign: "center",
+                            cursor: "pointer",
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleContinue();
+                          }}
+                        >
                           <Badge
                             color="green"
                             variant="filled"
-                            size="sm"
-                            leftSection={<CheckCircle2 size={12} />}
+                            size="lg"
+                            rightSection={<ArrowRight size={14} />}
+                            style={{
+                              cursor: "pointer",
+                              padding: "8px 12px",
+                            }}
                           >
-                            Selected
+                            Continue with Store
                           </Badge>
                         </Box>
                       )}
@@ -457,19 +487,29 @@ const StoreSearch: React.FC<StoreSearchProps> = ({
               <Text size="sm" c="dimmed">
                 Try adjusting your search terms or check back later
               </Text>
-              <Button
-                variant="outline"
-                onClick={() => setSearchQuery("")}
-                color="green.7"
-              >
-                Clear Search
-              </Button>
+              <Group gap="sm">
+                <Button
+                  variant="outline"
+                  onClick={() => setSearchQuery("")}
+                  color="green.7"
+                >
+                  Clear Search
+                </Button>
+                <Button
+                  variant="filled"
+                  onClick={handleRetryFetch}
+                  color="green.7"
+                  leftSection={<Navigation size={16} />}
+                >
+                  Retry Location
+                </Button>
+              </Group>
             </Stack>
           </Paper>
         )}
 
         {/* Actions */}
-        <Group justify="space-between" mt="xl">
+        <Group justify="flex-start" mt="xl">
           <Button
             variant="subtle"
             leftSection={<ArrowLeft size={16} />}
@@ -478,16 +518,6 @@ const StoreSearch: React.FC<StoreSearchProps> = ({
             size="md"
           >
             Back
-          </Button>
-
-          <Button
-            rightSection={<ArrowRight size={16} />}
-            onClick={handleContinue}
-            color="green.7"
-            size="md"
-            disabled={!selectedStore}
-          >
-            Continue with {selectedStore?.name || "Store"}
           </Button>
         </Group>
       </Stack>

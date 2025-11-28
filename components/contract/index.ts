@@ -5,8 +5,12 @@ export { default as ContractWizard } from "./ContractWizard";
 export { default as StoreSearch } from "./StoreSearch";
 export { default as PhasesAndMilestones } from "./PhasesAndMilestones";
 export { default as ReviewAndSubmit } from "./ReviewAndSubmit";
+export { default as LabourSection } from "./LabourSection";
+export { default as ItemsSection } from "./ItemsSection";
 
 // Type exports
+export type { LabourItem } from "./LabourSection";
+export type { MaterialItem } from "./ItemsSection";
 export type {
   ContractChatProps,
   ChatMessage,

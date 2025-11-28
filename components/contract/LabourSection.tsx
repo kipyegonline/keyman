@@ -1,19 +1,17 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import {
   Stack,
   Group,
-  Button,
-  Title,
   Text,
   Paper,
   Box,
   Badge,
+  ActionIcon,
 } from "@mantine/core";
-import { Plus, Trash2 } from "lucide-react";
-import AddLabourModal from "./AddLabourModal";
+import { Trash2 } from "lucide-react";
 
-interface LabourItem {
+export interface LabourItem {
   id: string;
   name: string;
   description: string;
@@ -22,159 +20,89 @@ interface LabourItem {
 }
 
 interface LabourSectionProps {
-  phaseName?: string;
-  onLabourChange?: (items: LabourItem[]) => void;
+  labourItems: LabourItem[];
+  onRemoveLabour: (id: string) => void;
+  title?: string;
 }
 
 const LabourSection: React.FC<LabourSectionProps> = ({
-  phaseName = "Phase 1",
-  onLabourChange,
+  labourItems,
+  onRemoveLabour,
+  title = "Services / Labour",
 }) => {
-  const [labourItems, setLabourItems] = useState<LabourItem[]>([]);
-  const [labourModalOpened, setLabourModalOpened] = useState(false);
-
-  const handleAddLabour = (labour: Omit<LabourItem, "id">) => {
-    const newLabour: LabourItem = {
-      ...labour,
-      id: Date.now().toString(),
-    };
-    const updatedItems = [...labourItems, newLabour];
-    setLabourItems(updatedItems);
-
-    // Notify parent of changes
-    if (onLabourChange) {
-      onLabourChange(updatedItems);
-    }
-  };
-
-  const handleRemoveLabour = (id: string) => {
-    const updatedItems = labourItems.filter((item) => item.id !== id);
-    setLabourItems(updatedItems);
-
-    // Notify parent of changes
-    if (onLabourChange) {
-      onLabourChange(updatedItems);
-    }
-  };
-
   const totalLabourAmount = labourItems.reduce(
-    (sum, item) => sum + item.amount * item.quantity,
+    (sum, item) => sum + Number(item.amount) * Number(item.quantity),
     0
   );
 
+  if (labourItems.length === 0) {
+    return null;
+  }
+
   return (
-    <>
-      <Paper p="lg" radius="md" withBorder>
-        <Stack gap="md">
-          <Group justify="space-between" align="center">
-            <Title order={3}>{phaseName}</Title>
-            <Text size="sm" c="dimmed">
-              Labor
-            </Text>
-          </Group>
-
-          {/* Labour Items List */}
-          {labourItems.length > 0 ? (
-            <Stack gap="sm">
+    <Paper p="md" radius="md" withBorder>
+      <Group justify="space-between" mb="sm">
+        <Text fw={600}>{title}</Text>
+        <Badge color="orange" variant="light">
+          {labourItems.length} item{labourItems.length !== 1 ? "s" : ""}
+        </Badge>
+      </Group>
+      <Stack gap="xs" pl="md">
+        {labourItems.map((labour) => (
+          <Group key={labour.id} justify="space-between">
+            <Box style={{ flex: 1 }}>
+              <Group gap="xs">
+                <Text size="sm" c="dimmed">
+                  • {labour.name}
+                </Text>
+                <Badge size="xs" variant="light" color="orange">
+                  labour
+                </Badge>
+                {labour.quantity > 0 && (
+                  <Badge size="xs" variant="outline">
+                    Qty: {labour.quantity}
+                  </Badge>
+                )}
+              </Group>
+              {labour.description && (
+                <Text size="xs" c="dimmed" pl="md" lineClamp={1}>
+                  {labour.description}
+                </Text>
+              )}
+            </Box>
+            <Group gap="md">
               <Text size="sm" fw={500}>
-                Labour Items ({labourItems.length})
+                Ksh{" "}
+                {(
+                  Number(labour.amount) * Number(labour.quantity)
+                ).toLocaleString()}
               </Text>
-              {labourItems.map((labour) => (
-                <Paper key={labour.id} p="md" radius="md" withBorder>
-                  <Group justify="space-between" align="flex-start">
-                    <Box style={{ flex: 1 }}>
-                      <Group gap="xs" mb="xs">
-                        <Text size="sm" fw={600}>
-                          {labour.name}
-                        </Text>
-                        <Badge size="sm" variant="light" color="blue">
-                          Qty: {labour.quantity}
-                        </Badge>
-                      </Group>
-                      <Text size="xs" c="dimmed" lineClamp={2}>
-                        {labour.description}
-                      </Text>
-                      <Text size="xs" c="dimmed" mt="xs">
-                        Ksh {labour.amount.toLocaleString()} per unit ×{" "}
-                        {labour.quantity} = Ksh{" "}
-                        {(labour.amount * labour.quantity).toLocaleString()}
-                      </Text>
-                    </Box>
-                    <Group gap="sm" wrap="nowrap">
-                      <Text size="sm" fw={600} c="green.7">
-                        Ksh {(labour.amount * labour.quantity).toLocaleString()}
-                      </Text>
-                      <Button
-                        variant="subtle"
-                        color="red"
-                        size="xs"
-                        onClick={() => handleRemoveLabour(labour.id)}
-                      >
-                        <Trash2 size={14} />
-                      </Button>
-                    </Group>
-                  </Group>
-                </Paper>
-              ))}
-            </Stack>
-          ) : (
-            <Box>
-              <Text size="sm" fw={500} mb="xs">
-                Deliverables
-              </Text>
-              <Text size="sm" c="dimmed">
-                No labour items added yet
-              </Text>
-            </Box>
-          )}
-
-          <Group justify="space-between">
-            <Box>
-              <Text size="sm" c="dimmed">
-                Amount
-              </Text>
-              <Text size="lg" fw={600}>
-                Ksh {totalLabourAmount.toLocaleString()}
-              </Text>
-            </Box>
-            <Box display="none">
-              <Text size="sm" c="dimmed">
-                Duration
-              </Text>
-              <Text size="lg" fw={600}>
-                1 day
-              </Text>
-            </Box>
+              <ActionIcon
+                onClick={() => onRemoveLabour(labour.id)}
+                color="red"
+                variant="subtle"
+                size="sm"
+              >
+                <Trash2 size={14} />
+              </ActionIcon>
+            </Group>
           </Group>
-
-          <Group gap="sm" mt="md" justify="flex-end" display={"none"}>
-            <Button
-              variant="outline"
-              color="orange"
-              leftSection={<Plus size={16} />}
-              onClick={() => setLabourModalOpened(true)}
-              styles={{
-                root: {
-                  "&:hover": {
-                    backgroundColor: "orange",
-                    color: "white",
-                  },
-                },
-              }}
-            >
-              Add Labour
-            </Button>
-          </Group>
-        </Stack>
-      </Paper>
-
-      {/* Add Labour Modal */}
-      <AddLabourModal
-        opened={labourModalOpened}
-        onClose={() => setLabourModalOpened(false)}
-        onSave={handleAddLabour}
-      />
-    </>
+        ))}
+      </Stack>
+      <Group
+        justify="flex-end"
+        mt="md"
+        pt="sm"
+        style={{ borderTop: "1px solid var(--mantine-color-gray-3)" }}
+      >
+        <Text size="sm" c="dimmed">
+          Total:
+        </Text>
+        <Text size="sm" fw={600} c="green.7">
+          Ksh {totalLabourAmount.toLocaleString()}
+        </Text>
+      </Group>
+    </Paper>
   );
 };
 

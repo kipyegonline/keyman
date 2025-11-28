@@ -188,6 +188,9 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
         {/* Contract Details */}
         {contractData && (
           <Paper p="lg" radius="md" withBorder>
+            <Title order={4} mb="md">
+              Contract Summary
+            </Title>
             <Stack gap="md">
               <Group justify="space-between">
                 <Text size="sm" c="dimmed">

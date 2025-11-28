@@ -71,7 +71,11 @@ const SuppliersNearMe: React.FC<{
   const [useExtendedSearch, setUseExtendedSearch] = useState(false);
   const { setActiveItem } = useAppContext();
   //getSuppliersNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0)
-  const { data: _suppliers, isLoading } = useQuery({
+  const {
+    data: _suppliers,
+    isLoading,
+    refetch: refetchSuppliers,
+  } = useQuery({
     queryKey: ["suppliers_near_me"],
     queryFn: async () =>
       getSuppliersNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0),
@@ -79,7 +83,11 @@ const SuppliersNearMe: React.FC<{
   });
   // console.log(_suppliers, "suppliers near me");
   // Extended search query with 400km distance
-  const { data: _extendedSuppliers, isLoading: isExtendedLoading } = useQuery({
+  const {
+    data: _extendedSuppliers,
+    isLoading: isExtendedLoading,
+    refetch: refetchExtendedSuppliers,
+  } = useQuery({
     queryKey: ["suppliers_near_me_extended", 4000000],
     queryFn: async () =>
       getSuppliersNearMe(
@@ -90,6 +98,15 @@ const SuppliersNearMe: React.FC<{
     enabled: !!userLocation && useExtendedSearch,
   });
   const router = useRouter();
+
+  // Retry fetching suppliers
+  const handleRetryFetch = () => {
+    if (useExtendedSearch) {
+      refetchExtendedSuppliers();
+    } else {
+      refetchSuppliers();
+    }
+  };
 
   // Update search query when initialSearchQuery prop changes
   useEffect(() => {
@@ -227,7 +244,7 @@ const SuppliersNearMe: React.FC<{
               Suppliers Near You
             </Text>
           </Group>
-          <Text size="lg" c="dimmed">
+          <Text size="lg" c="dimmed" className="hidden md:block">
             Connect with trusted construction suppliers in your area
           </Text>
         </div>
@@ -237,6 +254,7 @@ const SuppliersNearMe: React.FC<{
           p="xl"
           radius="md"
           withBorder
+          display={{ base: "none", md: "block" }}
           style={{ borderColor: "#3D6B2C20" }}
         >
           <Stack gap="md">
@@ -265,6 +283,28 @@ const SuppliersNearMe: React.FC<{
               Here, trust is the currency.
             </Text>
           </Stack>
+        </Paper>
+        <Paper
+          p="sm"
+          radius="md"
+          withBorder
+          style={{ borderColor: "#3D6B2C20" }}
+          display={{ md: "none" }}
+        >
+          <Text size="md" c="dimmed" style={{ lineHeight: 1.6 }}>
+            Find a store → Create a contract → Escrow holds your money →
+            Delivery → Release.
+          </Text>
+          <Text
+            size="md"
+            style={{
+              fontStyle: "italic",
+              color: "#3D6B2C",
+              fontWeight: 500,
+            }}
+          >
+            Here, trust is the currency.
+          </Text>
         </Paper>
 
         {/* Location Alert */}
@@ -564,13 +604,23 @@ const SuppliersNearMe: React.FC<{
               <Text size="sm" c="dimmed">
                 Try adjusting your search terms or check back later
               </Text>
-              <Button
-                variant="outline"
-                onClick={() => setSearchQuery("")}
-                style={{ borderColor: "#3D6B2C", color: "#3D6B2C" }}
-              >
-                Clear Search
-              </Button>
+              <Group gap="sm">
+                <Button
+                  variant="outline"
+                  onClick={() => setSearchQuery("")}
+                  style={{ borderColor: "#3D6B2C", color: "#3D6B2C" }}
+                >
+                  Clear Search
+                </Button>
+                <Button
+                  variant="filled"
+                  onClick={handleRetryFetch}
+                  style={{ backgroundColor: "#3D6B2C" }}
+                  leftSection={<Navigation size={16} />}
+                >
+                  Retry Location
+                </Button>
+              </Group>
             </Stack>
           </Paper>
         )}

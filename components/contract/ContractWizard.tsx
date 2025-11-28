@@ -116,8 +116,12 @@ const ContractWizard: React.FC<ContractWizardProps> = ({
   };
 
   return (
-    <Container size="xl" py="xl">
-      <Stack gap="xl">
+    <Container
+      size="fluid"
+      py={{ base: "sm", md: "xl" }}
+      //className="border-red"
+    >
+      <Stack gap="md">
         {/* Back to Contracts Button */}
         <Group justify="flex-end">
           <Button
@@ -131,7 +135,7 @@ const ContractWizard: React.FC<ContractWizardProps> = ({
         </Group>
 
         {/* Stepper */}
-        <Paper shadow="xs" p="md" radius="lg">
+        <Paper shadow="xs" p={{ base: "sm", md: "md" }} radius="lg">
           <Stepper
             active={active}
             onStepClick={(stepIndex) => {

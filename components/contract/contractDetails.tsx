@@ -43,6 +43,8 @@ import MilestoneStatusChangeModal from "./MilestoneStatusChangeModal";
 import AcceptContractModal from "./AcceptContractModal";
 import MilestoneTimeline from "./MilestoneTimeline";
 import AiSuggestionsModal from "./AiSuggestionsModal";
+import AddMaterialsModal from "./AddMaterialsModal";
+import AddLabourModal from "./AddLabourModal";
 import {
   updateContract,
   updateMilestone,
@@ -53,6 +55,8 @@ import {
 } from "@/api/contract";
 import { notify } from "@/lib/notifications";
 import ChatManager from "../chat-manager";
+import { WholePriceList } from "../supplier/priceList";
+import { getSupplierPriceList } from "@/api/supplier";
 
 // Use the actual API response structure
 interface ContractDetails {
@@ -125,6 +129,23 @@ interface Milestone {
   service_provider_completion_date?: string;
 }
 
+interface MaterialItem {
+  id: string;
+  name: string;
+  description: string;
+  amount: number;
+  quantity: number;
+  unit_price: number;
+}
+
+interface LabourItem {
+  id: string;
+  name: string;
+  description: string;
+  amount: number;
+  quantity: number;
+}
+
 interface ContractDetailsProps {
   contract: ContractDetails;
   userType?: "customer" | "supplier";
@@ -189,6 +210,10 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const [chatOpen, setChatOpen] = useState(false);
   const [aiSuggestionsModalOpened, setAiSuggestionsModalOpened] =
     useState(false);
+  const [materialsModalOpened, setMaterialsModalOpened] = useState(false);
+  const [labourModalOpened, setLabourModalOpened] = useState(false);
+  const [materials, setMaterials] = useState<MaterialItem[]>([]);
+  const [labourItems, setLabourItems] = useState<LabourItem[]>([]);
   //const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
 
   // Initialize query client
@@ -202,6 +227,18 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       enabled: !!contract.id && aiSuggestionsModalOpened, // Only fetch if contract ID exists
       staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     });
+
+  const { data: priceList } = useQuery({
+    queryKey: ["pricelist", contract?.service_provider_id],
+    queryFn: async () =>
+      getSupplierPriceList(contract?.service_provider_id ?? ""),
+    enabled: !!contract?.service_provider_id,
+  });
+  const _priceList = React.useMemo(() => {
+    if (priceList?.price_list) {
+      return priceList.price_list as WholePriceList[];
+    } else return [];
+  }, [priceList]);
 
   const suggestedMilestones = React.useMemo(() => {
     if (suggestedMilestonesData?.status) {
@@ -217,6 +254,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       notify.success("Milestone deleted successfully");
       queryClient.invalidateQueries({
         queryKey: ["suggestedMilestones", contract.id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["contract", contract.id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["contracts"],
       });
       refresh();
     },
@@ -250,6 +293,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       notify.success(`Milestone ${actionText}`);
       queryClient.invalidateQueries({
         queryKey: ["suggestedMilestones", contract.id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["contract", contract.id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["contracts"],
       });
       refresh();
       setEditModalOpened(false);
@@ -307,6 +356,42 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     setCreateMilestoneModalOpened(true);
   };
 
+  const handleAddMaterials = async (items: MaterialItem[]) => {
+    setMaterials((prev) => [...prev, ...items]);
+
+    // Loop through each material and create a milestone
+    for (const item of items) {
+      const milestoneData = {
+        keyman_contract_id: contract.id,
+        name: item.name,
+        description: item.description || "",
+        status: "pending",
+        start_date: new Date().toISOString(),
+        end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        amount: item.amount * item.quantity,
+      };
+
+      await handleSaveNewMilestone(milestoneData);
+    }
+  };
+
+  const handleAddLabour = async (labour: LabourItem) => {
+    setLabourItems((prev) => [...prev, labour]);
+
+    // Create a milestone for the labour item
+    const milestoneData = {
+      keyman_contract_id: contract.id,
+      name: labour.name,
+      description: labour.description || "",
+      status: "pending",
+      start_date: new Date().toISOString(),
+      end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+      amount: labour.amount * labour.quantity,
+    };
+
+    await handleSaveNewMilestone(milestoneData);
+  };
+
   const handleSaveNewMilestone = async (data: {
     keyman_contract_id: string;
     name: string;
@@ -319,6 +404,13 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     const response = await createMilestone(data);
     if (response.status) {
       notify.success("Milestone created successfully");
+      // Invalidate queries to trigger refetch
+      queryClient.invalidateQueries({
+        queryKey: ["contract", contract.id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["contracts"],
+      });
       refresh();
       setCreateMilestoneModalOpened(false);
     } else {
@@ -348,6 +440,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       const response = await updateContract(contractId, payload);
 
       if (response.status) {
+        queryClient.invalidateQueries({
+          queryKey: ["contract", contract.id],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["contracts"],
+        });
         refresh();
         notify.success("Contract updated successfully");
         // Only close modal on success
@@ -376,6 +474,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       return;
     }
     if (response.status) {
+      queryClient.invalidateQueries({
+        queryKey: ["contract", contract.id],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["contracts"],
+      });
       refresh();
       if (role === "client") {
         notify.success("Client has been notified");
@@ -428,6 +532,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       });
 
       if (response.status) {
+        queryClient.invalidateQueries({
+          queryKey: ["contract", contract.id],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["contracts"],
+        });
         refresh();
         const actionText = action === "start" ? "started" : "completed";
 
@@ -462,6 +572,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
       if (response.status) {
         notify.success("Contract accepted successfully!");
+        queryClient.invalidateQueries({
+          queryKey: ["contract", contract.id],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["contracts"],
+        });
         refresh();
         await notifyProvider("client", true);
         setAcceptContractModalOpened(false);
@@ -981,13 +1097,6 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   </Group>
                 </Card>
               )}
-              {true ? (
-                <ChatManager
-                  chatId={contract?.chat_id}
-                  currentUserId={1}
-                  open={chatOpen}
-                />
-              ) : null}
 
               {/* Milestones Timeline */}
               {contract.milestones && contract.milestones.length > 0 && (
@@ -1008,28 +1117,97 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
               )}
 
               {canEditMileStone && (
-                <Flex gap={"md"} direction={{ base: "column", md: "row" }}>
-                  <Button
-                    leftSection={<Plus size={16} />}
-                    onClick={handleCreateMilestone}
-                    style={{ backgroundColor: "#3D6B2C", color: "white" }}
-                    className=""
+                <>
+                  <Flex
+                    gap={"md"}
+                    direction={{ base: "column", md: "row" }}
+                    display={"none"}
                   >
-                    Create Milestone
-                  </Button>
+                    <Button
+                      leftSection={<Plus size={16} />}
+                      onClick={handleCreateMilestone}
+                      style={{ backgroundColor: "#3D6B2C", color: "white" }}
+                      className=""
+                    >
+                      Create Milestone
+                    </Button>
 
-                  <Button
-                    leftSection={<Sparkles size={16} />}
-                    onClick={handleOpenAiSuggestions}
-                    loading={isLoadingSuggestions}
-                    style={{ backgroundColor: "#F08C23", color: "white" }}
+                    <Button
+                      leftSection={<Sparkles size={16} />}
+                      onClick={handleOpenAiSuggestions}
+                      loading={isLoadingSuggestions}
+                      style={{ backgroundColor: "#F08C23", color: "white" }}
+                    >
+                      Assistant
+                    </Button>
+                  </Flex>
+
+                  {/* Add Materials and Labour Buttons */}
+                  <Flex
+                    gap={"md"}
+                    direction={{ base: "column", md: "row" }}
+                    mt="md"
                   >
-                    Assistant
-                  </Button>
-                </Flex>
+                    <Button
+                      variant="outline"
+                      color="orange"
+                      leftSection={<Plus size={16} />}
+                      onClick={() => setMaterialsModalOpened(true)}
+                      styles={{
+                        root: {
+                          "&:hover": {
+                            backgroundColor: "orange",
+                            color: "white",
+                          },
+                        },
+                      }}
+                    >
+                      Add Materials
+                    </Button>
+                    <Button
+                      variant="outline"
+                      color="orange"
+                      leftSection={<Plus size={16} />}
+                      onClick={() => setLabourModalOpened(true)}
+                      styles={{
+                        root: {
+                          "&:hover": {
+                            backgroundColor: "orange",
+                            color: "white",
+                          },
+                        },
+                      }}
+                    >
+                      Services/Labour
+                    </Button>
+
+                    <ChatManager
+                      chatId={contract?.chat_id}
+                      currentUserId={1}
+                      open={chatOpen}
+                    />
+                  </Flex>
+
+                  {/* Display added items count */}
+                  {(materials.length > 0 || labourItems.length > 0) &&
+                    false && (
+                      <Group gap="md" mt="sm">
+                        {materials.length > 0 && (
+                          <Text size="sm" c="dimmed">
+                            Materials: {materials.length}
+                          </Text>
+                        )}
+                        {labourItems.length > 0 && (
+                          <Text size="sm" c="dimmed">
+                            Labour: {labourItems.length}
+                          </Text>
+                        )}
+                      </Group>
+                    )}
+                </>
               )}
               {/**Actions */}
-              {inNegotiation && userType === "customer"
+              {false && inNegotiation && userType === "customer"
                 ? canNotify && (
                     <Button
                       loading={notifying}
@@ -1041,7 +1219,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   )
                 : null}
 
-              {inNegotiation && userType === "supplier"
+              {false && inNegotiation && userType === "supplier"
                 ? canNotify && (
                     <Button
                       loading={notifying}
@@ -1109,7 +1287,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                                 mb="xs"
                               >
                                 <Text size="xs" c="dimmed" className="truncate">
-                                  {milestone.title}
+                                  {milestone.name}
                                 </Text>
                                 <Text size="xs" fw={500}>
                                   {formatCurrency(milestone.amount)}
@@ -1358,6 +1536,21 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         contractId={contract.id}
         onSave={handleSaveNewMilestone}
         suggestedMilestone={selectedSuggestedMilestone}
+      />
+
+      {/* Add Materials Modal */}
+      <AddMaterialsModal
+        opened={materialsModalOpened}
+        onClose={() => setMaterialsModalOpened(false)}
+        onSave={handleAddMaterials}
+        priceList={_priceList as WholePriceList[]}
+      />
+
+      {/* Add Labour Modal */}
+      <AddLabourModal
+        opened={labourModalOpened}
+        onClose={() => setLabourModalOpened(false)}
+        onSave={handleAddLabour}
       />
     </Box>
   );

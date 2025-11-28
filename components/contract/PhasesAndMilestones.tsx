@@ -25,7 +25,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { getSupplierPriceList } from "@/api/supplier";
 import { WholePriceList } from "../supplier/priceList";
-import LabourSection from "./LabourSection";
+import LabourSection, { LabourItem } from "./LabourSection";
+import ItemsSection, { MaterialItem } from "./ItemsSection";
 import AddMaterialsModal from "./AddMaterialsModal";
 import AddLabourModal from "./AddLabourModal";
 
@@ -148,6 +149,24 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
 
   // Separate materials and labour for display
   const materials = milestones.filter((m) => m.type === "materials");
+  const labourItems = milestones.filter((m) => m.type === "labour");
+
+  // Transform milestones to display format for components
+  const materialsForDisplay: MaterialItem[] = materials.map((m) => ({
+    id: m.id,
+    name: m.name,
+    description: m.description,
+    amount: m.unit_price || m.amount / m.quantity,
+    quantity: m.quantity,
+  }));
+
+  const labourForDisplay: LabourItem[] = labourItems.map((m) => ({
+    id: m.id,
+    name: m.name,
+    description: m.description,
+    amount: m.unit_price || m.amount / m.quantity,
+    quantity: m.quantity,
+  }));
 
   const handleAddMaterials = (items: MaterialInput[]) => {
     const materialItems: MilestoneItem[] = items.map((item) => ({
@@ -175,19 +194,8 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
     setMilestones([...milestones, newLabour]);
   };
 
-  const handleLabourChange = (items: LabourInput[]) => {
-    // Remove old labour items and add new ones
-    const nonLabourMilestones = milestones.filter((m) => m.type !== "labour");
-    const labourItems: MilestoneItem[] = items.map((item) => ({
-      id: item.id,
-      name: item.name,
-      description: item.description,
-      amount: item.amount * item.quantity, // Total amount
-      quantity: item.quantity,
-      type: "labour" as const,
-      unit_price: item.amount, // Store unit price
-    }));
-    setMilestones([...nonLabourMilestones, ...labourItems]);
+  const handleRemoveItem = (id: string) => {
+    setMilestones(milestones.filter((m) => m.id !== id));
   };
 
   const handleContinue = () => {
@@ -328,7 +336,7 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
                     </Group>
                     <Group
                       gap="md"
-                      style={{ flexDirection: "row" }}
+                      //style={{ flexDirection: "row" }}
                       className="flex-col sm:flex-row"
                     >
                       {_priceList?.length > 0 && (
@@ -370,10 +378,16 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
                 </Paper>
               )}
 
-              {/* Phase 1 Section */}
+              {/* Items Display Sections */}
+              <ItemsSection
+                items={materialsForDisplay}
+                onRemoveItem={handleRemoveItem}
+                title="Materials"
+              />
               <LabourSection
-                phaseName="Phase "
-                onLabourChange={(items) => handleLabourChange(items)}
+                labourItems={labourForDisplay}
+                onRemoveLabour={handleRemoveItem}
+                title="Services / Labour"
               />
 
               {/* Add Materials Modal */}
