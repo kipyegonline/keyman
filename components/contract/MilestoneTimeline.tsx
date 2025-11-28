@@ -88,7 +88,7 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
   onDeleteMilestone,
   onStatusChange,
   userType,
-  mode,
+  //mode,
 }) => {
   const completedMilestones = milestones.filter(
     (m: Milestone) => m.status.toLowerCase() === "completed"
@@ -118,9 +118,9 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
           {milestones.map((milestone) => {
             const config = getMilestoneStatusConfig(milestone.status);
             const IconComponent = config.icon;
+            //mode === "client" &&
             const clientVisible =
               userType === "customer" &&
-              mode === "client" &&
               milestone?.service_provider_completion_date !== null &&
               milestone?.service_provider_completion_date != "" &&
               (milestone?.client_completion_date == "" ||

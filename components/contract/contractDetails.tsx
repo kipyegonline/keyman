@@ -22,7 +22,7 @@ import {
   FileText,
   User,
   DollarSign,
-  Building2,
+  //Building2,
   Phone,
   Mail,
   Eye,
@@ -83,6 +83,7 @@ interface ContractDetails {
     name: string;
     email?: string;
     phone?: string;
+    photo: string[];
     keyman_number?: string;
   };
   service_provider_signing_date: null | string;
@@ -559,7 +560,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const totalMilestones = contract.milestones?.length || 0;
   const progressPercentage =
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
-  // console.log(contract, "con----");
+  console.log(contract, "con----");
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-UK", {
       year: "numeric",
@@ -966,6 +967,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                         <Avatar size={40} color="blue">
                           <User size={20} />
                         </Avatar>
+
                         <div>
                           <Text fw={600} size="sm" className="text-gray-800">
                             Initiator
@@ -1001,9 +1003,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                       radius="md"
                     >
                       <Group gap="sm" mb="sm">
-                        <Avatar size={40} color="green">
-                          <Building2 size={20} />
-                        </Avatar>
+                        <Avatar
+                          src={contract?.service_provider?.photo?.[0]}
+                          alt={contract?.service_provider?.name}
+                          size={60}
+                          radius="md"
+                        />
                         <div>
                           <Text fw={600} size="sm" className="text-gray-800">
                             Service provider
@@ -1060,7 +1065,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                 <Box id="milestones-section">
                   <MilestoneTimeline
                     milestones={contract.milestones}
-                    canEditMileStone={canEditMileStone}
+                    canEditMileStone={true}
                     serviceProviderSigningDate={
                       contract.service_provider_signing_date
                     }
@@ -1073,7 +1078,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                 </Box>
               )}
 
-              {canEditMileStone && (
+              {true && (
                 <>
                   {/* Add Materials and Labour Buttons */}
                   <Flex
@@ -1081,7 +1086,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                     direction={{ base: "column", md: "row" }}
                     mt="md"
                   >
-                    {_priceList?.length > 0 && (
+                    {_priceList?.length > 0 ? (
                       <Button
                         variant="outline"
                         color="orange"
@@ -1098,6 +1103,16 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                       >
                         Add Materials
                       </Button>
+                    ) : (
+                      <Alert
+                        variant="light"
+                        color="orange"
+                        radius="md"
+                        icon={<AlertCircle size={16} />}
+                        style={{ flex: 1 }}
+                      >
+                        <Text size="sm">No items available in the store</Text>
+                      </Alert>
                     )}
                     <Button
                       variant="outline"

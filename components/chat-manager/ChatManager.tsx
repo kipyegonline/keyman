@@ -233,60 +233,60 @@ export const ChatManager: React.FC<ChatManagerProps> = ({
   return (
     <>
       {/* Floating Action Button */}
-      <Tooltip label="Contract negotiation" position="right-end" withArrow>
-        <button
-          onClick={handleToggleChat}
-          className="chat-manager-fab"
-          style={{
-            //position: "fixed",
-            //bottom: "24px",
-            //right: "24px",
-            width: "80px",
-            height: "40px",
-            //borderRadius: "50%",
-            borderRadius: "12px",
-            backgroundColor: "#F08C23",
-            border: "none",
-            boxShadow: "0 4px 12px rgba(240, 140, 35, 0.4)",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "all 0.3s ease",
-            // zIndex: 1000,
-          }}
-          aria-label="Toggle chat"
-        >
-          {isOpen ? (
-            <X size={24} color="white" />
-          ) : (
-            <>
-              <Sparkles size={24} color="white" className="animate-pulse" />
-              {unreadCount > 0 && (
-                <span
-                  style={{
-                    position: "absolute",
-                    top: "-5px",
-                    right: "-5px",
-                    backgroundColor: "#ef4444",
-                    color: "white",
-                    borderRadius: "50%",
-                    width: "24px",
-                    height: "24px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "12px",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {unreadCount > 9 ? "9+" : unreadCount}
-                </span>
-              )}
-            </>
-          )}
-        </button>
-      </Tooltip>
+
+      <button
+        onClick={handleToggleChat}
+        className="chat-manager-fabz p-2 text-white"
+        style={{
+          //position: "fixed",
+          //bottom: "24px",
+          //right: "24px",
+          //width: "80px",
+          height: "40px",
+          //borderRadius: "50%",
+          borderRadius: "12px",
+          backgroundColor: "#F08C23",
+          border: "none",
+          boxShadow: "0 4px 12px rgba(240, 140, 35, 0.4)",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "all 0.3s ease",
+          // zIndex: 1000,
+        }}
+        aria-label="Toggle chat"
+      >
+        {isOpen ? (
+          <X size={24} color="white" />
+        ) : (
+          <>
+            <Sparkles size={15} color="white" className="animate-pulse mr-2" />
+            Contract negotiation
+            {unreadCount > 0 && (
+              <span
+                style={{
+                  position: "absolute",
+                  top: "-5px",
+                  right: "-5px",
+                  backgroundColor: "#ef4444",
+                  color: "white",
+                  borderRadius: "50%",
+                  width: "24px",
+                  height: "24px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                }}
+              >
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </>
+        )}
+      </button>
 
       {/* Chat Window */}
       {isOpen && (
