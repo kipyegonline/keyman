@@ -119,7 +119,7 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
             const config = getMilestoneStatusConfig(milestone.status);
             const IconComponent = config.icon;
             //mode === "client" &&
-            const clientVisible =
+            /*  const clientVisible =
               userType === "customer" &&
               milestone?.service_provider_completion_date !== null &&
               milestone?.service_provider_completion_date != "" &&
@@ -129,7 +129,7 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
               userType === "supplier" &&
               (milestone?.service_provider_completion_date == "" ||
                 milestone?.service_provider_completion_date == null) &&
-              milestone.status == "in_progress";
+              milestone.status == "in_progress";*/
 
             //supplier_completed
             return (
@@ -201,29 +201,31 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                                 </ActionIcon>
                               </Tooltip>
                             )}
+                            {/**||
+                                milestone.status.toLowerCase() ===
+                                  "supplier_completed" */}
                             {(milestone.status.toLowerCase() ===
                               "in_progress" ||
                               milestone.status.toLowerCase() ===
-                                "supplier_completed") &&
-                              (clientVisible || supplierVisible) && (
-                                <Tooltip
-                                  label={"Complete milestone"}
-                                  position="top"
-                                  withArrow
+                                "supplier_completed") && (
+                              <Tooltip
+                                label={"Complete milestone"}
+                                position="top"
+                                withArrow
+                              >
+                                <ActionIcon
+                                  size="sm"
+                                  // variant="light"
+                                  //color="green"
+                                  onClick={() =>
+                                    onStatusChange &&
+                                    onStatusChange(milestone.id, "complete")
+                                  }
                                 >
-                                  <ActionIcon
-                                    size="sm"
-                                    // variant="light"
-                                    //color="green"
-                                    onClick={() =>
-                                      onStatusChange &&
-                                      onStatusChange(milestone.id, "complete")
-                                    }
-                                  >
-                                    <CheckCircle size={12} />
-                                  </ActionIcon>
-                                </Tooltip>
-                              )}
+                                  <CheckCircle size={12} />
+                                </ActionIcon>
+                              </Tooltip>
+                            )}
                           </>
                         )}
                       {canEditMileStone &&
