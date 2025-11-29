@@ -179,28 +179,28 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                           milestone.status.toLowerCase() === "in_progress" ||
                           milestone.status.toLowerCase() ===
                             "supplier_completed") &&
-                        serviceProviderSigningDate !== null &&
-                        userType === "customer" && (
+                        serviceProviderSigningDate !== null && (
                           <>
-                            {milestone.status.toLowerCase() === "pending" && (
-                              <Tooltip
-                                label={"Start milestone"}
-                                position="top"
-                                withArrow
-                              >
-                                <ActionIcon
-                                  size="sm"
-                                  // variant="light"
-                                  //color="green"
-                                  onClick={() =>
-                                    onStatusChange &&
-                                    onStatusChange(milestone.id, "start")
-                                  }
+                            {milestone.status.toLowerCase() === "pending" &&
+                              userType === "customer" && (
+                                <Tooltip
+                                  label={"Start milestone"}
+                                  position="top"
+                                  withArrow
                                 >
-                                  <Play size={12} />
-                                </ActionIcon>
-                              </Tooltip>
-                            )}
+                                  <ActionIcon
+                                    size="sm"
+                                    // variant="light"
+                                    //color="green"
+                                    onClick={() =>
+                                      onStatusChange &&
+                                      onStatusChange(milestone.id, "start")
+                                    }
+                                  >
+                                    <Play size={12} />
+                                  </ActionIcon>
+                                </Tooltip>
+                              )}
                             {/**||
                                 milestone.status.toLowerCase() ===
                                   "supplier_completed" */}
