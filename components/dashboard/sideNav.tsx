@@ -47,7 +47,10 @@ const Sidebar: React.FC<{
     toggleDashboard,
   } = useAppContext();
   const router = useRouter();
-  const { data } = useQuery({ queryKey: ["user"], queryFn: getUserDetails });
+  const { data, isLoading } = useQuery({
+    queryKey: ["user"],
+    queryFn: getUserDetails,
+  });
   const isSupplier = data?.user?.roles.length > 0;
 
   const menuItems = [
@@ -215,7 +218,7 @@ const Sidebar: React.FC<{
             );
           })}
           <hr />
-          {!isSupplier ? (
+          {isLoading ? null : !isSupplier ? (
             <MenuItem
               key={becomeSupplier.id}
               item={becomeSupplier}

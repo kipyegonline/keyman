@@ -53,7 +53,7 @@ export default function SupplierContractPage() {
   const [showContract, setShowContract] = React.useState(false);
   const supplier = globalThis.window.localStorage.getItem("supplier_id") ?? "";
   const { data, isLoading } = useQuery({
-    queryKey: ["customerContracts"],
+    queryKey: ["supplierContracts"],
     queryFn: async () => {
       const contracts = await getContracts(supplier);
       return contracts;

@@ -225,7 +225,7 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
             fw="bold"
             style={{ color: cardVariants.balance.color }}
           >
-            {data.currentBalance}
+            {data.currentBalance.toFixed(2)}
           </Text>
           <Text size="xs" className="text-gray-500">
             Available Coins
@@ -435,7 +435,7 @@ const KeyUsageDashboard: React.FC<KeyUsageDashboardProps> = ({
               ]}
               label={
                 <Text color={tierConfig.color} fw="bold" ta="center" size="lg">
-                  {data.currentBalance}
+                  {data.currentBalance.toFixed(2)}
                 </Text>
               }
               size={120}

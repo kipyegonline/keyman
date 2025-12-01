@@ -28,7 +28,7 @@ export default function OrdersClientcomponent() {
       ) : (
         <Box p="lg">
           <Text size="md" pb="md">
-            You have no orders at the moment.
+            You have no orders at the moment. Try again later.
           </Text>
         </Box>
       )}

@@ -50,6 +50,7 @@ import {
   deleteMilestone,
 } from "@/api/contract";
 import { notify } from "@/lib/notifications";
+import { useAppContext } from "@/providers/AppContext";
 import ChatManager from "../chat-manager";
 import { WholePriceList } from "../supplier/priceList";
 import { getSupplierPriceList } from "@/api/supplier";
@@ -187,6 +188,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   isDownloading = false,
   //onEditMilestone,
 }) => {
+  const { user } = useAppContext();
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(
     null
@@ -562,7 +564,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const totalMilestones = contract.milestones?.length || 0;
   const progressPercentage =
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
-  //console.log(contract, "con----");
+  console.log(contract, "con----");
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-UK", {
       year: "numeric",
@@ -660,6 +662,17 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     }
     return false;
   }, []);
+  const unpaidMilestones = contract.milestones?.some(
+    (milestone) => milestone.status.toLowerCase() === "pending"
+  );
+  const contractFeePaid = React.useMemo(
+    () =>
+      contract.milestones?.some(
+        (milestone) => milestone.status.toLowerCase() === "in_progress"
+      ),
+    [contract.milestones]
+  );
+  console.log(contractFeePaid, "cpaid");
   //console.log(contract, "tract");
 
   // Contract Accepted Success Alert Component
@@ -1135,7 +1148,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
                     <ChatManager
                       chatId={contract?.chat_id}
-                      currentUserId={1}
+                      currentUserId={user?.id ?? 0}
                       open={chatOpen}
                     />
                   </Flex>
@@ -1217,6 +1230,9 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                       {formatCurrency(Number(contract.contract_amount))}
                     </Text>
                   </Group>
+                  <Text size="xs" c="dimmed" fs="italic">
+                    *One-time contract fee of KES 200 applies
+                  </Text>
 
                   {contract.milestones && contract.milestones.length > 0 && (
                     <>
@@ -1280,9 +1296,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   </Paper>
 
                   {/* Pay Full Amount Button */}
-                  {(contract.status.toLowerCase() !== "in_progress" ||
-                    contract.status.toLowerCase() !== "completed" ||
-                    contract.status !== "cancelled") && (
+                  {unpaidMilestones && userType === "customer" && (
                     <Button
                       fullWidth
                       size="md"
@@ -1290,7 +1304,11 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                       onClick={() => setPaymentModalOpened(true)}
                     >
                       Pay Full Amount (
-                      {formatCurrency(Number(contract.contract_amount) + 200)})
+                      {formatCurrency(
+                        Number(contract.contract_amount) +
+                          (contractFeePaid ? 0 : 200)
+                      )}
+                      )
                     </Button>
                   )}
                 </Stack>
@@ -1507,7 +1525,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         contractId={contract.id}
         contractTitle={contract?.contract_json?.title || "Contract Payment"}
         amount={Number(contract.contract_amount)}
-        contractFee={200}
+        contractFee={contractFeePaid ? 0 : 200}
         onPaymentSuccess={() => {
           queryClient.invalidateQueries({
             queryKey: ["contract", contract.id],

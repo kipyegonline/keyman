@@ -94,7 +94,9 @@ const MainContent: React.FC = () => {
     },
     {
       label: "Coins Balance",
-      value: Number(balance?.balance?.total).toFixed(2) || 0,
+      value: Number.isNaN(Number(balance?.balance?.total))
+        ? 0
+        : Number(balance?.balance?.total).toFixed(2) || 0,
       icon: Coins,
       color: "#3D6B2C",
     },
@@ -130,7 +132,8 @@ const MainContent: React.FC = () => {
       "Your payment will reflect on your account soon.",
       "Validating payment"
     );
-    refetch();
+    //lets refetch payment after 2 seconds
+    setTimeout(() => refetch(), 2000);
   };
   const handlePaymentError = () => {};
   const handleBecomeSupplier = () => {
