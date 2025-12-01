@@ -278,3 +278,55 @@ export const getSuggestedMilestones = async (
     }
   }
 };
+
+/**
+ * Interface for pay full contract request data
+ */
+export interface IPayFullContractData {
+  amount: number;
+  payment_number: string;
+  phone_number: string;
+}
+
+/**
+ * Interface for pay full contract response
+ */
+export interface IPayFullContractResponse {
+  status: boolean;
+  message: string;
+  data?: unknown;
+}
+
+/**
+ * Pay full contract amount
+ * @param contract_id - ID of the contract
+ * @param data - Payment data including amount, payment_number, and phone_number
+ * @returns Payment response
+ */
+export const payFullContract = async (
+  contract_id: string,
+  data: IPayFullContractData
+): Promise<IPayFullContractResponse> => {
+  try {
+    const response = await AxiosClient.post(
+      ENDPOINTS.contracts.PAY_FULL(contract_id),
+      data
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          status: false,
+          message: "An error occurred while processing the payment",
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return {
+        status: false,
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+};

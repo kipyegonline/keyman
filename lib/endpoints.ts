@@ -95,6 +95,8 @@ export const ENDPOINTS = {
     GET_SUGGESTED_MILESTONES: (contract_id: string) =>
       `/api/chats/${contract_id}/summarize-chat-milestones`,
     //`/api/chats/${contract_id}/summarize-chat-milestones`
+    PAY_FULL: (contract_id: string) =>
+      `/api/keyman-contracts/${contract_id}/pay-full`,
   },
   wallet: {
     CREATE_WALLET: "/api/user/create-wallet",

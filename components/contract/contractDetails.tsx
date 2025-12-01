@@ -42,6 +42,7 @@ import AcceptContractModal from "./AcceptContractModal";
 import MilestoneTimeline from "./MilestoneTimeline";
 import AddMaterialsModal from "./AddMaterialsModal";
 import AddLabourModal from "./AddLabourModal";
+import ContractPaymentModal from "./ContractPaymentModal";
 import {
   updateContract,
   updateMilestone,
@@ -204,6 +205,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const [labourModalOpened, setLabourModalOpened] = useState(false);
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [labourItems, setLabourItems] = useState<LabourItem[]>([]);
+  const [paymentModalOpened, setPaymentModalOpened] = useState(false);
   //const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
 
   // Initialize query client
@@ -1276,6 +1278,21 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                       </Badge>
                     </Group>
                   </Paper>
+
+                  {/* Pay Full Amount Button */}
+                  {(contract.status.toLowerCase() !== "in_progress" ||
+                    contract.status.toLowerCase() !== "completed" ||
+                    contract.status !== "cancelled") && (
+                    <Button
+                      fullWidth
+                      size="md"
+                      style={{ backgroundColor: "#F08C23" }}
+                      onClick={() => setPaymentModalOpened(true)}
+                    >
+                      Pay Full Amount (
+                      {formatCurrency(Number(contract.contract_amount) + 200)})
+                    </Button>
+                  )}
                 </Stack>
               </Card>
 
@@ -1481,6 +1498,26 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         opened={labourModalOpened}
         onClose={() => setLabourModalOpened(false)}
         onSave={handleAddLabour}
+      />
+
+      {/* Contract Payment Modal */}
+      <ContractPaymentModal
+        opened={paymentModalOpened}
+        onClose={() => setPaymentModalOpened(false)}
+        contractId={contract.id}
+        contractTitle={contract?.contract_json?.title || "Contract Payment"}
+        amount={Number(contract.contract_amount)}
+        contractFee={200}
+        onPaymentSuccess={() => {
+          queryClient.invalidateQueries({
+            queryKey: ["contract", contract.id],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["contracts"],
+          });
+          refresh();
+          setPaymentModalOpened(false);
+        }}
       />
     </Box>
   );
