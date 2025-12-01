@@ -284,7 +284,7 @@ export const getSuggestedMilestones = async (
  */
 export interface IPayFullContractData {
   amount: number;
-  payment_number: string;
+  payment_method: string;
   phone_number: string;
 }
 

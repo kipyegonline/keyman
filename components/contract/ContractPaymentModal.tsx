@@ -141,7 +141,7 @@ export default function ContractPaymentModal({
     try {
       const response = await payFullContract(contractId, {
         amount: totalAmount,
-        payment_number: values.payment_method,
+        payment_method: values.payment_method,
         phone_number: values.phone_number,
       });
 
