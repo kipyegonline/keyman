@@ -37,6 +37,7 @@ export default function SupplierClientComponent({
     queryFn: async () => getSupplierDetails(supplierId),
     enabled: !!supplierId,
   });
+  //console.log(supplier, "supplier");
   const { data: priceList } = useQuery({
     queryKey: ["pricelist", supplierId],
     queryFn: async () => getSupplierPriceList(supplierId),

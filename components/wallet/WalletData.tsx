@@ -648,11 +648,12 @@ export default function WalletData({
         <Group justify="space-between" align="center">
           <div>
             <Title order={1} style={{ color: "#3D6B2C" }}>
-              {walletData.accountName || "My Wallet"}
+              {walletData?.accountName || "My Wallet"}
             </Title>
             <Text size="sm" c="dimmed">
-              Account ID: {walletData.accountId}
-              {walletData.shortCode && ` • Short Code: ${walletData.shortCode}`}
+              Account ID: {walletData?.accountId}
+              {walletData?.shortCode &&
+                ` • Short Code: ${walletData?.shortCode}`}
             </Text>
           </div>
           <Group>
@@ -684,8 +685,8 @@ export default function WalletData({
         <Paper shadow="sm" radius="lg" p="md" className="bg-gray-50">
           <Group justify="space-between" align="center">
             <Group gap="md">
-              {getAccountStatusBadge(walletData.accountStatus)}
-              {getAccountTypeBadge(walletData.accountType)}
+              {getAccountStatusBadge(walletData?.accountStatus)}
+              {getAccountTypeBadge(walletData?.accountType)}
 
               {walletData.freezeStatus === 1 && (
                 <Badge
@@ -697,7 +698,7 @@ export default function WalletData({
                 </Badge>
               )}
 
-              {walletData.dormantStatus === 1 && (
+              {walletData?.dormantStatus === 1 && (
                 <Badge
                   color="orange"
                   variant="light"
@@ -709,7 +710,7 @@ export default function WalletData({
             </Group>
 
             <Text size="xs" c="dimmed">
-              Created: {formatDate(walletData.createTime)}
+              Created: {formatDate(walletData?.createTime)}
             </Text>
           </Group>
         </Paper>
@@ -732,7 +733,7 @@ export default function WalletData({
               </Text>
               <Group align="center" gap="xs">
                 <Text size="2.5rem" fw="bold" className="leading-none">
-                  {showBalance ? formatBalance(walletData.balance) : "••••••"}
+                  {showBalance ? formatBalance(walletData?.balance) : "••••••"}
                 </Text>
                 <ActionIcon
                   variant="transparent"
@@ -744,7 +745,7 @@ export default function WalletData({
                 </ActionIcon>
               </Group>
               <Text size="xs" opacity={0.8} className="mt-2">
-                Currency: {walletData.currency}
+                Currency: {walletData?.currency}
               </Text>
             </div>
             <ThemeIcon
@@ -886,7 +887,7 @@ export default function WalletData({
                   radius="md"
                   style={{
                     backgroundColor:
-                      walletData.accountStatus === 1
+                      walletData?.accountStatus === 1
                         ? "#3D6B2C15"
                         : "#F08C2315",
                   }}
@@ -896,7 +897,7 @@ export default function WalletData({
                     size={24}
                     style={{
                       color:
-                        walletData.accountStatus === 1 ? "#3D6B2C" : "#F08C23",
+                        walletData?.accountStatus === 1 ? "#3D6B2C" : "#F08C23",
                     }}
                   />
                 </ThemeIcon>
@@ -905,7 +906,7 @@ export default function WalletData({
                     fw={600}
                     style={{
                       color:
-                        walletData.accountStatus === 1 ? "#3D6B2C" : "#F08C23",
+                        walletData?.accountStatus === 1 ? "#3D6B2C" : "#F08C23",
                     }}
                   >
                     Account Status
@@ -952,7 +953,7 @@ export default function WalletData({
                   <Text size="sm" c="dimmed" className="mb-1">
                     Account Name
                   </Text>
-                  <Text fw={500}>{walletData.accountName}</Text>
+                  <Text fw={500}>{walletData?.accountName}</Text>
                 </div>
                 <div>
                   <Text size="sm" c="dimmed" className="mb-1">
@@ -964,7 +965,7 @@ export default function WalletData({
                   <Text size="sm" c="dimmed" className="mb-1">
                     Currency
                   </Text>
-                  <Text fw={500}>{walletData.currency}</Text>
+                  <Text fw={500}>{walletData?.currency}</Text>
                 </div>
               </Stack>
             </Grid.Col>
@@ -975,20 +976,20 @@ export default function WalletData({
                   <Text size="sm" c="dimmed" className="mb-1">
                     Account Status
                   </Text>
-                  {getAccountStatusBadge(walletData.accountStatus)}
+                  {getAccountStatusBadge(walletData?.accountStatus)}
                 </div>
                 <div>
                   <Text size="sm" c="dimmed" className="mb-1">
                     Created
                   </Text>
-                  <Text fw={500}>{formatDate(walletData.createTime)}</Text>
+                  <Text fw={500}>{formatDate(walletData?.createTime)}</Text>
                 </div>
-                {walletData.shortCode && (
+                {walletData?.shortCode && (
                   <div>
                     <Text size="sm" c="dimmed" className="mb-1">
                       Short Code
                     </Text>
-                    <Text fw={500}>{walletData.shortCode}</Text>
+                    <Text fw={500}>{walletData?.shortCode}</Text>
                   </div>
                 )}
               </Stack>

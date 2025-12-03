@@ -138,6 +138,7 @@ export default function CreateWallet() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -250,14 +251,30 @@ export default function CreateWallet() {
 
   const startCamera = async () => {
     try {
+      setIsVideoReady(false);
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user" },
       });
       setCameraStream(stream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
       setCameraModalOpen(true);
+
+      // Wait for next tick to ensure modal is open and video ref is available
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.onloadedmetadata = () => {
+            videoRef.current
+              ?.play()
+              .then(() => {
+                setIsVideoReady(true);
+              })
+              .catch((err) => {
+                console.error("Error playing video:", err);
+                notify.error("Failed to start camera. Please try again.");
+              });
+          };
+        }
+      }, 100);
     } catch (error) {
       console.error(error);
       notify.error("Unable to access camera. Please use file upload instead.");
@@ -266,28 +283,18 @@ export default function CreateWallet() {
 
   const takePhoto = useCallback(() => {
     if (!cameraStream || !videoRef.current || !canvasRef.current) {
-      notify.error("Camera not ready. Please try again.");
+      notify.error("Camera not ready. Please wait a moment and try again.");
+      return;
+    }
+
+    if (!isVideoReady) {
+      notify.error("Please wait for the camera to initialize.");
       return;
     }
 
     try {
       const video = videoRef.current;
       const canvas = canvasRef.current;
-
-      // Check if video is ready
-      if (video.readyState !== video.HAVE_ENOUGH_DATA) {
-        notify.error("Video not ready. Please wait a moment and try again.");
-        return;
-      }
-
-      // Check if video has valid dimensions
-      if (video.videoWidth === 0 || video.videoHeight === 0) {
-        notify.error(
-          "Camera not initialized properly. Please close and try again."
-        );
-        return;
-      }
-
       const context = canvas.getContext("2d");
 
       if (!context) {
@@ -324,13 +331,14 @@ export default function CreateWallet() {
       console.error("Error taking photo:", error);
       notify.error("Unable to capture photo. Please try again.");
     }
-  }, [cameraStream, form]);
+  }, [cameraStream, isVideoReady, form]);
 
   const stopCamera = () => {
     if (cameraStream) {
       cameraStream.getTracks().forEach((track) => track.stop());
       setCameraStream(null);
     }
+    setIsVideoReady(false);
   };
 
   const openPhotoCamera = (fieldName: keyof CreateWalletFormData) => {
@@ -1219,8 +1227,10 @@ export default function CreateWallet() {
                 onClick={takePhoto}
                 style={{ backgroundColor: "#3D6B2C" }}
                 leftSection={<Camera size={16} />}
+                disabled={!isVideoReady}
+                loading={!isVideoReady && cameraModalOpen}
               >
-                Take Photo
+                {isVideoReady ? "Take Photo" : "Initializing..."}
               </Button>
             </Group>
           </div>

@@ -564,7 +564,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const totalMilestones = contract.milestones?.length || 0;
   const progressPercentage =
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
-  console.log(contract, "con----");
+  //console.log(contract, "con----");
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-UK", {
       year: "numeric",
@@ -672,7 +672,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       ),
     [contract.milestones]
   );
-  console.log(contractFeePaid, "cpaid");
+
   //console.log(contract, "tract");
 
   // Contract Accepted Success Alert Component
