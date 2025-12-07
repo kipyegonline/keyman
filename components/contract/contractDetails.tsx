@@ -1296,21 +1296,23 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   </Paper>
 
                   {/* Pay Full Amount Button */}
-                  {unpaidMilestones && userType === "customer" && (
-                    <Button
-                      fullWidth
-                      size="md"
-                      style={{ backgroundColor: "#F08C23" }}
-                      onClick={() => setPaymentModalOpened(true)}
-                    >
-                      Pay Full Amount (
-                      {formatCurrency(
-                        Number(contract.contract_amount) +
-                          (contractFeePaid ? 0 : 200)
-                      )}
-                      )
-                    </Button>
-                  )}
+                  {unpaidMilestones &&
+                    userType === "customer" &&
+                    contract.service_provider_signing_date && (
+                      <Button
+                        fullWidth
+                        size="md"
+                        style={{ backgroundColor: "#F08C23" }}
+                        onClick={() => setPaymentModalOpened(true)}
+                      >
+                        Pay Full Amount (
+                        {formatCurrency(
+                          Number(contract.contract_amount) +
+                            (contractFeePaid ? 0 : 200)
+                        )}
+                        )
+                      </Button>
+                    )}
                 </Stack>
               </Card>
 
