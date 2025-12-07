@@ -57,7 +57,7 @@ const SuppliersNearMe: React.FC<{
       getSuppliersNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0),
     enabled: !!userLocation && !useExtendedSearch,
   });
-  // console.log(_suppliers, "suppliers near me");
+  //console.log(_suppliers, "suppliers near me");
   // Extended search query with 400km distance
   const {
     data: _extendedSuppliers,

@@ -49,6 +49,10 @@ interface MilestoneTimelineProps {
   onEditMilestone?: (milestoneId: string) => void;
   onDeleteMilestone?: (milestoneId: string) => void;
   onStatusChange?: (milestoneId: string, action: "start" | "complete") => void;
+  onBatchStatusChange?: (
+    milestoneIds: string[],
+    action: "start" | "complete"
+  ) => void;
   userType: string;
   mode: "client" | "service_provider";
 }
@@ -91,6 +95,7 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
   onEditMilestone,
   onDeleteMilestone,
   onStatusChange,
+  onBatchStatusChange,
   userType,
   //mode,
 }) => {
@@ -259,8 +264,10 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                     color="green"
                     leftSection={<Play size={14} />}
                     onClick={() => {
-                      // Will handle batch start logic later
-                      console.log("Start milestones:", startableMilestones);
+                      if (onBatchStatusChange) {
+                        onBatchStatusChange(startableMilestones, "start");
+                        clearSelections();
+                      }
                     }}
                   >
                     Start ({startableMilestones.length})
@@ -279,11 +286,10 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                     color="orange"
                     leftSection={<CheckCircle size={14} />}
                     onClick={() => {
-                      // Will handle batch complete logic later
-                      console.log(
-                        "Complete milestones:",
-                        completableMilestones
-                      );
+                      if (onBatchStatusChange) {
+                        onBatchStatusChange(completableMilestones, "complete");
+                        clearSelections();
+                      }
                     }}
                   >
                     Complete ({completableMilestones.length})
@@ -447,26 +453,27 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                             <Edit size={14} />
                           </ActionIcon>
                         )}
-                      {canEditMileStone && (
-                        <ActionIcon
-                          size="sm"
-                          variant="light"
-                          color="red"
-                          onClick={() => {
-                            if (onDeleteMilestone) {
-                              if (
-                                confirm(
-                                  "Are you sure you want to delete this milestone? This action cannot be undone."
-                                )
-                              ) {
-                                onDeleteMilestone(milestone.id);
+                      {canEditMileStone &&
+                        milestone.status.toLowerCase() === "pending" && (
+                          <ActionIcon
+                            size="sm"
+                            variant="light"
+                            color="red"
+                            onClick={() => {
+                              if (onDeleteMilestone) {
+                                if (
+                                  confirm(
+                                    "Are you sure you want to delete this milestone? This action cannot be undone."
+                                  )
+                                ) {
+                                  onDeleteMilestone(milestone.id);
+                                }
                               }
-                            }
-                          }}
-                        >
-                          <Delete size={14} />
-                        </ActionIcon>
-                      )}
+                            }}
+                          >
+                            <Delete size={14} />
+                          </ActionIcon>
+                        )}
                       {/* Checkbox for batch selection */}
                       {serviceProviderSigningDate !== null &&
                         milestone.status.toLowerCase() !== "completed" && (

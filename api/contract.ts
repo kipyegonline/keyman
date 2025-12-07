@@ -105,6 +105,32 @@ export const updateMilestone = async (
     }
   }
 };
+
+export const updateMultipleMilestones = async (payload: {
+  milestones: string[];
+  action: string;
+}) => {
+  try {
+    const response = await AxiosClient.post(
+      ENDPOINTS.contracts.UPDATE_MULTIPLE_MILESTONES,
+      payload
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          message: "An error occurred while updating milestones",
+          status: false,
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { message: "An unexpected error occurred", status: false };
+    }
+  }
+};
+
 export const deleteMilestone = async (
   milestoneId: string,
   milestoneData: {

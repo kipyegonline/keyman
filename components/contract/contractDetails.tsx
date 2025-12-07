@@ -38,6 +38,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import EditMilestoneModal from "./EditMilestoneModal";
 import EditContractModal from "./EditContractModal";
 import MilestoneStatusChangeModal from "./MilestoneStatusChangeModal";
+import BatchMilestoneStatusModal from "./BatchMilestoneStatusModal";
 import AcceptContractModal from "./AcceptContractModal";
 import MilestoneTimeline from "./MilestoneTimeline";
 import AddMaterialsModal from "./AddMaterialsModal";
@@ -46,6 +47,7 @@ import ContractPaymentModal from "./ContractPaymentModal";
 import {
   updateContract,
   updateMilestone,
+  updateMultipleMilestones,
   createMilestone,
   deleteMilestone,
 } from "@/api/contract";
@@ -208,6 +210,13 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [labourItems, setLabourItems] = useState<LabourItem[]>([]);
   const [paymentModalOpened, setPaymentModalOpened] = useState(false);
+
+  // Batch milestone status change state
+  const [batchStatusModalOpened, setBatchStatusModalOpened] = useState(false);
+  const [milestonesForBatchChange, setMilestonesForBatchChange] = useState<
+    Milestone[]
+  >([]);
+  const [batchAction, setBatchAction] = useState<"start" | "complete">("start");
   //const supplierId = globalThis?.window?.localStorage.getItem("supplier_id");
 
   // Initialize query client
@@ -284,6 +293,39 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     },
     onError: (error: Error) => {
       notify.error(error.message || "Failed to update milestone");
+    },
+  });
+
+  // Batch update milestones mutation
+  const updateMultipleMilestonesMutation = useMutation({
+    mutationFn: (payload: { milestones: string[]; action: string }) =>
+      updateMultipleMilestones(payload),
+    onSuccess: (response, variables) => {
+      if (response.status) {
+        const actionText =
+          variables.action === "start" ? "started" : "completed";
+        const count = variables.milestones.length;
+        notify.success(
+          `${count} milestone${count > 1 ? "s" : ""} ${actionText} successfully`
+        );
+        queryClient.invalidateQueries({
+          queryKey: ["suggestedMilestones", contract.id],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["contract", contract.id],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["contracts"],
+        });
+        refresh();
+        setBatchStatusModalOpened(false);
+        setMilestonesForBatchChange([]);
+      } else {
+        notify.error(response.message || "Failed to update milestones");
+      }
+    },
+    onError: (error: Error) => {
+      notify.error(error.message || "Failed to update milestones");
     },
   });
 
@@ -465,6 +507,38 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       setStatusChangeModalOpened(true);
       setAction(action);
     }
+  };
+
+  // Handler for batch milestone status change
+  const handleBatchMilestoneStatusChange = (
+    milestoneIds: string[],
+    action: "start" | "complete"
+  ) => {
+    const milestones = contract.milestones?.filter((m) =>
+      milestoneIds.includes(m.id)
+    );
+    if (milestones && milestones.length > 0) {
+      setMilestonesForBatchChange(milestones);
+      setBatchAction(action);
+      setBatchStatusModalOpened(true);
+    }
+  };
+
+  // Confirm batch milestone status change
+  const confirmBatchMilestoneStatusChange = async (
+    milestoneIds: string[],
+    action: string
+  ) => {
+    // Determine the correct action string based on user type and action
+    let apiAction = action;
+    if (action === "complete" && userType === "supplier") {
+      apiAction = "service_provider_complete";
+    }
+
+    await updateMultipleMilestonesMutation.mutateAsync({
+      milestones: milestoneIds,
+      action: apiAction,
+    });
   };
 
   const confirmMilestoneStatusChange = async (
@@ -662,7 +736,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     }
     return false;
   }, []);
-  const unpaidMilestones = contract.milestones?.some(
+  const unpaidMilestones = contract.milestones?.every(
     (milestone) => milestone.status.toLowerCase() === "pending"
   );
   const contractFeePaid = React.useMemo(
@@ -673,7 +747,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     [contract.milestones]
   );
 
-  //console.log(contract, "tract");
+  console.log(contract, "tract");
 
   // Contract Accepted Success Alert Component
   const ContractAcceptedAlert = () => {
@@ -1086,6 +1160,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                     }
                     onEditMilestone={handleEditMilestone}
                     onStatusChange={handleMilestoneStatusChange}
+                    onBatchStatusChange={handleBatchMilestoneStatusChange}
                     onDeleteMilestone={handleDeleteMilestone}
                     userType={userType}
                     mode={contract?.contract_mode ?? "client"}
@@ -1538,6 +1613,21 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
           refresh();
           setPaymentModalOpened(false);
         }}
+      />
+
+      {/* Batch Milestone Status Change Modal */}
+      <BatchMilestoneStatusModal
+        opened={batchStatusModalOpened}
+        onClose={() => {
+          setBatchStatusModalOpened(false);
+          setMilestonesForBatchChange([]);
+        }}
+        milestones={milestonesForBatchChange}
+        action={batchAction}
+        onConfirm={confirmBatchMilestoneStatusChange}
+        providerName={contract?.service_provider?.name}
+        initiatorName={contract?.initiator?.name}
+        isLoading={updateMultipleMilestonesMutation.isPending}
       />
     </Box>
   );

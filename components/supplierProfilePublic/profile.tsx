@@ -38,9 +38,11 @@ import {
 import { SupplierInfo } from "@/types";
 import SocialShare from "@/lib/SocilalShareComponent";
 import { ContractChatBot } from "../contract";
-import { getToken } from "@/providers/AppContext";
+import { getToken, useAppContext } from "@/providers/AppContext";
 import { PepiconsPencilHandshakeCircle } from "../supplier/pencil";
 import UnverifiedContractModal from "../contract/UnverifiedContractModal";
+import { navigateTo } from "@/lib/helpers";
+import { useRouter } from "next/navigation";
 
 interface ISupplierInfo {
   phone: string;
@@ -117,19 +119,28 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
   const [shareSuccess, setShareSuccess] = useState(false);
   const [showContract, setShowContract] = useState(false);
   const [showUnverifiedModal, setShowUnverifiedModal] = useState(false);
+  const { setActiveItem } = useAppContext();
 
+  const router = useRouter();
   // Get theme based on supplier type
   const theme = useMemo(
     () => getSupplierTheme(supplier?.type),
     [supplier?.type]
   );
 
-  const handleContractClick = (isVerified: number | undefined) => {
+  const handleContractClick = (
+    id: string | undefined,
+    isVerified: number | undefined
+  ) => {
     if (isVerified !== 0) {
       setShowContract(true);
     } else {
       setShowUnverifiedModal(true);
     }
+
+    navigateTo();
+    setActiveItem("key-contract");
+    router.push(`/keyman/dashboard/key-contract/create?keyman_id=${id}`);
   };
 
   const handleAcceptUnverified = () => {
@@ -272,7 +283,9 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               variant="outline"
               className="!animate-pulse"
               size="sm"
-              onClick={() => handleContractClick(supplier?.is_user_verified)}
+              onClick={() =>
+                handleContractClick(supplier?.id, supplier?.is_user_verified)
+              }
               rightSection={
                 <PepiconsPencilHandshakeCircle className="w-8 h-8 bg-green !animation-pulse" />
               }
