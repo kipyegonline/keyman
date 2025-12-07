@@ -208,7 +208,7 @@ const SuppliersNearMe: React.FC<{
     // Placeholder for quote request functionality
     console.log("Requesting quote from:", supplier.name);
   };
-
+  console.log(_suppliers);
   if (loading || currentLoading) {
     return (
       <Container size="lg" py="xl">
