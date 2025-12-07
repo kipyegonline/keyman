@@ -1,4 +1,5 @@
 "use client";
+import React, { useState, useMemo } from "react";
 import {
   Badge,
   Text,
@@ -10,6 +11,9 @@ import {
   ScrollArea,
   ActionIcon,
   Tooltip,
+  Checkbox,
+  Button,
+  Paper,
 } from "@mantine/core";
 import {
   Target,
@@ -20,8 +24,8 @@ import {
   Play,
   Edit,
   Trash2 as Delete,
+  X,
 } from "lucide-react";
-import React from "react";
 
 interface Milestone {
   id: string;
@@ -90,16 +94,207 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
   userType,
   //mode,
 }) => {
+  const [selectedMilestones, setSelectedMilestones] = useState<Set<string>>(
+    new Set()
+  );
+
   const completedMilestones = milestones.filter(
     (m: Milestone) => m.status.toLowerCase() === "completed"
   ).length;
 
+  // Determine the current selection mode based on first selected milestone
+  const selectionMode = useMemo(() => {
+    if (selectedMilestones.size === 0) return null;
+    const firstSelectedId = Array.from(selectedMilestones)[0];
+    const firstMilestone = milestones.find((m) => m.id === firstSelectedId);
+    if (!firstMilestone) return null;
+
+    const status = firstMilestone.status.toLowerCase();
+    if (status === "pending") return "start";
+    if (status === "in_progress" || status === "supplier_completed")
+      return "complete";
+    return null;
+  }, [selectedMilestones, milestones]);
+
+  // Check if a milestone can be selected based on current selection mode
+  const canSelectMilestone = (milestoneId: string) => {
+    const milestone = milestones.find((m) => m.id === milestoneId);
+    if (!milestone) return false;
+
+    const status = milestone.status.toLowerCase();
+    // Can't select completed milestones
+    if (status === "completed") return false;
+
+    // If nothing is selected yet, allow selection
+    if (selectionMode === null) return true;
+
+    // Check if this milestone matches the current selection mode
+    if (selectionMode === "start") {
+      return status === "pending";
+    } else if (selectionMode === "complete") {
+      return status === "in_progress" || status === "supplier_completed";
+    }
+    return false;
+  };
+
+  // Toggle milestone selection
+  const toggleMilestoneSelection = (milestoneId: string) => {
+    setSelectedMilestones((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(milestoneId)) {
+        // Always allow deselection
+        newSet.delete(milestoneId);
+      } else {
+        // Only add if it matches current selection mode or is first selection
+        if (prev.size === 0 || canSelectMilestone(milestoneId)) {
+          newSet.add(milestoneId);
+        }
+      }
+      return newSet;
+    });
+  };
+
+  // Clear all selections
+  const clearSelections = () => {
+    setSelectedMilestones(new Set());
+  };
+
+  // Check if any selected milestones can be started (pending status)
+  const canStartSelected = useMemo(() => {
+    if (
+      selectedMilestones.size === 0 ||
+      userType !== "customer" ||
+      !serviceProviderSigningDate
+    )
+      return false;
+    return Array.from(selectedMilestones).some((id) => {
+      const milestone = milestones.find((m) => m.id === id);
+      return milestone?.status.toLowerCase() === "pending";
+    });
+  }, [selectedMilestones, milestones, userType, serviceProviderSigningDate]);
+
+  // Check if any selected milestones can be completed (in_progress or supplier_completed)
+  const canCompleteSelected = useMemo(() => {
+    if (selectedMilestones.size === 0 || !serviceProviderSigningDate)
+      return false;
+    return Array.from(selectedMilestones).some((id) => {
+      const milestone = milestones.find((m) => m.id === id);
+      const status = milestone?.status.toLowerCase();
+      return status === "in_progress" || status === "supplier_completed";
+    });
+  }, [selectedMilestones, milestones, serviceProviderSigningDate]);
+
+  // Get selected milestones that can be started
+  const startableMilestones = useMemo(() => {
+    return Array.from(selectedMilestones).filter((id) => {
+      const milestone = milestones.find((m) => m.id === id);
+      return milestone?.status.toLowerCase() === "pending";
+    });
+  }, [selectedMilestones, milestones]);
+
+  // Get selected milestones that can be completed
+  const completableMilestones = useMemo(() => {
+    return Array.from(selectedMilestones).filter((id) => {
+      const milestone = milestones.find((m) => m.id === id);
+      const status = milestone?.status.toLowerCase();
+      return status === "in_progress" || status === "supplier_completed";
+    });
+  }, [selectedMilestones, milestones]);
+
   if (!milestones || milestones.length === 0) {
     return null;
   }
+  const getStatusUpdateText = (status: string) => {
+    if (!serviceProviderSigningDate) return "Awaiting acceptance";
+    switch (status.toLowerCase()) {
+      case "pending":
+        return "Awaiting payment";
+      case "in_progress":
+        return "Started";
+      case "supplier_completed":
+        return "Supplier Completed";
+      case "completed":
+        return "Completed";
+      default:
+        return "pending";
+    }
+  };
 
   return (
-    <Card shadow="sm" padding="lg" radius="md">
+    <Card shadow="sm" padding="lg" radius="md" className="relative">
+      {/* Sticky Action Bar - appears when milestones are selected */}
+      {selectedMilestones.size > 0 && (
+        <Paper
+          shadow="md"
+          p="sm"
+          mb="md"
+          radius="md"
+          className="sticky top-0 z-10 border"
+          style={{ backgroundColor: "#F8FAFC", borderColor: "#E2E8F0" }}
+        >
+          <Group justify="space-between" align="center">
+            <Group gap="sm">
+              <Badge size="lg" variant="filled" color="orange">
+                {selectedMilestones.size} selected
+              </Badge>
+              <ActionIcon
+                size="sm"
+                variant="subtle"
+                color="gray"
+                onClick={clearSelections}
+              >
+                <X size={16} />
+              </ActionIcon>
+            </Group>
+            <Group gap="sm">
+              {canStartSelected && userType === "customer" && (
+                <Tooltip
+                  label={`Start ${startableMilestones.length} milestone(s)`}
+                  position="top"
+                  withArrow
+                >
+                  <Button
+                    size="xs"
+                    variant="light"
+                    color="green"
+                    leftSection={<Play size={14} />}
+                    onClick={() => {
+                      // Will handle batch start logic later
+                      console.log("Start milestones:", startableMilestones);
+                    }}
+                  >
+                    Start ({startableMilestones.length})
+                  </Button>
+                </Tooltip>
+              )}
+              {canCompleteSelected && (
+                <Tooltip
+                  label={`Complete ${completableMilestones.length} milestone(s)`}
+                  position="top"
+                  withArrow
+                >
+                  <Button
+                    size="xs"
+                    variant="light"
+                    color="orange"
+                    leftSection={<CheckCircle size={14} />}
+                    onClick={() => {
+                      // Will handle batch complete logic later
+                      console.log(
+                        "Complete milestones:",
+                        completableMilestones
+                      );
+                    }}
+                  >
+                    Complete ({completableMilestones.length})
+                  </Button>
+                </Tooltip>
+              )}
+            </Group>
+          </Group>
+        </Paper>
+      )}
+
       <Group gap="xs" mb="md">
         <ThemeIcon
           size="lg"
@@ -111,6 +306,11 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
         <Text fw={600} size="lg" className="text-gray-800">
           Project Milestones
         </Text>
+        {milestones.length > 1 && serviceProviderSigningDate !== null && (
+          <Text size="xs" c="dimmed" className="ml-auto">
+            Select milestones to batch update
+          </Text>
+        )}
       </Group>
 
       <ScrollArea.Autosize mah={400}>
@@ -162,7 +362,7 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                           }}
                           size="sm"
                         >
-                          {milestone.status.replace("_", " ")}
+                          {getStatusUpdateText(milestone.status)}
                         </Badge>
 
                         {milestone.amount && (
@@ -183,23 +383,25 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                           <>
                             {milestone.status.toLowerCase() === "pending" &&
                               userType === "customer" && (
-                                <Tooltip
-                                  label={"Start milestone"}
-                                  position="top"
-                                  withArrow
+                                <Button
+                                  size="compact-xs"
+                                  variant="light"
+                                  color="green"
+                                  leftSection={<Play size={12} />}
+                                  onClick={() =>
+                                    onStatusChange &&
+                                    onStatusChange(milestone.id, "start")
+                                  }
+                                  styles={{
+                                    root: {
+                                      fontSize: "11px",
+                                      fontWeight: 500,
+                                      padding: "4px 8px",
+                                    },
+                                  }}
                                 >
-                                  <ActionIcon
-                                    size="sm"
-                                    // variant="light"
-                                    //color="green"
-                                    onClick={() =>
-                                      onStatusChange &&
-                                      onStatusChange(milestone.id, "start")
-                                    }
-                                  >
-                                    <Play size={12} />
-                                  </ActionIcon>
-                                </Tooltip>
+                                  Start
+                                </Button>
                               )}
                             {/**||
                                 milestone.status.toLowerCase() ===
@@ -208,23 +410,25 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                               "in_progress" ||
                               milestone.status.toLowerCase() ===
                                 "supplier_completed") && (
-                              <Tooltip
-                                label={"Complete milestone"}
-                                position="top"
-                                withArrow
+                              <Button
+                                size="compact-xs"
+                                variant="light"
+                                color="orange"
+                                leftSection={<CheckCircle size={12} />}
+                                onClick={() =>
+                                  onStatusChange &&
+                                  onStatusChange(milestone.id, "complete")
+                                }
+                                styles={{
+                                  root: {
+                                    fontSize: "11px",
+                                    fontWeight: 500,
+                                    padding: "4px 8px",
+                                  },
+                                }}
                               >
-                                <ActionIcon
-                                  size="sm"
-                                  // variant="light"
-                                  //color="green"
-                                  onClick={() =>
-                                    onStatusChange &&
-                                    onStatusChange(milestone.id, "complete")
-                                  }
-                                >
-                                  <CheckCircle size={12} />
-                                </ActionIcon>
-                              </Tooltip>
+                                Complete
+                              </Button>
                             )}
                           </>
                         )}
@@ -263,6 +467,31 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                           <Delete size={14} />
                         </ActionIcon>
                       )}
+                      {/* Checkbox for batch selection */}
+                      {serviceProviderSigningDate !== null &&
+                        milestone.status.toLowerCase() !== "completed" && (
+                          <Checkbox
+                            size="sm"
+                            checked={selectedMilestones.has(milestone.id)}
+                            disabled={
+                              !selectedMilestones.has(milestone.id) &&
+                              !canSelectMilestone(milestone.id)
+                            }
+                            onChange={() =>
+                              toggleMilestoneSelection(milestone.id)
+                            }
+                            styles={{
+                              input: {
+                                cursor:
+                                  canSelectMilestone(milestone.id) ||
+                                  selectedMilestones.has(milestone.id)
+                                    ? "pointer"
+                                    : "not-allowed",
+                                borderColor: config.color,
+                              },
+                            }}
+                          />
+                        )}
                     </Group>
                   </Group>
                 }

@@ -66,6 +66,7 @@ interface RequestForm {
   created_from: string;
   items: KeymanItem[];
   ks_number?: string;
+  referrer_ks_number?: string;
 }
 
 // Mock data for locations
@@ -543,6 +544,14 @@ const DeliveryDetailsStep: React.FC<{
             {...form.getInputProps("ks_number")}
           />
         </div>
+        <div className="space-y-2">
+          <TextInput
+            label="Supplier Referrer KS Number (optional)"
+            placeholder="Enter referrer's KS number"
+            className="transition-all duration-200 hover:scale-[1.02]"
+            {...form.getInputProps("referrer_ks_number")}
+          />
+        </div>
       </div>
     </div>
   );
@@ -782,6 +791,7 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
       location_id: "",
       created_from: "",
       ks_number: "",
+      referrer_ks_number: "",
       items: [],
     },
     validate: {
@@ -873,6 +883,7 @@ const RequestCreator: React.FC<{ locations: Project[] }> = ({ locations }) => {
       latitude: ltd,
       longitude: lng,
       ks_number: form.values.ks_number,
+      referrer_ks_number: form.values.referrer_ks_number,
       created_from: form.values.created_from,
       items: processedItems,
     };

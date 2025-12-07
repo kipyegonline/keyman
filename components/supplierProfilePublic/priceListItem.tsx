@@ -23,8 +23,10 @@ import {
   Weight,
   Plus,
   Minus,
+  ZoomIn,
 } from "lucide-react";
 import { PublicPriceList } from "@/components/supplier/priceList";
+import { ImageGalleryModal } from "@/components/supplier/ImageGalleryModal";
 
 const getTransportationColor = (type: string) => {
   switch (type.toLowerCase()) {
@@ -82,6 +84,26 @@ export const PublicPricelistItem: React.FC<{
   isInCart = false,
   cartQuantity = 0,
 }) => {
+  const [galleryOpened, setGalleryOpened] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  // Get all images for gallery
+  const getAllImages = (item: PublicPriceList): string[] => {
+    if (
+      "attachment_url" in item &&
+      item?.attachment_url &&
+      item.attachment_url.length > 0
+    ) {
+      return item.attachment_url;
+    } else if (item?.item?.photo && item.item.photo.length > 0) {
+      return item.item.photo;
+    }
+    return [];
+  };
+
+  const images = getAllImages(item);
+  const hasMultipleImages = images.length > 1;
+
   return (
     <Transition
       mounted={true}
@@ -197,7 +219,16 @@ export const PublicPricelistItem: React.FC<{
                 overflow: "hidden",
                 borderRadius: "12px",
                 maxWidth: "100%",
+                position: "relative",
+                cursor: images.length > 0 ? "pointer" : "default",
               }}
+              onClick={() => {
+                if (images.length > 0) {
+                  setGalleryOpened(true);
+                }
+              }}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
             >
               <Image
                 src={item?.item?.photo?.[0]}
@@ -214,6 +245,44 @@ export const PublicPricelistItem: React.FC<{
                   maxWidth: "100%",
                 }}
               />
+
+              {/* Hover Overlay with Magnifying Glass */}
+              {isHovered && images.length > 0 && (
+                <Box
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: "rgba(0, 0, 0, 0.4)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: "12px",
+                  }}
+                >
+                  <ZoomIn size={32} color="white" />
+                </Box>
+              )}
+
+              {/* Image Count Badge */}
+              {hasMultipleImages && (
+                <Badge
+                  size="sm"
+                  variant="filled"
+                  color="dark"
+                  style={{
+                    position: "absolute",
+                    bottom: 8,
+                    right: 8,
+                    fontSize: "11px",
+                    fontWeight: 600,
+                  }}
+                >
+                  +{images.length - 1} more
+                </Badge>
+              )}
             </Box>
             <Flex
               justify="space-between"
@@ -306,6 +375,14 @@ export const PublicPricelistItem: React.FC<{
               </Group>
             </Group>
           </Stack>
+
+          {/* Image Gallery Modal */}
+          <ImageGalleryModal
+            opened={galleryOpened}
+            onClose={() => setGalleryOpened(false)}
+            images={images}
+            itemName={item.name}
+          />
         </Card>
       )}
     </Transition>

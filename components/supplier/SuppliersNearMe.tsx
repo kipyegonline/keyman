@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  Card,
   TextInput,
   Badge,
   Group,
@@ -13,46 +12,23 @@ import {
   ActionIcon,
   Transition,
   Paper,
-  Avatar,
-  Divider,
   Alert,
   Box,
   Pagination,
-  Spoiler,
   Title,
 } from "@mantine/core";
-import {
-  Search,
-  MapPin,
-  Phone,
-  Mail,
-  User,
-  MessageCircle,
-  Filter,
-  //Star,
-  Navigation,
-  AlertCircle,
-  Star,
-  BadgeCheck,
-} from "lucide-react";
+import { Search, MapPin, Filter, Navigation, AlertCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getSuppliersNearMe } from "@/api/requests";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { navigateTo } from "@/lib/helpers";
 import { useAppContext } from "@/providers/AppContext";
-
-interface ISupplierContact {
-  id: string;
-  name: string;
-  phone: string;
-  email: string;
-  keyman_number: string;
-  comments: string | null;
-  photo?: string[];
-  supplier_rating: null | string;
-  is_user_verified: number;
-}
+import {
+  GoodsCard,
+  ServicesCard,
+  ProfessionalServicesCard,
+  ISupplierContact,
+} from "./profiles";
 
 const SuppliersNearMe: React.FC<{
   url?: string;
@@ -208,7 +184,7 @@ const SuppliersNearMe: React.FC<{
     // Placeholder for quote request functionality
     console.log("Requesting quote from:", supplier.name);
   };
-  console.log(_suppliers);
+
   if (loading || currentLoading) {
     return (
       <Container size="lg" py="xl">
@@ -398,179 +374,30 @@ const SuppliersNearMe: React.FC<{
                 timingFunction="ease"
                 exitDuration={200}
               >
-                {(styles) => (
-                  <Card
-                    shadow="md"
-                    padding="lg"
-                    radius="lg"
-                    style={{
-                      ...styles,
-                      border: "1px solid #E5E7EB",
-                      transition: "all 0.3s ease",
-                      cursor: "pointer",
-                      animationDelay: `${index * 100}ms`,
-                    }}
-                    className="hover:shadow-xl hover:scale-105 hover:border-[#3D6B2C]"
-                  >
-                    <Stack gap="md">
-                      {/* Header */}
+                {(styles) => {
+                  // Determine supplier type with fallback to 'goods'
+                  const supplierType = supplier.type || "goods";
 
-                      <Group justify="space-between" align="flex-start">
-                        <Link href={`${url}${supplier.id}`}>
-                          {" "}
-                          <Avatar
-                            // size="lg"
-                            radius="md"
-                            style={{
-                              backgroundColor: "#F0F9FF",
-                              color: "#3D6B2C",
-                            }}
-                            size={120}
-                            alt={supplier?.photo?.[0]}
-                            src={
-                              supplier?.photo && supplier?.photo?.length > 0
-                                ? supplier?.photo?.[0]
-                                : null
-                            }
-                          >
-                            {supplier?.photo &&
-                              supplier?.photo?.length === 0 && <User />}
-                          </Avatar>
-                        </Link>
+                  const cardProps = {
+                    supplier,
+                    url,
+                    styles,
+                    index,
+                    onStartKeyContract: handleStartKeyContract,
+                    onCall: handleCall,
+                    onRequestQuote: handleRequestQuote,
+                  };
 
-                        <Badge
-                          color="orange"
-                          variant="light"
-                          size="sm"
-                          style={{
-                            backgroundColor: "#FFF7ED",
-                            color: "#F08C23",
-                          }}
-                        >
-                          {supplier.keyman_number}
-                        </Badge>
-                      </Group>
-
-                      {/* Supplier Name */}
-                      <Link href={`${url}${supplier.id}`}>
-                        {" "}
-                        <Text
-                          size="lg"
-                          fw={600}
-                          style={{ color: "#1F2937", lineHeight: 1.3 }}
-                          lineClamp={2}
-                        >
-                          {supplier.name}{" "}
-                          {supplier && supplier?.is_user_verified > 0 && (
-                            <BadgeCheck
-                              size={28}
-                              fill="#3D6B2C"
-                              stroke="white"
-                              className="inline-block relative -top-1"
-                            />
-                          )}
-                        </Text>
-                      </Link>
-
-                      <Box>
-                        <Button
-                          fullWidth
-                          onClick={handleStartKeyContract(supplier)}
-                        >
-                          Start KeyContract
-                        </Button>
-                      </Box>
-
-                      {supplier &&
-                      supplier?.comments &&
-                      (supplier?.comments as string)?.length > 0 ? (
-                        <Spoiler
-                          showLabel="see more"
-                          hideLabel="less"
-                          maxHeight={50}
-                        >
-                          <Text size="sm" c="dimmed">
-                            {supplier.comments}
-                          </Text>
-                        </Spoiler>
-                      ) : (
-                        <Text c="dimmed">No description....</Text>
-                      )}
-
-                      <Divider />
-
-                      {/* Contact Info */}
-                      <Stack gap="xs" display={"none"}>
-                        <Group gap="xs">
-                          <Phone size={16} style={{ color: "#6B7280" }} />
-                          <Text
-                            size="sm"
-                            c="dimmed"
-                            style={{ fontSize: "0.875rem" }}
-                          >
-                            {supplier.phone}
-                          </Text>
-                        </Group>
-                        <Group gap="xs">
-                          <Mail size={16} style={{ color: "#6B7280" }} />
-                          <Text
-                            size="sm"
-                            c="dimmed"
-                            style={{ fontSize: "0.875rem" }}
-                            lineClamp={1}
-                          >
-                            {supplier.email}
-                          </Text>
-                        </Group>
-                      </Stack>
-
-                      {/* Action Buttons */}
-                      <Group justify="center" gap="xs" mt="md">
-                        {[...Array(5)].map((item, i) => (
-                          <Star
-                            size={20}
-                            key={i}
-                            color={
-                              supplier?.supplier_rating !== null
-                                ? i < Number(supplier?.supplier_rating)
-                                  ? "orange"
-                                  : "gray"
-                                : i <= 0
-                                ? "orange"
-                                : "gray"
-                            }
-                          />
-                        ))}
-                      </Group>
-                      <Group justify="apart" gap="xs" mt="md" display={"none"}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          leftSection={<Phone size={16} />}
-                          onClick={() => handleCall(supplier.phone)}
-                          style={{
-                            borderColor: "#3D6B2C",
-                            color: "#3D6B2C",
-                            flex: 1,
-                          }}
-                        >
-                          Call
-                        </Button>
-                        <Button
-                          size="sm"
-                          leftSection={<MessageCircle size={16} />}
-                          onClick={() => handleRequestQuote(supplier)}
-                          style={{
-                            backgroundColor: "#F08C23",
-                            flex: 1,
-                          }}
-                        >
-                          Quote
-                        </Button>
-                      </Group>
-                    </Stack>
-                  </Card>
-                )}
+                  switch (supplierType) {
+                    case "services":
+                      return <ServicesCard {...cardProps} />;
+                    case "professional_services":
+                      return <ProfessionalServicesCard {...cardProps} />;
+                    case "goods":
+                    default:
+                      return <GoodsCard {...cardProps} />;
+                  }
+                }}
               </Transition>
             </Grid.Col>
           ))}

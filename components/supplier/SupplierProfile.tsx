@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Avatar,
   Badge,
@@ -12,6 +12,7 @@ import {
   Chip,
   Accordion,
 } from "@mantine/core";
+import { getSupplierTheme } from "./profiles";
 import {
   MapPin,
   Facebook,
@@ -119,6 +120,12 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
   const [showUnverifiedModal, setShowUnverifiedModal] = useState(false);
   const { setActiveItem } = useAppContext();
   const router = useRouter();
+
+  // Get theme based on supplier type
+  const theme = useMemo(
+    () => getSupplierTheme(supplier?.type),
+    [supplier?.type]
+  );
 
   const handleContractClick = (
     id: string | undefined,
@@ -259,7 +266,10 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
       <div className="p-4 border-b">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-1 h-8 bg-[#3D6B2C] rounded-full"></div>
+            <div
+              className="w-1 h-8 rounded-full"
+              style={{ backgroundColor: theme.primary }}
+            ></div>
             <Text size="sm" className="text-gray-600 font-medium">
               Supplier Profile
             </Text>
@@ -286,6 +296,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
                   : "Key contract"
               }
               position="bottom"
+              display="none"
             >
               <ActionIcon
                 display={"none"}
@@ -313,13 +324,17 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
                 onClick={handleShare}
                 disabled={isSharing}
                 display="none"
+                style={
+                  !shareSuccess
+                    ? {
+                        backgroundColor: theme.primaryLight,
+                        color: theme.primary,
+                      }
+                    : undefined
+                }
                 className={`
                 hover:scale-110 transition-all duration-300
-                ${
-                  shareSuccess
-                    ? "bg-green-100 text-green-600"
-                    : "bg-[#3D6B2C]/10 text-[#3D6B2C]"
-                }
+                ${shareSuccess ? "bg-green-100 text-green-600" : ""}
               `}
               >
                 <Share2 className="w-4 h-4" />
@@ -332,7 +347,8 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
           <Avatar
             size={60}
             radius="xl"
-            className="mb-3 border-2 border-[#3D6B2C]"
+            className="mb-3 border-2"
+            style={{ borderColor: theme.primary }}
             src={
               supplier?.photo && supplier?.photo?.length > 0
                 ? supplier?.photo[0]
@@ -340,7 +356,10 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
             }
           >
             {supplier?.photo && supplier?.photo?.length === 0 && (
-              <div className="text-lg font-bold text-[#3D6B2C]">
+              <div
+                className="text-lg font-bold"
+                style={{ color: theme.primary }}
+              >
                 {supplier?.name?.charAt(0)}
               </div>
             )}
@@ -351,7 +370,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
             {(supplier?.is_user_verified as number) > 0 && (
               <BadgeCheck
                 size={28}
-                fill="#3D6B2C"
+                fill={theme.primary}
                 stroke="white"
                 className="inline-block relative -top-1"
               />
@@ -359,7 +378,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
           </Title>
 
           <div className="flex flex-wrap gap-1 justify-center mb-2">
-            <Badge size="sm" style={{ backgroundColor: "#3D6B2C" }}>
+            <Badge size="sm" style={{ backgroundColor: theme.primary }}>
               {supplier?.type}
             </Badge>
             <Badge
@@ -372,7 +391,10 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               size="sm"
               variant="light"
               className="mb-2"
-              style={{ backgroundColor: "#3D6B2C15", color: "#3D6B2C" }}
+              style={{
+                backgroundColor: theme.primaryLight,
+                color: theme.primary,
+              }}
             >
               <Hash size={10} className="mr-1 inline-block " />
               {supplier?.keyman_number}
@@ -394,7 +416,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
         {/* Location Section */}
         <div>
           <div className="flex items-start gap-3 mb-3">
-            <ThemeIcon variant="light" color="#3D6B2C" size="sm">
+            <ThemeIcon variant="light" color={theme.primary} size="sm">
               <MapPin className="w-4 h-4" />
             </ThemeIcon>
             <div className="flex-1">
@@ -409,7 +431,8 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
                 size="sm"
                 onClick={handleViewLocation}
                 leftSection={<MapPin className="w-4 h-4" />}
-                className="border-[#3D6B2C] text-[#3D6B2C] hover:bg-[#3D6B2C] hover:text-white"
+                style={{ borderColor: theme.primary, color: theme.primary }}
+                className="hover:opacity-90"
               >
                 View on Google Maps
               </Button>
@@ -438,13 +461,15 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
           variant="separated"
           radius="md"
           multiple
+          styles={{
+            chevron: { color: theme.primary },
+          }}
           classNames={{
             item: "border border-gray-200 mb-2 overflow-hidden",
             control:
               "hover:bg-gray-50 transition-all duration-200 font-semibold",
             label: "text-gray-900 font-bold text-sm",
             content: "text-gray-700 text-sm",
-            chevron: "text-[#3D6B2C]",
           }}
         >
           {/* Categories - Using Chips */}
@@ -459,7 +484,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
                         key={index}
                         size="sm"
                         variant="light"
-                        color="#3D6B2C"
+                        color={theme.primary}
                         className="text-sm"
                       >
                         {category?.item_category?.name}

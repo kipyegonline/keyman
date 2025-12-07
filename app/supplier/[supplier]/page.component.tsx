@@ -239,7 +239,10 @@ export default function SupplierClientComponent({
       </Breadcrumbs>
       <div className=" p-4 ">
         <Grid>
-          <Grid.Col span={{ base: 12, md: 7 }} order={{ base: 1, md: 0 }}>
+          <Grid.Col span={{ base: 12, md: 5 }}>
+            {_supplier ? <SupplierProfile supplier={_supplier} /> : null}
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 7 }}>
             {" "}
             <div className=" ">
               <h2 className="text-2xl font-semibold my-4 mb-2">Price List</h2>
@@ -294,9 +297,6 @@ export default function SupplierClientComponent({
                 <div className=" text-gray-500">No price list available</div>
               )}
             </div>
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 5 }}>
-            {_supplier ? <SupplierProfile supplier={_supplier} /> : null}
           </Grid.Col>
         </Grid>
       </div>

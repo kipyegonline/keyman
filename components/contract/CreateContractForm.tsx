@@ -26,6 +26,7 @@ interface ContractFormData {
   contract_amount: number;
   title: string;
   scope: string;
+  contract_code?: string;
 }
 
 interface CreateContractFormProps {
@@ -52,6 +53,7 @@ const CreateContractForm: React.FC<CreateContractFormProps> = ({
       contract_amount: initialData?.contract_amount || 0,
       title: initialData?.title || "",
       scope: initialData?.scope || "",
+      contract_code: initialData?.contract_code || "",
     },
     validate: {
       /* service_provider_id: (value) =>
@@ -86,6 +88,7 @@ const CreateContractForm: React.FC<CreateContractFormProps> = ({
         status: "pending",
         contract_duration_in_duration: values.contract_duration_in_duration,
         contract_amount: values.contract_amount,
+        contract_code: values.contract_code,
         contract_json: JSON.stringify({
           title: values.title,
           scope: values.scope,
@@ -213,6 +216,14 @@ const CreateContractForm: React.FC<CreateContractFormProps> = ({
                 description="Enter the unique KS number for your service provider"
                 // required
                 {...form.getInputProps("service_provider_id")}
+                disabled={isLoading}
+              />
+
+              <TextInput
+                label="Supplier Referral Code (optional)"
+                placeholder="Enter referral code from supplier"
+                description="If you have a referral code from a supplier, enter it here"
+                {...form.getInputProps("contract_code")}
                 disabled={isLoading}
               />
             </div>
