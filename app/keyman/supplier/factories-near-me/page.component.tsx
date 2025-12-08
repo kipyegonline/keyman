@@ -7,11 +7,9 @@ import {
   Button,
   TextInput,
   Group,
-  Stack,
   Paper,
   ThemeIcon,
   Badge,
-  Box,
 } from "@mantine/core";
 import {
   Factory,
