@@ -8,6 +8,8 @@ export { default as ReviewAndSubmit } from "./ReviewAndSubmit";
 export { default as LabourSection } from "./LabourSection";
 export { default as ItemsSection } from "./ItemsSection";
 export { default as ContractPaymentModal } from "./ContractPaymentModal";
+export { default as ReferralCashback } from "./ReferralCashback";
+export { getCashbackOptions, getRecommendedCashback } from "./ReferralCashback";
 
 // Type exports
 export type { LabourItem } from "./LabourSection";

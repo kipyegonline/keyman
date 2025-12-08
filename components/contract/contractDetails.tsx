@@ -44,6 +44,7 @@ import MilestoneTimeline from "./MilestoneTimeline";
 import AddMaterialsModal from "./AddMaterialsModal";
 import AddLabourModal from "./AddLabourModal";
 import ContractPaymentModal from "./ContractPaymentModal";
+import ReferralCashback from "./ReferralCashback";
 import {
   updateContract,
   updateMilestone,
@@ -97,6 +98,7 @@ interface ContractDetails {
     title?: string;
   };
   contract_mode: null | "client" | "service_provider";
+  referrer_ks_number?: string | null;
   customer?: {
     id: string;
     name: string;
@@ -210,6 +212,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [labourItems, setLabourItems] = useState<LabourItem[]>([]);
   const [paymentModalOpened, setPaymentModalOpened] = useState(false);
+  const contractFee = 200;
 
   // Batch milestone status change state
   const [batchStatusModalOpened, setBatchStatusModalOpened] = useState(false);
@@ -869,7 +872,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                     </Button>
                   )}
 
-                {!!contract?.service_provider_signing_date && (
+                {!!contract?.service_provider_signing_date && false && (
                   <Button variant="outlined" onClick={openChatManager}>
                     {" "}
                     Chat
@@ -1297,7 +1300,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                 </Group>
 
                 <Stack gap="md">
-                  <Group justify="space-between">
+                  <Group justify="space-between" display="none">
                     <Text size="sm" c="dimmed">
                       Total Value
                     </Text>
@@ -1306,7 +1309,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                     </Text>
                   </Group>
                   <Text size="xs" c="dimmed" fs="italic">
-                    *One-time contract fee of KES 200 applies
+                    *One-time contract fee applies*
                   </Text>
 
                   {contract.milestones && contract.milestones.length > 0 && (
@@ -1338,6 +1341,26 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                               </Group>
                             )
                         )}
+                        <Divider my="sm" />
+                        <Group justify="space-between">
+                          <Text size="xs" c="dimmed" className="truncate">
+                            Contract Fee
+                          </Text>
+
+                          <Text size="xs" fw={500}>
+                            {formatCurrency(contractFee)}
+                          </Text>
+                        </Group>
+                        <Group justify="space-between" mt="md">
+                          <Text size="sm" c="dimmed">
+                            Total Value
+                          </Text>
+                          <Text size="lg" fw={700} className="text-green-700">
+                            {formatCurrency(
+                              Number(contract.contract_amount) + contractFee
+                            )}
+                          </Text>
+                        </Group>
                       </div>
                     </>
                   )}
@@ -1530,6 +1553,19 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   </Text>
                 </Alert>
               )}
+
+              {/* Referral Cashback  contract.referrer_ks_number */}
+              {contract?.referrer_ks_number && userType === "supplier" && (
+                <ReferralCashback
+                  referrerKsNumber={contract.referrer_ks_number || ""}
+                  //totalAmount={Number(contract.contract_amount) || 0}
+                  totalAmount={10000}
+                  onClaimCashback={(amount) => {
+                    // TODO: Implement cashback claim logic
+                    console.log("Claiming cashback:", amount);
+                  }}
+                />
+              )}
             </Stack>
           </Grid.Col>
         </Grid>
@@ -1568,6 +1604,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         onConfirm={confirmMilestoneStatusChange}
         providerName={contract?.service_provider?.name}
         initiatorName={contract?.initiator?.name}
+        isInitiator={userType === "customer"}
       />
 
       {/* Accept Contract Modal */}
@@ -1586,6 +1623,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         onClose={() => setMaterialsModalOpened(false)}
         onSave={handleAddMaterials}
         priceList={_priceList as WholePriceList[]}
+        existingMaterialIds={materials.map((m) => m.id)}
       />
 
       {/* Add Labour Modal */}

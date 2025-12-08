@@ -77,6 +77,7 @@ const SuppliersNearMe: React.FC<{
 
   // Retry fetching suppliers
   const handleRetryFetch = () => {
+    setLocationError(null);
     if (useExtendedSearch) {
       refetchExtendedSuppliers();
     } else {

@@ -13,6 +13,8 @@ import {
   Divider,
   Alert,
   Loader,
+  TextInput,
+  Flex,
 } from "@mantine/core";
 import { ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -63,6 +65,7 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const [referrer, setReferrer] = useState("");
 
   const handleSubmit = async () => {
     if (!contractData) {
@@ -84,6 +87,7 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
         contract_duration_in_duration:
           contractData.contract_duration_in_duration,
         contract_amount: contractData.contract_amount,
+        referrer_ks_number: referrer,
         contract_json: JSON.stringify({
           title: contractData.title,
           scope: contractData.scope,
@@ -150,16 +154,17 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
       setIsSubmitting(false);
     }
   };
-
-  const totalPhaseAmount = phases.reduce(
-    (sum, phase) =>
-      sum +
-      phase.milestones.reduce(
-        (mSum, milestone) => mSum + Number(milestone.amount),
-        0
-      ),
-    0
-  );
+  const contractFee = 200;
+  const totalPhaseAmount =
+    phases.reduce(
+      (sum, phase) =>
+        sum +
+        phase.milestones.reduce(
+          (mSum, milestone) => mSum + Number(milestone.amount),
+          0
+        ),
+      0
+    ) + contractFee;
 
   return (
     <Card shadow="sm" padding="lg" radius="lg">
@@ -210,10 +215,10 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
 
               <Group justify="space-between">
                 <Text size="sm" c="dimmed">
-                  Total Amount
+                  Total Amount (incl. Contract Fee Ksh {contractFee})
                 </Text>
                 <Text fw={700} size="lg" c="green.7">
-                  Ksh {contractData.contract_amount.toLocaleString()}
+                  Ksh {totalPhaseAmount.toLocaleString()}
                 </Text>
               </Group>
 
@@ -273,17 +278,40 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
                         <Text size="sm" fw={500}>
                           Ksh {milestone.amount.toLocaleString()}
                         </Text>
-                        <Text size="xs" c="dimmed" style={{ minWidth: "60px" }}>
+                        <Text
+                          size="xs"
+                          c="dimmed"
+                          style={{ minWidth: "60px", display: "none" }}
+                        >
                           {milestone.duration_in_days} day
                           {milestone.duration_in_days !== 1 ? "s" : ""}
                         </Text>
                       </Group>
                     </Group>
                   ))}
+                  <Divider />
+                  <Flex>
+                    <Text size="xs" c="dimmed">
+                      {" "}
+                      One Time Contract fee
+                    </Text>
+                    <Text ml="auto" size="sm" fw={500}>
+                      Ksh {contractFee}
+                    </Text>
+                  </Flex>
                 </Stack>
               </Paper>
             ))}
           </Stack>
+
+          <div className="space-y-2 w-full md:w-1/2 my-4">
+            <TextInput
+              label="Supplier Referrer KS Number (optional)"
+              placeholder="Enter referrer's KS number"
+              className="transition-all duration-200 hover:scale-[1.02]"
+              onChange={(e) => setReferrer(e.target.value)}
+            />
+          </div>
 
           <Paper p="md" mt="md" radius="md" bg="green.0">
             <Group justify="space-between">

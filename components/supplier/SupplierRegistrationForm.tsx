@@ -847,6 +847,7 @@ const SupplierRegistrationForm: React.FC<{
                               className="text-[#3D6B2C]"
                             />
                           }
+                          required
                           minRows={4}
                           className="transition-all duration-300 hover:scale-[1.02]"
                           {...form.getInputProps("comments")}

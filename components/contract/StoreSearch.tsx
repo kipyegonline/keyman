@@ -31,9 +31,16 @@ import {
   BadgeCheck,
   Filter,
   Star,
+  Package,
+  Wrench,
+  Briefcase,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getSuppliersNearMe } from "@/api/requests";
+import {
+  getSupplierTheme,
+  SupplierType,
+} from "@/components/supplier/profiles/types";
 
 interface ISupplierContact {
   id: string;
@@ -45,7 +52,34 @@ interface ISupplierContact {
   photo?: string[];
   supplier_rating: null | string;
   is_user_verified: number;
+  type?: SupplierType;
 }
+
+// Helper to get type icon
+const getTypeIcon = (type?: string) => {
+  switch (type) {
+    case "services":
+      return <Wrench size={12} />;
+    case "professional_services":
+      return <Briefcase size={12} />;
+    case "goods":
+    default:
+      return <Package size={12} />;
+  }
+};
+
+// Helper to get type label
+const getTypeLabel = (type?: string) => {
+  switch (type) {
+    case "services":
+      return "Services";
+    case "professional_services":
+      return "Professional";
+    case "goods":
+    default:
+      return "Goods";
+  }
+};
 
 interface StoreSearchProps {
   onComplete: (store: ISupplierContact) => void;
@@ -105,6 +139,7 @@ const StoreSearch: React.FC<StoreSearchProps> = ({
 
   // Retry fetching stores
   const handleRetryFetch = () => {
+    setLocationError(null);
     if (useExtendedSearch) {
       refetchExtendedSuppliers();
     } else {
@@ -325,140 +360,178 @@ const StoreSearch: React.FC<StoreSearchProps> = ({
 
         {/* Stores Grid */}
         <Grid>
-          {paginatedSuppliers.map((supplier) => (
-            <Grid.Col
-              key={supplier.id}
-              span={{ base: 12, sm: 6, md: 4, lg: 3 }}
-            >
-              <Transition
-                mounted={true}
-                transition="slide-up"
-                duration={300}
-                timingFunction="ease"
+          {paginatedSuppliers.map((supplier) => {
+            const theme = getSupplierTheme(supplier.type);
+            const isSelected = selectedStore?.id === supplier.id;
+
+            return (
+              <Grid.Col
+                key={supplier.id}
+                span={{ base: 12, sm: 6, md: 4, lg: 3 }}
               >
-                {(styles) => (
-                  <Paper
-                    shadow="sm"
-                    p="md"
-                    radius="lg"
-                    withBorder
-                    style={{
-                      ...styles,
-                      cursor: "pointer",
-                      transition: "all 0.3s ease",
-                      border:
-                        selectedStore?.id === supplier.id
-                          ? "2px solid #3D6B2C"
-                          : "1px solid #E5E7EB",
-                      backgroundColor:
-                        selectedStore?.id === supplier.id ? "#f0f9ff" : "white",
-                      height: "100%",
-                    }}
-                    onClick={() => handleSelectStore(supplier)}
-                    className="hover:shadow-lg hover:scale-105"
-                  >
-                    <Stack gap="sm">
-                      {/* Avatar */}
-                      <Group justify="center">
-                        <Avatar
-                          size={80}
-                          radius="md"
-                          alt={supplier.name}
-                          src={
-                            supplier?.photo && supplier.photo.length > 0
-                              ? supplier.photo[0]
-                              : null
-                          }
-                          style={{
-                            backgroundColor: "#F0F9FF",
-                            color: "#3D6B2C",
-                          }}
-                        >
-                          <Store size={40} />
-                        </Avatar>
-                      </Group>
-
-                      {/* Store Name */}
-                      <Box style={{ textAlign: "center" }}>
-                        <Text
-                          size="md"
-                          fw={600}
-                          style={{ lineHeight: 1.3 }}
-                          lineClamp={2}
-                        >
-                          {supplier.name}
-                        </Text>
-                        {supplier.is_user_verified > 0 && (
-                          <BadgeCheck
-                            size={20}
-                            fill="#3D6B2C"
-                            stroke="white"
-                            style={{ display: "inline-block", marginLeft: 4 }}
-                          />
-                        )}
-                      </Box>
-
-                      {/* KS Number Badge */}
-                      <Group justify="center">
-                        <Badge color="orange" variant="light" size="sm">
-                          {supplier.keyman_number}
-                        </Badge>
-                      </Group>
-
-                      {/* Rating */}
-                      <Group justify="center" gap={4}>
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            size={14}
-                            key={i}
-                            fill={
-                              supplier.supplier_rating !== null &&
-                              i < Number(supplier.supplier_rating)
-                                ? "orange"
-                                : "none"
-                            }
-                            color={
-                              supplier.supplier_rating !== null &&
-                              i < Number(supplier.supplier_rating)
-                                ? "orange"
-                                : "gray"
-                            }
-                          />
-                        ))}
-                      </Group>
-
-                      {/* Selection Indicator */}
-                      {selectedStore?.id === supplier.id && (
-                        <Box
-                          style={{
-                            textAlign: "center",
-                            cursor: "pointer",
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleContinue();
-                          }}
-                        >
+                <Transition
+                  mounted={true}
+                  transition="slide-up"
+                  duration={300}
+                  timingFunction="ease"
+                >
+                  {(styles) => (
+                    <Paper
+                      shadow="sm"
+                      p="md"
+                      radius="lg"
+                      style={{
+                        ...styles,
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                        border: isSelected
+                          ? `2px solid ${theme.primary}`
+                          : `1px solid ${theme.borderLight}`,
+                        backgroundColor: isSelected
+                          ? theme.background
+                          : "white",
+                        height: "100%",
+                      }}
+                      onClick={() => handleSelectStore(supplier)}
+                      className="hover:shadow-lg hover:scale-105"
+                      onMouseEnter={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor = theme.border;
+                          e.currentTarget.style.backgroundColor =
+                            theme.background;
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) {
+                          e.currentTarget.style.borderColor = theme.borderLight;
+                          e.currentTarget.style.backgroundColor = "white";
+                        }
+                      }}
+                    >
+                      <Stack gap="sm">
+                        {/* Type Badge */}
+                        <Group justify="flex-start">
                           <Badge
-                            color="green"
-                            variant="filled"
-                            size="lg"
-                            rightSection={<ArrowRight size={14} />}
+                            size="xs"
+                            leftSection={getTypeIcon(supplier.type)}
                             style={{
-                              cursor: "pointer",
-                              padding: "8px 12px",
+                              backgroundColor: theme.badgeBg,
+                              color: theme.badgeColor,
                             }}
                           >
-                            Continue with Store
+                            {getTypeLabel(supplier.type)}
                           </Badge>
+                        </Group>
+
+                        {/* Avatar */}
+                        <Group justify="center">
+                          <Avatar
+                            size={80}
+                            radius="md"
+                            alt={supplier.name}
+                            src={
+                              supplier?.photo && supplier.photo.length > 0
+                                ? supplier.photo[0]
+                                : null
+                            }
+                            style={{
+                              backgroundColor: theme.primaryLight,
+                              color: theme.primary,
+                            }}
+                          >
+                            <Store size={40} />
+                          </Avatar>
+                        </Group>
+
+                        {/* Store Name */}
+                        <Box style={{ textAlign: "center" }}>
+                          <Text
+                            size="md"
+                            fw={600}
+                            style={{ lineHeight: 1.3 }}
+                            lineClamp={2}
+                          >
+                            {supplier.name}
+                          </Text>
+                          {supplier.is_user_verified > 0 && (
+                            <BadgeCheck
+                              size={20}
+                              fill={theme.primary}
+                              stroke="white"
+                              style={{ display: "inline-block", marginLeft: 4 }}
+                            />
+                          )}
                         </Box>
-                      )}
-                    </Stack>
-                  </Paper>
-                )}
-              </Transition>
-            </Grid.Col>
-          ))}
+
+                        {/* KS Number Badge */}
+                        <Group justify="center">
+                          <Badge
+                            variant="light"
+                            size="sm"
+                            style={{
+                              backgroundColor: theme.primaryLight,
+                              color: theme.primary,
+                            }}
+                          >
+                            {supplier.keyman_number}
+                          </Badge>
+                        </Group>
+
+                        {/* Rating */}
+                        <Group justify="center" gap={4}>
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              size={14}
+                              key={i}
+                              fill={
+                                supplier.supplier_rating !== null &&
+                                i < Number(supplier.supplier_rating)
+                                  ? theme.primary
+                                  : "none"
+                              }
+                              color={
+                                supplier.supplier_rating !== null &&
+                                i < Number(supplier.supplier_rating)
+                                  ? theme.primary
+                                  : "gray"
+                              }
+                            />
+                          ))}
+                        </Group>
+
+                        {/* Selection Indicator */}
+                        {isSelected && (
+                          <Box
+                            style={{
+                              textAlign: "center",
+                              cursor: "pointer",
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleContinue();
+                            }}
+                          >
+                            <Badge
+                              variant="filled"
+                              size="lg"
+                              rightSection={<ArrowRight size={14} />}
+                              style={{
+                                cursor: "pointer",
+                                padding: "8px 12px",
+                                backgroundColor: theme.primary,
+                              }}
+                            >
+                              Continue with Store
+                            </Badge>
+                          </Box>
+                        )}
+                      </Stack>
+                    </Paper>
+                  )}
+                </Transition>
+              </Grid.Col>
+            );
+          })}
         </Grid>
 
         {/* Pagination */}

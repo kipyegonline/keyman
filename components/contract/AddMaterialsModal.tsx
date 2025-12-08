@@ -32,6 +32,7 @@ interface AddMaterialsModalProps {
   onClose: () => void;
   onSave: (materials: MaterialItem[]) => void;
   priceList: WholePriceList[];
+  existingMaterialIds?: string[];
 }
 
 const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
@@ -39,6 +40,7 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
   onClose,
   onSave,
   priceList,
+  existingMaterialIds = [],
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMaterials, setSelectedMaterials] = useState<MaterialItem[]>(
@@ -58,6 +60,14 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
     );
   }, [priceList, searchQuery]);
 
+  // Check if item is already added to contract
+  const isAlreadyAdded = useCallback(
+    (itemId: string) => {
+      return existingMaterialIds.includes(itemId);
+    },
+    [existingMaterialIds]
+  );
+
   // Get quantity of an item
   const getItemQuantity = useCallback(
     (itemId: string) => {
@@ -70,6 +80,11 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
   // Add item or increase quantity
   const handleAddItem = useCallback(
     (item: WholePriceList) => {
+      // Check if already added to contract
+      if (isAlreadyAdded(item.id || "")) {
+        return; // Don't allow adding duplicates
+      }
+
       const existingIndex = selectedMaterials.findIndex(
         (m) => m.id === item.id
       );
@@ -163,7 +178,15 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
     setSearchQuery("");
     onClose();
   };
-
+  const getImage = (item: WholePriceList) => {
+    if (item?.attachment_url && item?.attachment_url.length > 0)
+      return item?.attachment_url[0];
+    //@ts-expect-error item
+    else if (item?.item?.photo && item?.item?.photo.length > 0)
+      //@ts-expect-error item
+      return item?.item?.photo[0];
+    else return null;
+  };
   return (
     <Modal
       opened={opened}
@@ -213,7 +236,7 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
             <Text size="sm" fw={600} mb="xs" c="dimmed">
               Available Materials ({filteredItems.length})
             </Text>
-            <ScrollArea h={400} type="auto">
+            <ScrollArea h={400} type="auto" pr="md">
               <Stack gap="xs">
                 {filteredItems.length === 0 ? (
                   <Paper p="md" radius="md" withBorder>
@@ -226,6 +249,8 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
                 ) : (
                   filteredItems.map((item) => {
                     const quantity = getItemQuantity(item.id || "");
+                    const alreadyInContract = isAlreadyAdded(item.id || "");
+
                     return (
                       <Paper
                         key={item.id}
@@ -233,9 +258,14 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
                         radius="md"
                         withBorder
                         style={{
-                          cursor: "pointer",
+                          cursor: alreadyInContract ? "not-allowed" : "pointer",
                           transition: "all 0.2s",
-                          backgroundColor: quantity > 0 ? "#f0fdf4" : "white",
+                          backgroundColor: alreadyInContract
+                            ? "#f3f4f6"
+                            : quantity > 0
+                            ? "#f0fdf4"
+                            : "white",
+                          opacity: alreadyInContract ? 0.7 : 1,
                         }}
                       >
                         <Group
@@ -245,9 +275,16 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
                           gap="xs"
                         >
                           <Box style={{ flex: 1, minWidth: 0 }}>
-                            <Text size="sm" fw={600} lineClamp={1}>
-                              {item.name}
-                            </Text>
+                            <Group gap="xs" mb={2}>
+                              <Text size="sm" fw={600} lineClamp={1}>
+                                {item.name}
+                              </Text>
+                              {alreadyInContract && (
+                                <Badge size="xs" color="gray" variant="filled">
+                                  Added
+                                </Badge>
+                              )}
+                            </Group>
                             <Text size="xs" c="dimmed" lineClamp={1}>
                               {item.description}
                             </Text>
@@ -256,57 +293,63 @@ const AddMaterialsModal: React.FC<AddMaterialsModalProps> = ({
                             </Text>
                           </Box>
                           {/* Item Image */}
-                          {item.attachment_url &&
-                            item.attachment_url.length > 0 && (
-                              <Box
-                                style={{
-                                  flexShrink: 0,
-                                  width: 50,
-                                  height: 50,
-                                  overflow: "hidden",
-                                  borderRadius: "8px",
-                                }}
-                              >
-                                <Image
-                                  src={item?.attachment_url?.[0]}
-                                  alt={item.name}
-                                  width={50}
-                                  height={50}
-                                  radius="md"
-                                  fit="cover"
-                                  fallbackSrc="https://placehold.co/50x50?text=No+Image"
-                                />
-                              </Box>
-                            )}
-                          <Group gap={4} wrap="nowrap">
-                            {quantity > 0 && (
-                              <>
-                                <ActionIcon
-                                  size="sm"
-                                  variant="light"
-                                  color="red"
-                                  onClick={() =>
-                                    handleRemoveItem(item.id || "")
-                                  }
-                                >
-                                  <Minus size={14} />
-                                </ActionIcon>
-                              </>
-                            )}
-                            <ActionIcon
-                              size="sm"
-                              variant="light"
-                              color="green"
-                              onClick={() => handleAddItem(item)}
+
+                          {getImage(item) && (
+                            <Box
+                              style={{
+                                flexShrink: 0,
+                                width: 50,
+                                height: 50,
+                                overflow: "hidden",
+                                borderRadius: "8px",
+                              }}
                             >
-                              <Plus size={14} />
-                            </ActionIcon>
-                            {quantity > 0 && (
-                              <Badge size="sm" color="green" variant="filled">
-                                {quantity}
-                              </Badge>
-                            )}
-                          </Group>
+                              <Image
+                                src={getImage(item) || undefined}
+                                alt={item.name}
+                                width={50}
+                                height={50}
+                                radius="md"
+                                fit="cover"
+                                fallbackSrc="https://placehold.co/50x50?text=No+Image"
+                              />
+                            </Box>
+                          )}
+                          {alreadyInContract ? (
+                            <Badge size="sm" color="gray" variant="light">
+                              In Contract
+                            </Badge>
+                          ) : (
+                            <Group gap={4} wrap="nowrap">
+                              {quantity > 0 && (
+                                <>
+                                  <ActionIcon
+                                    size="sm"
+                                    variant="light"
+                                    color="red"
+                                    onClick={() =>
+                                      handleRemoveItem(item.id || "")
+                                    }
+                                  >
+                                    <Minus size={14} />
+                                  </ActionIcon>
+                                </>
+                              )}
+                              <ActionIcon
+                                size="sm"
+                                variant="light"
+                                color="green"
+                                onClick={() => handleAddItem(item)}
+                              >
+                                <Plus size={14} />
+                              </ActionIcon>
+                              {quantity > 0 && (
+                                <Badge size="sm" color="green" variant="filled">
+                                  {quantity}
+                                </Badge>
+                              )}
+                            </Group>
+                          )}
                         </Group>
                       </Paper>
                     );

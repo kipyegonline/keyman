@@ -228,7 +228,10 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
     onComplete(phases);
   };
   // Calculate totals
-  const materialsTotal = materials.reduce((sum, m) => sum + m.amount, 0);
+  const materialsTotal = materials.reduce(
+    (sum, m) => sum + m.amount * m.quantity,
+    0
+  );
   const labourTotal = milestones
     .filter((m) => m.type === "labour")
     .reduce((sum, m) => sum + m.amount, 0);
@@ -240,7 +243,7 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
       currency: "KES",
     }).format(amount);
   };
-
+  console.log(materials, "materials");
   return (
     <Box>
       <Grid gutter="lg">
@@ -283,7 +286,7 @@ const PhasesAndMilestones: React.FC<PhasesAndMilestonesProps> = ({
                         {contractData.contract_duration_in_duration} days
                       </Text>
                     </Box>
-                    <Box ta="right">
+                    <Box ta="right" display="none">
                       <Text size="xs" c="dimmed">
                         Total Value
                       </Text>

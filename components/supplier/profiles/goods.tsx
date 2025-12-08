@@ -10,7 +10,7 @@ import {
   Avatar,
   Divider,
   Box,
-  Spoiler,
+  ScrollArea,
 } from "@mantine/core";
 import {
   Phone,
@@ -135,17 +135,13 @@ const GoodsCard: React.FC<SupplierCardProps> = ({
           </Button>
         </Box>
 
-        {supplier &&
-        supplier?.comments &&
-        (supplier?.comments as string)?.length > 0 ? (
-          <Spoiler showLabel="see more" hideLabel="less" maxHeight={50}>
+        <Box style={{ height: 70 }}>
+          <ScrollArea h={70} type="auto" scrollbarSize={4}>
             <Text size="sm" c="dimmed">
-              {supplier.comments}
+              {supplier.comments || "No description...."}
             </Text>
-          </Spoiler>
-        ) : (
-          <Text c="dimmed">No description....</Text>
-        )}
+          </ScrollArea>
+        </Box>
 
         <Divider color={theme.borderLight} />
 

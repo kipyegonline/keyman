@@ -544,14 +544,16 @@ const DeliveryDetailsStep: React.FC<{
             {...form.getInputProps("ks_number")}
           />
         </div>
-        <div className="space-y-2">
-          <TextInput
-            label="Supplier Referrer KS Number (optional)"
-            placeholder="Enter referrer's KS number"
-            className="transition-all duration-200 hover:scale-[1.02]"
-            {...form.getInputProps("referrer_ks_number")}
-          />
-        </div>
+        {false && (
+          <div className="space-y-2">
+            <TextInput
+              label="Supplier Referrer KS Number (optional)"
+              placeholder="Enter referrer's KS number"
+              className="transition-all duration-200 hover:scale-[1.02]"
+              {...form.getInputProps("referrer_ks_number")}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

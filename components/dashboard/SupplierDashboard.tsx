@@ -7,6 +7,7 @@ import {
   //Settings,
   DiamondPercent,
   ReceiptText,
+  Factory,
 } from "lucide-react";
 import {
   Group,
@@ -43,6 +44,7 @@ const Sidebar: React.FC<{
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "requests", label: "Requests near me", icon: ClipboardList },
+    { id: "factories", label: "Factories near me", icon: Factory },
     { id: "orders", label: "Orders", icon: ShoppingCart },
     { id: "key-contract", label: "My Contracts", icon: ReceiptText },
     //{ id: "key-wallet", label: "My Wallet", icon: Wallet },
@@ -69,6 +71,10 @@ const Sidebar: React.FC<{
       case "requests":
         navigateTo();
         router.push("/keyman/supplier/requests");
+        break;
+      case "factories":
+        navigateTo();
+        router.push("/keyman/supplier/factories-near-me");
         break;
       case "orders":
         navigateTo();
