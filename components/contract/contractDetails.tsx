@@ -98,7 +98,9 @@ interface ContractDetails {
     title?: string;
   };
   contract_mode: null | "client" | "service_provider";
+
   referrer_ks_number?: string | null;
+  referred_by: string | null;
   customer?: {
     id: string;
     name: string;
@@ -530,7 +532,10 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   // Confirm batch milestone status change
   const confirmBatchMilestoneStatusChange = async (
     milestoneIds: string[],
-    action: string
+    action: string,
+    paymentMethod?: string,
+    phoneNumber?: string,
+    walletId?: string
   ) => {
     // Determine the correct action string based on user type and action
     let apiAction = action;
@@ -538,15 +543,36 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       apiAction = "service_provider_complete";
     }
 
-    await updateMultipleMilestonesMutation.mutateAsync({
+    // Build payload with mode and number for payment
+    const payload: {
+      milestones: string[];
+      action: string;
+      mode?: string;
+      number?: string;
+    } = {
       milestones: milestoneIds,
       action: apiAction,
-    });
+    };
+
+    // Add payment details when starting milestones
+    if (apiAction === "start" && paymentMethod) {
+      payload.mode = paymentMethod;
+      if (paymentMethod === "mobile_money" && phoneNumber) {
+        payload.number = phoneNumber;
+      } else if (paymentMethod === "wallet" && walletId) {
+        payload.number = walletId;
+      }
+    }
+
+    await updateMultipleMilestonesMutation.mutateAsync(payload);
   };
 
   const confirmMilestoneStatusChange = async (
-    milestoneId: string
-    //signature: string
+    milestoneId: string,
+    _signature: string,
+    paymentMethod?: string,
+    phoneNumber?: string,
+    walletId?: string
   ) => {
     if (!milestoneForStatusChange) return;
 
@@ -566,9 +592,26 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         return; // Already completed or other status
       }
 
-      const response = await updateMilestone(milestoneId, {
+      // Build payload with mode and number for payment
+      const payload: {
+        action: string;
+        mode?: string;
+        number?: string;
+      } = {
         action: newStatus,
-      });
+      };
+
+      // Add payment details when starting a milestone
+      if (newStatus === "start" && paymentMethod) {
+        payload.mode = paymentMethod;
+        if (paymentMethod === "mobile_money" && phoneNumber) {
+          payload.number = phoneNumber;
+        } else if (paymentMethod === "wallet" && walletId) {
+          payload.number = walletId;
+        }
+      }
+
+      const response = await updateMilestone(milestoneId, payload);
 
       if (response.status) {
         queryClient.invalidateQueries({
@@ -581,9 +624,11 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         const actionText = action === "start" ? "started" : "completed";
 
         notify.success(`Milestone ${actionText} successfully`);
-        // Close modal on success
-        setStatusChangeModalOpened(false);
-        setMilestoneForStatusChange(null);
+        // Don't close modal for start action - let the payment screen show
+        if (action !== "start") {
+          setStatusChangeModalOpened(false);
+          setMilestoneForStatusChange(null);
+        }
       } else {
         notify.error(response.message || "Failed to update milestone status");
         // Keep modal open on failure
@@ -1555,7 +1600,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
               )}
 
               {/* Referral Cashback  contract.referrer_ks_number */}
-              {contract?.referrer_ks_number && userType === "supplier" && (
+              {userType === "supplier" && contract?.referred_by && (
                 <ReferralCashback
                   referrerKsNumber={contract.referrer_ks_number || ""}
                   //totalAmount={Number(contract.contract_amount) || 0}
@@ -1605,6 +1650,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         providerName={contract?.service_provider?.name}
         initiatorName={contract?.initiator?.name}
         isInitiator={userType === "customer"}
+        initiatorPhone={contract?.initiator?.phone}
+        // initiatorWalletId={contract?.initiator?.id}
       />
 
       {/* Accept Contract Modal */}
@@ -1666,6 +1713,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         providerName={contract?.service_provider?.name}
         initiatorName={contract?.initiator?.name}
         isLoading={updateMultipleMilestonesMutation.isPending}
+        initiatorPhone={contract?.initiator?.phone}
+        initiatorWalletId={contract?.initiator?.id}
       />
     </Box>
   );

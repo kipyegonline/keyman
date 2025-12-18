@@ -2,7 +2,7 @@
 
 import { getProjects } from "@/api/projects";
 import { createRequest } from "@/api/requests";
-import { getSupplierDetails, getSupplierPriceList } from "@/api/supplier";
+import { getSupplierPriceList } from "@/api/supplier";
 import {
   PublicPriceList,
   WholePriceList,
@@ -11,7 +11,7 @@ import { CartModal } from "@/components/supplierProfilePublic/CartModal";
 import { PublicPricelistItem } from "@/components/supplierProfilePublic/priceListItem";
 import SupplierProfile from "@/components/supplierProfilePublic/profile";
 import { getCurrentLocation } from "@/lib/geolocation";
-import LoadingComponent from "@/lib/LoadingComponent";
+//import LoadingComponent from "@/lib/LoadingComponent";
 import { notify } from "@/lib/notifications";
 import { ICartItem, useCart } from "@/providers/CartContext";
 import { CreateRequestPayload } from "@/types/requests";
@@ -23,16 +23,35 @@ import React from "react";
 import { login } from "@/api/registration";
 /*eslint-disable*/
 
+// Supplier type based on API response
+interface Supplier {
+  id: string;
+  name: string;
+  keyman_number: string;
+  photo: string[];
+  comments?: string;
+  phone?: string;
+  email?: string;
+  location?: {
+    coordinates: [number, number];
+  };
+  [key: string]: unknown;
+}
+
 const checkGuest = () => {
   return globalThis?.window?.localStorage.getItem("keyman_user");
 };
 const tokenName = "auth_token";
 
+interface SupplierClientComponentProps {
+  supplierId: string;
+  initialSupplierData: Supplier | null;
+}
+
 export default function SupplierClientComponent({
   supplierId,
-}: {
-  supplierId: string;
-}) {
+  initialSupplierData,
+}: SupplierClientComponentProps) {
   const [current, setCurrent] = React.useState(0);
   const [cartSpinner, setCartSpinner] = React.useState(false);
   const [date, setDate] = React.useState("");
@@ -55,22 +74,14 @@ export default function SupplierClientComponent({
     setModalOpen: setCartModalOpened,
   } = useCart();
 
-  const { data: supplier, isLoading } = useQuery({
-    queryKey: ["supplier", supplierId],
-    queryFn: async () => getSupplierDetails(supplierId),
-    enabled: !!supplierId,
-  });
+  // Use initial supplier data from server - no need to refetch
+  const _supplier = initialSupplierData;
+
   const { data: priceList } = useQuery({
     queryKey: ["pricelist", supplierId],
     queryFn: async () => getSupplierPriceList(supplierId),
     enabled: !!supplierId,
   });
-
-  const _supplier = React.useMemo(() => {
-    if (supplier?.supplier) {
-      return supplier.supplier;
-    } else return null;
-  }, [supplier]);
   const _priceList = React.useMemo(() => {
     if (priceList?.price_list) {
       return priceList.price_list as WholePriceList[];
@@ -199,8 +210,13 @@ export default function SupplierClientComponent({
     }
   };
 
-  if (isLoading)
-    return <LoadingComponent message="Loading supplier details..." />;
+  if (!_supplier) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-gray-500">Supplier not found</p>
+      </div>
+    );
+  }
   return (
     <div className=" max-w-full">
       <CartModal
@@ -240,6 +256,7 @@ export default function SupplierClientComponent({
       <div className=" p-4 ">
         <Grid>
           <Grid.Col span={{ base: 12, md: 5 }}>
+            {/*@ts-ignore */}
             {_supplier ? <SupplierProfile supplier={_supplier} /> : null}
           </Grid.Col>
           <Grid.Col span={{ base: 12, md: 7 }}>

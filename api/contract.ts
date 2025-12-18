@@ -83,6 +83,8 @@ export const updateMilestone = async (
     amount?: number;
     description?: string;
     action?: string;
+    mode?: string;
+    number?: string;
   }
 ) => {
   try {
@@ -109,6 +111,8 @@ export const updateMilestone = async (
 export const updateMultipleMilestones = async (payload: {
   milestones: string[];
   action: string;
+  mode?: string;
+  number?: string;
 }) => {
   try {
     const response = await AxiosClient.post(

@@ -42,10 +42,12 @@ export default function RootLayout({
           <AnalyticsScripts />
           <GoogleAnalytics gaId={TrackingId} />
 
-          <RequestChatWidget
-            isOpen={isOpen}
-            handleToggle={() => setIsOpen((prev) => !prev)}
-          />
+          {false && (
+            <RequestChatWidget
+              isOpen={isOpen}
+              handleToggle={() => setIsOpen((prev) => !prev)}
+            />
+          )}
 
           <ProgressBar
             height="4px"
