@@ -98,7 +98,8 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
   const maskPhoneNumber = (phone: string) => {
     if (!phone || phone.length < 3) return "******";
     const lastThree = phone.slice(-3);
-    return `******${lastThree}`;
+    const firstThree = phone.slice(0, 4);
+    return `${firstThree}***${lastThree}`;
   };
 
   // Validate Kenyan phone number
@@ -130,7 +131,8 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
   const maskWalletId = (walletId: string) => {
     if (!walletId || walletId.length < 3) return "******";
     const lastThree = walletId?.slice(-3);
-    return `******${lastThree}`;
+    const firstThree = walletId?.slice(0, 3);
+    return `${firstThree}******${lastThree}`;
   };
 
   // Validate wallet ID (alphanumeric, min 6 characters)

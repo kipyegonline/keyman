@@ -81,7 +81,12 @@ interface ContractDetails {
 
   contract_amount: number;
   payment_status?: "paid" | "pending" | "partial";
-  initiator: { id: string; name: string; email?: string; phone?: string };
+  initiator: {
+    wallet_account_id: string;
+    name: string;
+    email?: string;
+    phone?: string;
+  };
   service_provider_id: string;
   service_provider: {
     id: string;
@@ -307,12 +312,13 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       updateMultipleMilestones(payload),
     onSuccess: (response, variables) => {
       if (response.status) {
-        const actionText =
-          variables.action === "start" ? "started" : "completed";
-        const count = variables.milestones.length;
-        notify.success(
+        console.info(variables);
+        //const actionText =
+        //  variables.action === "start" ? "started" : "completed";
+        // const count = variables.milestones.length;
+        /* notify.success(
           `${count} milestone${count > 1 ? "s" : ""} ${actionText} successfully`
-        );
+        );*/
         queryClient.invalidateQueries({
           queryKey: ["suggestedMilestones", contract.id],
         });
@@ -547,8 +553,9 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     const payload: {
       milestones: string[];
       action: string;
-      mode?: string;
-      number?: string;
+      payment_mode?: string;
+      phone_number?: string;
+      wallet_id?: string;
     } = {
       milestones: milestoneIds,
       action: apiAction,
@@ -556,11 +563,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
     // Add payment details when starting milestones
     if (apiAction === "start" && paymentMethod) {
-      payload.mode = paymentMethod;
+      payload.payment_mode =
+        paymentMethod === "mobile_money" ? "mobile" : paymentMethod;
       if (paymentMethod === "mobile_money" && phoneNumber) {
-        payload.number = phoneNumber;
+        payload.phone_number = phoneNumber;
       } else if (paymentMethod === "wallet" && walletId) {
-        payload.number = walletId;
+        payload.wallet_id = walletId;
       }
     }
 
@@ -595,19 +603,21 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       // Build payload with mode and number for payment
       const payload: {
         action: string;
-        mode?: string;
-        number?: string;
+        payment_mode?: string;
+        phone_number?: string;
+        wallet_id?: string;
       } = {
         action: newStatus,
       };
 
       // Add payment details when starting a milestone
       if (newStatus === "start" && paymentMethod) {
-        payload.mode = paymentMethod;
+        payload.payment_mode =
+          paymentMethod === "mobile_money" ? "mobile" : paymentMethod;
         if (paymentMethod === "mobile_money" && phoneNumber) {
-          payload.number = phoneNumber;
+          payload.phone_number = phoneNumber;
         } else if (paymentMethod === "wallet" && walletId) {
-          payload.number = walletId;
+          payload.wallet_id = walletId;
         }
       }
 
@@ -620,10 +630,10 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         queryClient.invalidateQueries({
           queryKey: ["contracts"],
         });
-        refresh();
-        const actionText = action === "start" ? "started" : "completed";
+        // refresh();
+        //const actionText = action === "start" ? "started" : "completed";
 
-        notify.success(`Milestone ${actionText} successfully`);
+        // notify.success(`Milestone ${actionText} successfully`);
         // Don't close modal for start action - let the payment screen show
         if (action !== "start") {
           setStatusChangeModalOpened(false);
@@ -1651,7 +1661,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         initiatorName={contract?.initiator?.name}
         isInitiator={userType === "customer"}
         initiatorPhone={contract?.initiator?.phone}
-        // initiatorWalletId={contract?.initiator?.id}
+        initiatorWalletId={contract?.initiator?.wallet_account_id}
       />
 
       {/* Accept Contract Modal */}
@@ -1714,7 +1724,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         initiatorName={contract?.initiator?.name}
         isLoading={updateMultipleMilestonesMutation.isPending}
         initiatorPhone={contract?.initiator?.phone}
-        initiatorWalletId={contract?.initiator?.id}
+        initiatorWalletId={contract?.initiator?.wallet_account_id}
       />
     </Box>
   );
