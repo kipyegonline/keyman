@@ -805,7 +805,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     [contract.milestones]
   );
 
-  console.log(contract, "tract");
+  // console.log(contract, "tract");
 
   // Contract Accepted Success Alert Component
   const ContractAcceptedAlert = () => {
@@ -1614,7 +1614,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                 <ReferralCashback
                   referrerKsNumber={contract.referrer_ks_number || ""}
                   //totalAmount={Number(contract.contract_amount) || 0}
-                  totalAmount={10000}
+                  totalAmount={Number(contract.contract_amount) || 0}
                   onClaimCashback={(amount) => {
                     // TODO: Implement cashback claim logic
                     console.log("Claiming cashback:", amount);
@@ -1708,6 +1708,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
           refresh();
           setPaymentModalOpened(false);
         }}
+        initiatorWalletId={contract?.initiator?.wallet_account_id}
       />
 
       {/* Batch Milestone Status Change Modal */}

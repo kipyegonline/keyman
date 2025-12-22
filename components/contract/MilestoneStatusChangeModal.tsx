@@ -77,7 +77,7 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
   const [signature, setSignature] = useState("");
   const [error, setError] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"mobile_money" | "wallet">(
-    "mobile_money"
+    "wallet"
   );
   const [useAlternateNumber, setUseAlternateNumber] = useState(false);
   const [alternatePhone, setAlternatePhone] = useState("");
@@ -168,7 +168,7 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
       setSignature("");
       setCurrentScreen("form");
       setError("");
-      setPaymentMethod("mobile_money");
+      setPaymentMethod("wallet");
       setUseAlternateNumber(false);
       setAlternatePhone("");
       setPhoneError("");
@@ -430,113 +430,6 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
                           name="paymentMethod"
                         >
                           <Stack gap="sm">
-                            {/* Mobile Money Option */}
-                            <Paper
-                              p="sm"
-                              radius="md"
-                              withBorder
-                              style={{
-                                borderColor:
-                                  paymentMethod === "mobile_money"
-                                    ? "#3D6B2C"
-                                    : "#e0e0e0",
-                                backgroundColor:
-                                  paymentMethod === "mobile_money"
-                                    ? "#3D6B2C08"
-                                    : "white",
-                                cursor: "pointer",
-                                transition: "all 0.2s ease",
-                              }}
-                              onClick={() => setPaymentMethod("mobile_money")}
-                            >
-                              <Group justify="space-between">
-                                <Group gap="sm">
-                                  <ThemeIcon
-                                    size={36}
-                                    radius="md"
-                                    variant="light"
-                                    color="green"
-                                  >
-                                    <Smartphone size={20} />
-                                  </ThemeIcon>
-                                  <div>
-                                    <Text size="sm" fw={600}>
-                                      Mobile Money
-                                    </Text>
-                                    <Text size="xs" c="dimmed">
-                                      Pay via M-Pesa
-                                    </Text>
-                                  </div>
-                                </Group>
-                                <Radio value="mobile_money" color="green" />
-                              </Group>
-                            </Paper>
-
-                            {/* Mobile Money Details - Collapsible */}
-                            <Collapse in={paymentMethod === "mobile_money"}>
-                              <Box
-                                pl="md"
-                                py="sm"
-                                style={{
-                                  borderLeft: "3px solid #3D6B2C",
-                                  marginLeft: "8px",
-                                }}
-                              >
-                                <Stack gap="xs">
-                                  {!useAlternateNumber ? (
-                                    <>
-                                      <Text size="sm" c="dimmed">
-                                        Payment will be sent to:
-                                      </Text>
-                                      <Group gap="xs">
-                                        <Text size="sm" fw={600} c="#3D6B2C">
-                                          {maskPhoneNumber(initiatorPhone)}
-                                        </Text>
-                                      </Group>
-                                      <Text
-                                        size="xs"
-                                        c="blue"
-                                        style={{ cursor: "pointer" }}
-                                        onClick={() =>
-                                          setUseAlternateNumber(true)
-                                        }
-                                      >
-                                        Use another number
-                                      </Text>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <TextInput
-                                        placeholder="Enter phone number (e.g., 0712345678)"
-                                        value={alternatePhone}
-                                        onChange={(e) =>
-                                          handleAlternatePhoneChange(
-                                            e.currentTarget.value
-                                          )
-                                        }
-                                        error={phoneError}
-                                        size="sm"
-                                        leftSection={<Smartphone size={16} />}
-                                      />
-                                      <Text
-                                        size="xs"
-                                        c="blue"
-                                        style={{ cursor: "pointer" }}
-                                        onClick={() => {
-                                          setUseAlternateNumber(false);
-                                          setAlternatePhone("");
-                                          setPhoneError("");
-                                        }}
-                                      >
-                                        Use registered number (
-                                        {maskPhoneNumber(initiatorPhone)})
-                                      </Text>
-                                    </>
-                                  )}
-                                </Stack>
-                              </Box>
-                            </Collapse>
-
                             {/* Wallet Option */}
                             <Paper
                               p="sm"
@@ -663,6 +556,110 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
                       </Stack>
                     </Paper>
                   )}
+                  {/* Mobile Money Option */}
+                  <Paper
+                    p="sm"
+                    radius="md"
+                    withBorder
+                    style={{
+                      borderColor:
+                        paymentMethod === "mobile_money"
+                          ? "#3D6B2C"
+                          : "#e0e0e0",
+                      backgroundColor:
+                        paymentMethod === "mobile_money"
+                          ? "#3D6B2C08"
+                          : "white",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                    onClick={() => setPaymentMethod("mobile_money")}
+                  >
+                    <Group justify="space-between">
+                      <Group gap="sm">
+                        <ThemeIcon
+                          size={36}
+                          radius="md"
+                          variant="light"
+                          color="green"
+                        >
+                          <Smartphone size={20} />
+                        </ThemeIcon>
+                        <div>
+                          <Text size="sm" fw={600}>
+                            Mobile Money
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            Pay via M-Pesa
+                          </Text>
+                        </div>
+                      </Group>
+                      <Radio value="mobile_money" color="green" />
+                    </Group>
+                  </Paper>
+
+                  {/* Mobile Money Details - Collapsible */}
+                  <Collapse in={paymentMethod === "mobile_money"}>
+                    <Box
+                      pl="md"
+                      py="sm"
+                      style={{
+                        borderLeft: "3px solid #3D6B2C",
+                        marginLeft: "8px",
+                      }}
+                    >
+                      <Stack gap="xs">
+                        {!useAlternateNumber ? (
+                          <>
+                            <Text size="sm" c="dimmed">
+                              Payment will be sent to:
+                            </Text>
+                            <Group gap="xs">
+                              <Text size="sm" fw={600} c="#3D6B2C">
+                                {maskPhoneNumber(initiatorPhone)}
+                              </Text>
+                            </Group>
+                            <Text
+                              size="xs"
+                              c="blue"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => setUseAlternateNumber(true)}
+                            >
+                              Use another number
+                            </Text>
+                          </>
+                        ) : (
+                          <>
+                            <TextInput
+                              placeholder="Enter phone number (e.g., 0712345678)"
+                              value={alternatePhone}
+                              onChange={(e) =>
+                                handleAlternatePhoneChange(
+                                  e.currentTarget.value
+                                )
+                              }
+                              error={phoneError}
+                              size="sm"
+                              leftSection={<Smartphone size={16} />}
+                            />
+                            <Text
+                              size="xs"
+                              c="blue"
+                              style={{ cursor: "pointer" }}
+                              onClick={() => {
+                                setUseAlternateNumber(false);
+                                setAlternatePhone("");
+                                setPhoneError("");
+                              }}
+                            >
+                              Use registered number (
+                              {maskPhoneNumber(initiatorPhone)})
+                            </Text>
+                          </>
+                        )}
+                      </Stack>
+                    </Box>
+                  </Collapse>
 
                   {/* Action Confirmation */}
                   <Paper

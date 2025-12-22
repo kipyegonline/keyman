@@ -16,6 +16,8 @@ import {
   Divider,
   Image,
   Box,
+  PinInput,
+  Collapse,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import {
@@ -26,8 +28,10 @@ import {
   AlertCircle,
   Shield,
   Smartphone,
+  Wallet,
 } from "lucide-react";
 import { payFullContract } from "@/api/contract";
+import { confirmOTP } from "@/api/wallet";
 import { notify } from "@/lib/notifications";
 
 interface ContractPaymentModalProps {
@@ -39,10 +43,20 @@ interface ContractPaymentModalProps {
   contractFee?: number;
   onPaymentSuccess?: () => void;
   onPaymentError?: (error: string) => void;
+  initiatorWalletId?: string;
 }
 
 // Payment method configurations
 const paymentMethods = {
+  keyman_wallet: {
+    label: "Keyman Wallet",
+    icon: <Wallet size={24} className="text-keyman-orange" />,
+    img: "/keyman-wallet.png",
+    color: "#F08C23",
+    description: "Pay from your wallet balance",
+    regex: /^[a-zA-Z0-9]{6,}$/,
+    placeholder: "",
+  },
   mpesa: {
     label: "M-Pesa",
     icon: <Smartphone size={24} />,
@@ -88,14 +102,62 @@ export default function ContractPaymentModal({
   contractFee = 200,
   onPaymentSuccess,
   onPaymentError,
+  initiatorWalletId = "",
 }: ContractPaymentModalProps) {
   const [loading, setLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [paymentStep, setPaymentStep] = useState<
-    "select" | "form" | "processing" | "success" | "error"
+    | "select"
+    | "form"
+    | "wallet_form"
+    | "wallet_otp"
+    | "processing"
+    | "success"
+    | "error"
   >("select");
 
+  // Wallet-specific states
+  const [useAlternateWallet, setUseAlternateWallet] = useState(false);
+  const [alternateWalletId, setAlternateWalletId] = useState("");
+  const [walletError, setWalletError] = useState("");
+  const [otpValue, setOtpValue] = useState("");
+  const [isOtpLoading, setIsOtpLoading] = useState(false);
+  const [otpError, setOtpError] = useState("");
+  const [otpSuccess, setOtpSuccess] = useState(false);
+  const [isWalletLoading, setIsWalletLoading] = useState(false);
+
   const totalAmount = amount + contractFee;
+
+  // Mask wallet ID for privacy (e.g., "KEY******123")
+  const maskWalletId = (walletId: string) => {
+    if (!walletId || walletId.length < 6) return "******";
+    const lastThree = walletId?.slice(-3);
+    const firstThree = walletId?.slice(0, 3);
+    return `${firstThree}******${lastThree}`;
+  };
+
+  // Validate wallet ID (alphanumeric, min 6 characters)
+  const validateWalletId = (walletId: string) => {
+    const cleanWalletId = walletId.trim();
+    return cleanWalletId.length >= 6 && /^[a-zA-Z0-9]+$/.test(cleanWalletId);
+  };
+
+  // Get the active wallet ID (registered or alternate)
+  const getActiveWalletId = () => {
+    if (useAlternateWallet && alternateWalletId) {
+      return alternateWalletId;
+    }
+    return initiatorWalletId;
+  };
+
+  const handleAlternateWalletChange = (value: string) => {
+    setAlternateWalletId(value);
+    if (value && !validateWalletId(value)) {
+      setWalletError("Wallet ID must be at least 6 alphanumeric characters");
+    } else {
+      setWalletError("");
+    }
+  };
 
   const form = useForm({
     initialValues: {
@@ -122,13 +184,23 @@ export default function ContractPaymentModal({
       form.reset();
       setSelectedMethod("");
       setPaymentStep("select");
+      setUseAlternateWallet(false);
+      setAlternateWalletId("");
+      setWalletError("");
+      setOtpValue("");
+      setOtpError("");
+      setOtpSuccess(false);
     }
   }, [opened]);
 
   const handleMethodSelect = (method: string) => {
     setSelectedMethod(method);
     form.setFieldValue("payment_method", method);
-    setPaymentStep("form");
+    if (method === "keyman_wallet") {
+      setPaymentStep("wallet_form");
+    } else {
+      setPaymentStep("form");
+    }
   };
 
   const handleSubmit = async (values: {
@@ -147,11 +219,11 @@ export default function ContractPaymentModal({
 
       if (response.status) {
         setPaymentStep("success");
-        notify.success(response.message || "Payment initiated successfully!");
+        /* notify.success(response.message || "Payment initiated successfully!");
         setTimeout(() => {
-          onPaymentSuccess?.();
+          onPaymentSuccess?.(); 
           handleClose();
-        }, 3000);
+        }, 3000);*/
       } else {
         setPaymentStep("error");
         notify.error(response.message || "Payment failed");
@@ -173,13 +245,113 @@ export default function ContractPaymentModal({
     setSelectedMethod("");
     setPaymentStep("select");
     setLoading(false);
+    setUseAlternateWallet(false);
+    setAlternateWalletId("");
+    setWalletError("");
+    setOtpValue("");
+    setOtpError("");
+    setOtpSuccess(false);
     onClose();
   };
 
   const handleBack = () => {
-    setPaymentStep("select");
-    setSelectedMethod("");
-    form.setFieldValue("payment_method", "");
+    if (paymentStep === "wallet_otp") {
+      setPaymentStep("wallet_form");
+      setOtpValue("");
+      setOtpError("");
+    } else if (paymentStep === "wallet_form" || paymentStep === "form") {
+      setPaymentStep("select");
+      setSelectedMethod("");
+      form.setFieldValue("payment_method", "");
+      setUseAlternateWallet(false);
+      setAlternateWalletId("");
+      setWalletError("");
+    } else {
+      setPaymentStep("select");
+      setSelectedMethod("");
+      form.setFieldValue("payment_method", "");
+    }
+  };
+
+  // Handle proceeding from wallet form to OTP - calls payFullContract first
+  const handleWalletProceed = async () => {
+    const activeWalletId = getActiveWalletId();
+    if (!activeWalletId) {
+      setWalletError("Please enter a valid wallet ID");
+      return;
+    }
+    if (useAlternateWallet && !validateWalletId(alternateWalletId)) {
+      setWalletError("Wallet ID must be at least 6 alphanumeric characters");
+      return;
+    }
+
+    setIsWalletLoading(true);
+    setWalletError("");
+
+    try {
+      // Call payFullContract with wallet_id to initiate payment and trigger OTP
+      const response = await payFullContract(contractId, {
+        amount: totalAmount,
+        payment_method: "wallet",
+        wallet_id: activeWalletId,
+      });
+      console.log(response, "sponx");
+      if (response.status) {
+        // Payment initiated, OTP sent - proceed to OTP verification
+        setPaymentStep("wallet_otp");
+        setOtpValue("");
+        setOtpError("");
+        notify.success(
+          response.message || "OTP sent to your registered phone number"
+        );
+      } else {
+        setWalletError(
+          response.message || "Failed to initiate payment. Please try again."
+        );
+        notify.error(response.message || "Failed to initiate payment");
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to initiate payment";
+      setWalletError(errorMessage);
+    } finally {
+      setIsWalletLoading(false);
+    }
+  };
+
+  // Handle OTP submission for wallet payment - confirms OTP to complete payment
+  const handleWalletOtpSubmit = async () => {
+    if (otpValue.length !== 6) {
+      setOtpError("Please enter a valid 6-digit OTP");
+      return;
+    }
+
+    setIsOtpLoading(true);
+    setOtpError("");
+
+    try {
+      const activeWalletId = getActiveWalletId();
+      // confirmOTP takes (otp, businessId?, phoneNumber?) - verify OTP to complete the payment
+      const otpResponse = await confirmOTP(otpValue, activeWalletId);
+
+      if (otpResponse.status) {
+        setOtpSuccess(true);
+        setPaymentStep("success");
+        notify.success(otpResponse.message || "Payment successful!");
+        setTimeout(() => {
+          onPaymentSuccess?.();
+          handleClose();
+        }, 3000);
+      } else {
+        setOtpError(otpResponse.message || "Invalid OTP. Please try again.");
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "OTP verification failed";
+      setOtpError(errorMessage);
+    } finally {
+      setIsOtpLoading(false);
+    }
   };
 
   // Render payment method selection
@@ -227,7 +399,7 @@ export default function ContractPaymentModal({
       </Text>
 
       <Stack gap="sm">
-        {Object.entries(paymentMethods).map(([key, method]) => (
+        {Object.entries(paymentMethods).map(([key, method], i) => (
           <Card
             key={key}
             padding="md"
@@ -243,14 +415,19 @@ export default function ContractPaymentModal({
             }}
           >
             <Group>
-              <Image
-                src={method.img}
-                alt={method.label}
-                w={40}
-                h={40}
-                fit="contain"
-                fallbackSrc="/placeholder.png"
-              />
+              {i == 0 ? (
+                method.icon
+              ) : (
+                <Image
+                  src={method.img}
+                  alt={method.label}
+                  w={40}
+                  h={40}
+                  fit="contain"
+                  fallbackSrc="/placeholder.png"
+                />
+              )}
+
               <div>
                 <Text fw={500}>{method.label}</Text>
                 <Text size="xs" c="dimmed">
@@ -343,6 +520,215 @@ export default function ContractPaymentModal({
     );
   };
 
+  // Render wallet form (wallet selection)
+  const renderWalletForm = () => {
+    const activeWalletId = getActiveWalletId();
+    const hasValidWallet = activeWalletId && validateWalletId(activeWalletId);
+
+    return (
+      <Stack gap="md">
+        <Paper
+          p="md"
+          className="bg-green-50 border border-green-200"
+          radius="md"
+        >
+          <Group justify="space-between">
+            <Text size="sm" fw={600}>
+              Total to Pay
+            </Text>
+            <Text size="lg" fw={700} c="green">
+              {formatCurrency(totalAmount)}
+            </Text>
+          </Group>
+        </Paper>
+
+        <Card padding="md" radius="md" withBorder>
+          <Group>
+            <ThemeIcon size={40} radius="md" color="orange" variant="light">
+              <Wallet size={24} />
+            </ThemeIcon>
+            <div>
+              <Text fw={500}>Keyman Wallet</Text>
+              <Text size="xs" c="dimmed">
+                Pay from your wallet balance
+              </Text>
+            </div>
+          </Group>
+        </Card>
+
+        {/* Show registered wallet if available */}
+        {initiatorWalletId && (
+          <Paper p="md" withBorder radius="md">
+            <Group justify="space-between" align="center">
+              <div>
+                <Text size="sm" c="dimmed">
+                  Registered Wallet
+                </Text>
+                <Text fw={600}>{maskWalletId(initiatorWalletId)}</Text>
+              </div>
+              {!useAlternateWallet && (
+                <ThemeIcon size="sm" radius="xl" color="green" variant="light">
+                  <CheckCircle size={14} />
+                </ThemeIcon>
+              )}
+            </Group>
+            <Button
+              variant="subtle"
+              size="xs"
+              mt="sm"
+              onClick={() => setUseAlternateWallet(!useAlternateWallet)}
+            >
+              {useAlternateWallet
+                ? "Use Registered Wallet"
+                : "Use Different Wallet"}
+            </Button>
+          </Paper>
+        )}
+
+        {/* Alternate wallet input */}
+        <Collapse in={useAlternateWallet || !initiatorWalletId}>
+          <TextInput
+            label="Wallet ID"
+            placeholder="Enter your Keyman Wallet ID"
+            leftSection={<Wallet size={16} />}
+            value={alternateWalletId}
+            onChange={(e) => handleAlternateWalletChange(e.target.value)}
+            error={walletError}
+            description="Enter your Keyman Wallet ID to proceed"
+          />
+        </Collapse>
+        {walletError && (
+          <Alert color="red" variant="light" radius="md" w="100%">
+            <Text size="sm">{walletError}</Text>
+          </Alert>
+        )}
+
+        <Alert
+          icon={<Shield size={16} />}
+          color="blue"
+          variant="light"
+          radius="md"
+        >
+          <Text size="xs">
+            You will receive an OTP on your registered phone number to verify
+            this transaction.
+          </Text>
+        </Alert>
+
+        <Group justify="space-between" mt="md">
+          <Button
+            variant="subtle"
+            color="gray"
+            onClick={handleBack}
+            disabled={isWalletLoading}
+          >
+            Back
+          </Button>
+          <Button
+            onClick={handleWalletProceed}
+            disabled={!hasValidWallet || isWalletLoading}
+            loading={isWalletLoading}
+            style={{
+              backgroundColor:
+                hasValidWallet && !isWalletLoading ? "#F08C23" : undefined,
+            }}
+          >
+            Proceed to Verify
+          </Button>
+        </Group>
+      </Stack>
+    );
+  };
+
+  // Render wallet OTP verification
+  const renderWalletOtp = () => {
+    const activeWalletId = getActiveWalletId();
+
+    return (
+      <Stack gap="md" align="center">
+        <ThemeIcon size={60} radius="xl" color="orange" variant="light">
+          <Shield size={32} />
+        </ThemeIcon>
+
+        <Text fw={600} size="lg" ta="center">
+          Verify Your Wallet
+        </Text>
+
+        <Text size="sm" c="dimmed" ta="center">
+          Enter the 6-digit OTP sent to your registered phone number for wallet{" "}
+          <Text component="span" fw={600}>
+            {maskWalletId(activeWalletId)}
+          </Text>
+        </Text>
+
+        <Paper
+          p="md"
+          className="bg-green-50 border border-green-200"
+          radius="md"
+          w="100%"
+        >
+          <Group justify="space-between">
+            <Text size="sm" fw={600}>
+              Amount to Pay
+            </Text>
+            <Text size="lg" fw={700} c="green">
+              {formatCurrency(totalAmount)}
+            </Text>
+          </Group>
+        </Paper>
+
+        <PinInput
+          length={6}
+          type="number"
+          value={otpValue}
+          onChange={(value) => {
+            setOtpValue(value);
+            setOtpError("");
+          }}
+          error={!!otpError}
+          size="lg"
+          oneTimeCode
+        />
+
+        {otpError && (
+          <Alert color="red" variant="light" radius="md" w="100%">
+            <Text size="sm">{otpError}</Text>
+          </Alert>
+        )}
+
+        {otpSuccess && (
+          <Alert color="green" variant="light" radius="md" w="100%">
+            <Group gap="xs">
+              <CheckCircle size={16} />
+              <Text size="sm">OTP verified! Processing payment...</Text>
+            </Group>
+          </Alert>
+        )}
+
+        <Group justify="space-between" mt="md" w="100%">
+          <Button
+            variant="subtle"
+            color="gray"
+            onClick={handleBack}
+            disabled={isOtpLoading}
+          >
+            Back
+          </Button>
+          <Button
+            onClick={handleWalletOtpSubmit}
+            loading={isOtpLoading}
+            disabled={otpValue.length !== 6}
+            style={{
+              backgroundColor: otpValue.length === 6 ? "#F08C23" : undefined,
+            }}
+          >
+            Verify & Pay
+          </Button>
+        </Group>
+      </Stack>
+    );
+  };
+
   // Render processing state
   const renderProcessing = () => (
     <Stack align="center" gap="md" py="xl">
@@ -368,6 +754,9 @@ export default function ContractPaymentModal({
         Your payment has been initiated successfully. Please complete the
         transaction on your phone.
       </Text>
+      <Button onClick={() => location.reload()} py="md">
+        Continue
+      </Button>
     </Stack>
   );
 
@@ -399,6 +788,10 @@ export default function ContractPaymentModal({
         return renderMethodSelection();
       case "form":
         return renderPhoneForm();
+      case "wallet_form":
+        return renderWalletForm();
+      case "wallet_otp":
+        return renderWalletOtp();
       case "processing":
         return renderProcessing();
       case "success":
