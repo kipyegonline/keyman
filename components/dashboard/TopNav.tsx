@@ -78,8 +78,8 @@ const TopNavigation: React.FC = () => {
   const { data: unreadCountData } = useQuery({
     queryKey: ["unreadNotificationCount"],
     queryFn: notificationApi.getUnreadNotificationCount,
-    refetchInterval: 30000, // Poll every 30 seconds
-    staleTime: 25000,
+    refetchInterval: 60000 * 5, // Poll every 5 minutes
+    staleTime: 60000 * 5,
   });
 
   const unreadCount = React.useMemo(() => {

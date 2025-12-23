@@ -125,6 +125,7 @@ export default function ContractPaymentModal({
   const [otpError, setOtpError] = useState("");
   const [otpSuccess, setOtpSuccess] = useState(false);
   const [isWalletLoading, setIsWalletLoading] = useState(false);
+  const [txId, setTxId] = useState<string>("");
 
   const totalAmount = amount + contractFee;
 
@@ -190,6 +191,7 @@ export default function ContractPaymentModal({
       setOtpValue("");
       setOtpError("");
       setOtpSuccess(false);
+      setTxId("");
     }
   }, [opened]);
 
@@ -219,6 +221,7 @@ export default function ContractPaymentModal({
 
       if (response.status) {
         setPaymentStep("success");
+
         /* notify.success(response.message || "Payment initiated successfully!");
         setTimeout(() => {
           onPaymentSuccess?.(); 
@@ -295,7 +298,8 @@ export default function ContractPaymentModal({
         payment_method: "wallet",
         wallet_id: activeWalletId,
       });
-      console.log(response, "sponx");
+      setTxId(response?.payable?.txId || "");
+
       if (response.status) {
         // Payment initiated, OTP sent - proceed to OTP verification
         setPaymentStep("wallet_otp");
@@ -332,7 +336,7 @@ export default function ContractPaymentModal({
     try {
       const activeWalletId = getActiveWalletId();
       // confirmOTP takes (otp, businessId?, phoneNumber?) - verify OTP to complete the payment
-      const otpResponse = await confirmOTP(otpValue, activeWalletId);
+      const otpResponse = await confirmOTP(otpValue, txId, activeWalletId);
 
       if (otpResponse.status) {
         setOtpSuccess(true);

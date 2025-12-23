@@ -53,7 +53,7 @@ const CreateContractForm: React.FC<CreateContractFormProps> = ({
       contract_amount: initialData?.contract_amount || 0,
       title: initialData?.title || "",
       scope: initialData?.scope || "",
-      contract_code: initialData?.contract_code || "",
+      contract_code: "",
     },
     validate: {
       /* service_provider_id: (value) =>
@@ -220,7 +220,7 @@ const CreateContractForm: React.FC<CreateContractFormProps> = ({
               />
 
               <TextInput
-                label="Supplier Referral Code (optional)"
+                label="Referrer Code (optional)"
                 placeholder="Enter referral code from supplier"
                 description="If you have a referral code from a supplier, enter it here"
                 {...form.getInputProps("contract_code")}

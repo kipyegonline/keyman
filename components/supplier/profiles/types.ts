@@ -1,6 +1,10 @@
 import { CSSProperties } from "react";
 
-export type SupplierType = "goods" | "services" | "professional_services";
+export type SupplierType =
+  | "goods"
+  | "services"
+  | "professional_services"
+  | "master";
 
 export interface ISupplierContact {
   id: string;
@@ -56,6 +60,16 @@ export const supplierTypeThemes = {
     badgeBg: "#DBEAFE",
     badgeColor: "#1D4ED8",
     hoverBorder: "#2563EB",
+  },
+  master: {
+    primary: "#B8860B", // Gold/Dark Goldenrod
+    primaryLight: "#B8860B15",
+    border: "#B8860B",
+    borderLight: "#B8860B40",
+    background: "#FFFBEB",
+    badgeBg: "#FEF3C7",
+    badgeColor: "#92400E",
+    hoverBorder: "#B8860B",
   },
 } as const;
 

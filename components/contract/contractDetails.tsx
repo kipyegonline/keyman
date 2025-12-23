@@ -45,6 +45,7 @@ import AddMaterialsModal from "./AddMaterialsModal";
 import AddLabourModal from "./AddLabourModal";
 import ContractPaymentModal from "./ContractPaymentModal";
 import ReferralCashback from "./ReferralCashback";
+import ClaimCashbackModal from "./ClaimCashbackModal";
 import {
   updateContract,
   updateMilestone,
@@ -57,6 +58,7 @@ import { useAppContext } from "@/providers/AppContext";
 import ChatManager from "../chat-manager";
 import { WholePriceList } from "../supplier/priceList";
 import { getSupplierPriceList } from "@/api/supplier";
+import { sendOTP } from "@/api/wallet";
 
 // Use the actual API response structure
 interface ContractDetails {
@@ -73,6 +75,7 @@ interface ContractDetails {
     | "cancelled"
     | "on_hold";
   contract_type?: string;
+  contract_code: null | string;
   duration?: string;
   start_date?: string;
   end_date?: string;
@@ -219,6 +222,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const [materials, setMaterials] = useState<MaterialItem[]>([]);
   const [labourItems, setLabourItems] = useState<LabourItem[]>([]);
   const [paymentModalOpened, setPaymentModalOpened] = useState(false);
+  const [cashbackModalOpened, setCashbackModalOpened] = useState(false);
+  const [cashbackAmount, setCashbackAmount] = useState(0);
   const contractFee = 200;
 
   // Batch milestone status change state
@@ -310,9 +315,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const updateMultipleMilestonesMutation = useMutation({
     mutationFn: (payload: { milestones: string[]; action: string }) =>
       updateMultipleMilestones(payload),
-    onSuccess: (response, variables) => {
+    onSuccess: (response) => {
       if (response.status) {
-        console.info(variables);
         //const actionText =
         //  variables.action === "start" ? "started" : "completed";
         // const count = variables.milestones.length;
@@ -328,9 +332,10 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         queryClient.invalidateQueries({
           queryKey: ["contracts"],
         });
-        refresh();
-        setBatchStatusModalOpened(false);
-        setMilestonesForBatchChange([]);
+        //refresh();
+        //setBatchStatusModalOpened(false);
+        //setMilestonesForBatchChange([]);
+        return { txId: response?.payable?.txId };
       } else {
         notify.error(response.message || "Failed to update milestones");
       }
@@ -553,7 +558,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     const payload: {
       milestones: string[];
       action: string;
-      payment_mode?: string;
+      payment_method?: string;
       phone_number?: string;
       wallet_id?: string;
     } = {
@@ -563,7 +568,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
     // Add payment details when starting milestones
     if (apiAction === "start" && paymentMethod) {
-      payload.payment_mode =
+      payload.payment_method =
         paymentMethod === "mobile_money" ? "mobile" : paymentMethod;
       if (paymentMethod === "mobile_money" && phoneNumber) {
         payload.phone_number = phoneNumber;
@@ -603,7 +608,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       // Build payload with mode and number for payment
       const payload: {
         action: string;
-        payment_mode?: string;
+        payment_method?: string;
         phone_number?: string;
         wallet_id?: string;
       } = {
@@ -612,7 +617,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
       // Add payment details when starting a milestone
       if (newStatus === "start" && paymentMethod) {
-        payload.payment_mode =
+        payload.payment_method =
           paymentMethod === "mobile_money" ? "mobile" : paymentMethod;
         if (paymentMethod === "mobile_money" && phoneNumber) {
           payload.phone_number = phoneNumber;
@@ -639,9 +644,18 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
           setStatusChangeModalOpened(false);
           setMilestoneForStatusChange(null);
         }
+        if (paymentMethod === "wallet" && action === "start") {
+          if (response?.payable?.otpResponse?.success === false) {
+            await sendOTP(contract?.initiator?.phone || "");
+          }
+          return response.payable.txId;
+        }
+        return response;
+        // return true
       } else {
         notify.error(response.message || "Failed to update milestone status");
         // Keep modal open on failure
+        // return false
       }
     } catch (error) {
       console.error("Error updating milestone status:", error);
@@ -651,6 +665,46 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   };
   const handleAcceptContract = () => {
     setAcceptContractModalOpened(true);
+  };
+
+  // Handler for claiming cashback
+  const handleClaimCashback = (amount: number) => {
+    console.log("Claiming cashback amount:", amount);
+    setCashbackAmount(amount);
+    setCashbackModalOpened(true);
+  };
+
+  // Confirm cashback claim with payment method
+  const confirmClaimCashback = async (
+    amount: number,
+    paymentMethod: string,
+    phoneNumber?: string,
+    walletId?: string
+  ): Promise<string | void> => {
+    try {
+      // TODO: Implement actual API call to claim cashback
+      console.log("Claiming cashback:", {
+        amount,
+        paymentMethod,
+        phoneNumber,
+        walletId,
+        contractCode: contract.contract_code,
+      });
+
+      // For now, simulate a successful response with a transaction ID
+      // Replace this with actual API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      if (paymentMethod === "wallet") {
+        return "TX123456"; // Return transaction ID for OTP verification
+      }
+
+      notify.success("Cashback claim initiated successfully!");
+    } catch (error) {
+      console.error("Error claiming cashback:", error);
+      notify.error("Failed to claim cashback");
+      throw error;
+    }
   };
 
   const confirmAcceptContract = async (contractId: string) => {
@@ -1610,15 +1664,12 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
               )}
 
               {/* Referral Cashback  contract.referrer_ks_number */}
-              {userType === "supplier" && contract?.referred_by && (
+              {userType === "supplier" && contract?.contract_code && (
                 <ReferralCashback
                   referrerKsNumber={contract.referrer_ks_number || ""}
                   //totalAmount={Number(contract.contract_amount) || 0}
                   totalAmount={Number(contract.contract_amount) || 0}
-                  onClaimCashback={(amount) => {
-                    // TODO: Implement cashback claim logic
-                    console.log("Claiming cashback:", amount);
-                  }}
+                  onClaimCashback={handleClaimCashback}
                 />
               )}
             </Stack>
@@ -1725,6 +1776,17 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         initiatorName={contract?.initiator?.name}
         isLoading={updateMultipleMilestonesMutation.isPending}
         initiatorPhone={contract?.initiator?.phone}
+        initiatorWalletId={contract?.initiator?.wallet_account_id}
+      />
+
+      {/* Claim Cashback Modal */}
+      <ClaimCashbackModal
+        opened={cashbackModalOpened}
+        onClose={() => setCashbackModalOpened(false)}
+        amount={cashbackAmount}
+        contractCode={contract?.referrer_ks_number ?? null}
+        onConfirm={confirmClaimCashback}
+        initiatorPhone={contract?.service_provider?.phone}
         initiatorWalletId={contract?.initiator?.wallet_account_id}
       />
     </Box>

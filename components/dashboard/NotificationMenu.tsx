@@ -224,16 +224,16 @@ export const NotificationMenu: React.FC<NotificationMenuProps> = ({
   const { data: notificationsData, isLoading } = useQuery({
     queryKey: ["notifications"],
     queryFn: getNotifications,
-    refetchInterval: 30000, // Poll every 30 seconds
-    staleTime: 25000, // Consider data stale after 25 seconds
+    refetchInterval: 60000 * 5, // Poll every 5 minutes
+    staleTime: 60000 * 5, // Consider data stale after 25 seconds
   });
 
   // Fetch unread count
   const { data: unreadCountData } = useQuery({
     queryKey: ["unreadNotificationCount"],
     queryFn: getUnreadNotificationCount,
-    refetchInterval: 30000,
-    staleTime: 25000,
+    refetchInterval: 60000 * 5, // Poll every 5 minutes
+    staleTime: 60000 * 5,
   });
 
   // Mutation for marking a notification as read

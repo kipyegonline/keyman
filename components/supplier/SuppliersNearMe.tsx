@@ -27,6 +27,7 @@ import {
   GoodsCard,
   ServicesCard,
   ProfessionalServicesCard,
+  MasterCard,
   ISupplierContact,
 } from "./profiles";
 
@@ -394,6 +395,8 @@ const SuppliersNearMe: React.FC<{
                       return <ServicesCard {...cardProps} />;
                     case "professional_services":
                       return <ProfessionalServicesCard {...cardProps} />;
+                    case "master":
+                      return <MasterCard {...cardProps} />;
                     case "goods":
                     default:
                       return <GoodsCard {...cardProps} />;

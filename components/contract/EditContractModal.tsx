@@ -17,6 +17,8 @@ interface ContractData {
   contract_amount: number;
   contract_duration_in_duration: number;
   service_provider_id?: string;
+  contract_code?: string | null;
+  referrer_ks_number?: string | null;
   contract_json?: {
     title?: string;
   };
@@ -33,6 +35,8 @@ interface EditContractModalProps {
       contract_amount: number;
       contract_duration_in_duration: number;
       service_provider_id?: string;
+      contract_code?: string;
+      referrer_ks_number?: string;
     }
   ) => Promise<void>;
 }
@@ -48,6 +52,8 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
     contract_amount: 0,
     contract_duration_in_duration: 0,
     service_provider_id: "",
+    contract_code: "",
+    referrer_ks_number: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({
@@ -65,6 +71,8 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
         contract_duration_in_duration:
           contract.contract_duration_in_duration || 0,
         service_provider_id: "",
+        contract_code: contract.contract_code || "",
+        referrer_ks_number: contract.referrer_ks_number || "",
       });
       setErrors({
         title: "",
@@ -89,10 +97,10 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
       newErrors.contract_amount = "Contract amount must be greater than 0";
     }
 
-    if (formData.contract_duration_in_duration <= 0) {
+    /* if (formData.contract_duration_in_duration <= 0) {
       newErrors.contract_duration_in_duration =
         "Duration must be greater than 0 months";
-    }
+    }*/
 
     setErrors(newErrors);
     return !Object.values(newErrors).some((error) => error !== "");
@@ -108,6 +116,8 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
         contract_amount: number;
         contract_duration_in_duration: number;
         service_provider_id?: string;
+        contract_code?: string;
+        referrer_ks_number?: string;
       } = {
         title: formData.title.trim(),
         contract_amount: formData.contract_amount,
@@ -115,6 +125,12 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
       };
       if (formData.service_provider_id?.trim() !== "") {
         payload.service_provider_id = formData.service_provider_id?.trim();
+      }
+      if (formData.contract_code?.trim() !== "") {
+        payload.contract_code = formData.contract_code?.trim();
+      }
+      if (formData.referrer_ks_number?.trim() !== "") {
+        payload.referrer_ks_number = formData.referrer_ks_number?.trim();
       }
       await onSave(contract.id, payload);
       // Don't automatically close the modal here
@@ -179,7 +195,9 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
               Editing contract:
             </Text>
             <Text size="sm" fw={500}>
-              {contract.id}
+              {contract.contract_json
+                ? contract.contract_json.title || contract.title
+                : contract.title}
             </Text>
           </Group>
 
@@ -216,29 +234,31 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
             }
           />
 
-          <NumberInput
-            label="Contract Duration (Months)"
-            placeholder="Enter duration in months"
-            value={formData.contract_duration_in_duration}
-            onChange={(value) =>
-              setFormData({
-                ...formData,
-                contract_duration_in_duration: Number(value) || 0,
-              })
-            }
-            error={errors.contract_duration_in_duration}
-            required
-            min={1}
-            max={240} // 20 years max
-            disabled={isLoading}
-            description={
-              formData.contract_duration_in_duration > 0
-                ? `Duration: ${formatDuration(
-                    formData.contract_duration_in_duration
-                  )}`
-                : "Enter duration in months (e.g., 12 for 1 year)"
-            }
-          />
+          {false && (
+            <NumberInput
+              label="Contract Duration (Months)"
+              placeholder="Enter duration in months"
+              value={formData.contract_duration_in_duration}
+              onChange={(value) =>
+                setFormData({
+                  ...formData,
+                  contract_duration_in_duration: Number(value) || 0,
+                })
+              }
+              error={errors.contract_duration_in_duration}
+              required
+              min={1}
+              max={240} // 20 years max
+              disabled={isLoading}
+              description={
+                formData.contract_duration_in_duration > 0
+                  ? `Duration: ${formatDuration(
+                      formData.contract_duration_in_duration
+                    )}`
+                  : "Enter duration in months (e.g., 12 for 1 year)"
+              }
+            />
+          )}
           <TextInput
             disabled={isLoading}
             label="Enter service provider number (KS number)"
@@ -248,6 +268,33 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
               setFormData({
                 ...formData,
                 service_provider_id: event.currentTarget.value,
+              })
+            }
+          />
+
+          <TextInput
+            disabled={isLoading}
+            label="Contract Code (Optional)"
+            value={formData.contract_code}
+            placeholder="Enter contract code"
+            onChange={(event) =>
+              setFormData({
+                ...formData,
+                contract_code: event.currentTarget.value,
+              })
+            }
+          />
+
+          <TextInput
+            disabled={isLoading}
+            label="Referrer KS Number (Optional)"
+            value={formData.referrer_ks_number}
+            placeholder="Enter referrer's KS number"
+            description="Enter the KS number of the person who referred this contract"
+            onChange={(event) =>
+              setFormData({
+                ...formData,
+                referrer_ks_number: event.currentTarget.value,
               })
             }
           />
@@ -268,11 +315,7 @@ const EditContractModal: React.FC<EditContractModalProps> = ({
               leftSection={<Check size={16} />}
               onClick={handleSubmit}
               loading={isLoading}
-              disabled={
-                !formData.title.trim() ||
-                formData.contract_amount <= 0 ||
-                formData.contract_duration_in_duration <= 0
-              }
+              disabled={!formData.title.trim() || formData.contract_amount <= 0}
             >
               Save Changes
             </Button>

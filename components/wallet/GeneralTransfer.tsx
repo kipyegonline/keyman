@@ -104,7 +104,7 @@ export default function GeneralTransfer({
   onBack,
 }: GeneralTransferProps) {
   const [transferType, setTransferType] = useState<string>("");
-  console.log(walletData, "iddn");
+
   // Mantine form for better state management and validation
   const form = useForm({
     initialValues: {

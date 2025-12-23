@@ -24,6 +24,7 @@ import { notify } from "@/lib/notifications";
 interface ContractData {
   service_provider_id: string;
   contract_duration_in_duration: number;
+  contract_code?: string;
   contract_amount: number;
   title: string;
   scope: string;
@@ -87,6 +88,7 @@ const ReviewAndSubmit: React.FC<ReviewAndSubmitProps> = ({
         contract_duration_in_duration:
           contractData.contract_duration_in_duration,
         contract_amount: contractData.contract_amount,
+        contract_code: contractData.contract_code,
         referrer_ks_number: referrer,
         contract_json: JSON.stringify({
           title: contractData.title,

@@ -52,7 +52,7 @@ interface MilestoneStatusChangeModalProps {
     paymentMethod?: string,
     phoneNumber?: string,
     walletId?: string
-  ) => Promise<void>;
+  ) => Promise<void | string>;
   providerName?: string;
   initiatorName?: string;
   isInitiator?: boolean;
@@ -93,6 +93,7 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
   const [isOtpLoading, setIsOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState("");
   const [otpSuccess, setOtpSuccess] = useState(false);
+  const [txId, setTxId] = useState("");
 
   // Mask phone number for privacy (e.g., "******789")
   const maskPhoneNumber = (phone: string) => {
@@ -178,6 +179,7 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
       setOtpValue("");
       setOtpError("");
       setOtpSuccess(false);
+      setTxId("");
     }
   }, [opened, milestone]);
 
@@ -230,7 +232,7 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
         isStarting && paymentMethod === "wallet"
           ? getActiveWalletId()
           : undefined;
-      await onConfirm(
+      const result = await onConfirm(
         milestone.id,
         signature.trim(),
         isStarting ? paymentMethod : undefined,
@@ -243,6 +245,7 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
           setCurrentScreen("mobile_payment");
         } else if (paymentMethod === "wallet") {
           setCurrentScreen("wallet_otp");
+          setTxId(result as string);
         }
       }
       // For completing milestones, parent component handles closing
@@ -276,14 +279,14 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
 
     try {
       const walletId = getActiveWalletId();
-      const response = await confirmOTP(otpValue, undefined, walletId);
+      const response = await confirmOTP(otpValue, txId, walletId);
 
-      if (response.status) {
+      if (response.status || response.success) {
         setOtpSuccess(true);
         // Wait 2 seconds then reload page
         setTimeout(() => {
           window.location.reload();
-        }, 2000);
+        }, 3000);
       } else {
         setOtpError(response.message || "Invalid OTP. Please try again.");
         setOtpValue("");

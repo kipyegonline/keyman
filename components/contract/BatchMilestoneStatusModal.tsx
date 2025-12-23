@@ -54,7 +54,7 @@ interface BatchMilestoneStatusModalProps {
     paymentMethod?: string,
     phoneNumber?: string,
     walletId?: string
-  ) => Promise<void>;
+  ) => Promise<void | { txId: string }>;
   providerName?: string;
   initiatorName?: string;
   isLoading?: boolean;
@@ -101,6 +101,7 @@ const BatchMilestoneStatusModal: React.FC<BatchMilestoneStatusModalProps> = ({
   const [isOtpLoading, setIsOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState("");
   const [otpSuccess, setOtpSuccess] = useState(false);
+  const [txId, setTxId] = useState<string>("");
 
   const isStarting = action === "start";
 
@@ -109,7 +110,7 @@ const BatchMilestoneStatusModal: React.FC<BatchMilestoneStatusModalProps> = ({
     return milestones.reduce((sum, m) => sum + Number(m.amount || 0), 0);
   }, [milestones]);
 
-  // Reset form when modal opens/closes
+  // Reset form when modal opens (not on milestones change to preserve screen state)
   useEffect(() => {
     if (opened) {
       setAgreed(false);
@@ -127,7 +128,8 @@ const BatchMilestoneStatusModal: React.FC<BatchMilestoneStatusModalProps> = ({
       setOtpError("");
       setOtpSuccess(false);
     }
-  }, [opened, milestones]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opened]); // Only reset when modal opens, not when milestones change
 
   // Mask phone number for privacy (e.g., "******789")
   const maskPhoneNumber = (phone: string) => {
@@ -241,7 +243,7 @@ const BatchMilestoneStatusModal: React.FC<BatchMilestoneStatusModalProps> = ({
         isStarting && paymentMethod === "wallet"
           ? getActiveWalletId()
           : undefined;
-      await onConfirm(
+      const response = await onConfirm(
         milestoneIds,
         action,
         isStarting ? paymentMethod : undefined,
@@ -254,6 +256,7 @@ const BatchMilestoneStatusModal: React.FC<BatchMilestoneStatusModalProps> = ({
           setCurrentScreen("mobile_payment");
         } else if (paymentMethod === "wallet") {
           setCurrentScreen("wallet_otp");
+          setTxId(response?.txId as string);
         }
       }
       // For completing milestones, parent component handles closing
@@ -284,14 +287,14 @@ const BatchMilestoneStatusModal: React.FC<BatchMilestoneStatusModalProps> = ({
 
     try {
       const walletId = getActiveWalletId();
-      const response = await confirmOTP(otpValue, undefined, walletId);
+      const response = await confirmOTP(otpValue, txId, walletId);
 
-      if (response.status) {
+      if (response.status || response.success) {
         setOtpSuccess(true);
-        // Wait 2 seconds then reload page
+        // Wait 3 seconds then reload page
         setTimeout(() => {
           window.location.reload();
-        }, 2000);
+        }, 3000);
       } else {
         setOtpError(response.message || "Invalid OTP. Please try again.");
         setOtpValue("");

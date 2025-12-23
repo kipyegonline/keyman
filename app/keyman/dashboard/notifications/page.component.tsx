@@ -25,8 +25,8 @@ const NotificationsPage = () => {
   const { data: notificationsData, isLoading } = useQuery({
     queryKey: ["notifications"],
     queryFn: getNotifications,
-    refetchInterval: 30000, // Poll every 30 seconds
-    staleTime: 25000,
+    refetchInterval: 60000, // Poll every 5 minutes
+    staleTime: 60000,
   });
 
   // Mutation for marking all as read

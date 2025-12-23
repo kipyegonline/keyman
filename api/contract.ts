@@ -326,6 +326,7 @@ export interface IPayFullContractResponse {
   status: boolean;
   message: string;
   data?: unknown;
+  payable?: { txId: string };
 }
 
 /**

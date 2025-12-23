@@ -101,13 +101,15 @@ const ReferralCashback: React.FC<ReferralCashbackProps> = ({
   }, [recommendedCashback, selectedCashback]);
 
   const handleClaimCashback = () => {
+    if (onClaimCashback) onClaimCashback(10);
     if (selectedCashback && onClaimCashback) {
-      onClaimCashback(selectedCashback);
+      // onClaimCashback(selectedCashback);
     }
   };
 
   // Don't render if no cashback options available
-  if (cashbackOptions.length === 0) {
+  //(cashbackOptions.length === 0)
+  if (false) {
     return (
       <Paper
         p="md"
@@ -278,7 +280,7 @@ const ReferralCashback: React.FC<ReferralCashbackProps> = ({
           fullWidth
           size="md"
           loading={isLoading}
-          disabled={!selectedCashback}
+          //  disabled={!selectedCashback}
           onClick={handleClaimCashback}
           leftSection={<Send size={18} />}
           style={{
