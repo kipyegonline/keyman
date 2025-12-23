@@ -10,7 +10,6 @@ import {
   TextInput,
   Transition,
   ThemeIcon,
-  Loader,
   Radio,
   Collapse,
   Box,
@@ -19,7 +18,6 @@ import {
 import {
   CheckCircle,
   X,
-  CreditCard,
   RefreshCw,
   Smartphone,
   Wallet,
@@ -70,9 +68,9 @@ const ClaimCashbackModal: React.FC<ClaimCashbackModalProps> = ({
   const [useAlternateWallet, setUseAlternateWallet] = useState(false);
   const [alternateWalletId, setAlternateWalletId] = useState("");
   const [walletError, setWalletError] = useState("");
-  // Unified screen state: "form" | "mobile_payment" | "wallet_otp"
+  // Unified screen state: "form" | "mobile_otp" | "wallet_otp" | "success"
   const [currentScreen, setCurrentScreen] = useState<
-    "form" | "mobile_payment" | "wallet_otp" | "success"
+    "form" | "mobile_otp" | "wallet_otp" | "success"
   >("form");
   const [otpValue, setOtpValue] = useState("");
   const [isOtpLoading, setIsOtpLoading] = useState(false);
@@ -200,15 +198,17 @@ const ClaimCashbackModal: React.FC<ClaimCashbackModalProps> = ({
         phoneToUse,
         walletToUse
       );
+      console.log(result, "res---");
+      // Save txId from the response
+      if (result) {
+        setTxId(result as string);
+      }
 
-      // Show appropriate screen based on payment method
+      // Show appropriate OTP screen based on payment method
       if (paymentMethod === "mobile_money") {
-        setCurrentScreen("mobile_payment");
+        setCurrentScreen("mobile_otp");
       } else if (paymentMethod === "wallet") {
         setCurrentScreen("wallet_otp");
-        if (result) {
-          setTxId(result as string);
-        }
       }
     } catch (error) {
       console.error("Error claiming cashback:", error);
@@ -238,12 +238,20 @@ const ClaimCashbackModal: React.FC<ClaimCashbackModalProps> = ({
     setIsOtpLoading(true);
 
     try {
-      const walletId = getActiveWalletId();
-      const response = await confirmOTP(otpValue, txId, walletId);
+      // Use wallet ID for wallet payments, phone number for mobile money
+      const accountId =
+        paymentMethod === "wallet"
+          ? getActiveWalletId()
+          : getActivePhoneNumber();
+      const response = await confirmOTP(otpValue, txId, accountId);
 
       if (response.status || response.success) {
         setOtpSuccess(true);
         setCurrentScreen("success");
+        // Wait 2 seconds then reload the page
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       } else {
         setOtpError(response.message || "Invalid OTP. Please try again.");
         setOtpValue("");
@@ -574,9 +582,9 @@ const ClaimCashbackModal: React.FC<ClaimCashbackModalProps> = ({
           )}
         </Transition>
 
-        {/* Mobile Money Payment Screen */}
+        {/* Mobile Money OTP Verification Screen */}
         <Transition
-          mounted={currentScreen === "mobile_payment"}
+          mounted={currentScreen === "mobile_otp"}
           transition="slide-left"
           duration={300}
           timingFunction="ease"
@@ -586,14 +594,14 @@ const ClaimCashbackModal: React.FC<ClaimCashbackModalProps> = ({
               style={{
                 ...styles,
                 position:
-                  currentScreen === "mobile_payment" ? "relative" : "absolute",
+                  currentScreen === "mobile_otp" ? "relative" : "absolute",
                 top: 0,
                 left: 0,
                 right: 0,
               }}
             >
               <Stack gap="lg" align="center" py="xl">
-                {/* Success Animation */}
+                {/* OTP Icon */}
                 <ThemeIcon
                   size={80}
                   radius="xl"
@@ -603,59 +611,60 @@ const ClaimCashbackModal: React.FC<ClaimCashbackModalProps> = ({
                     animation: "pulse 2s infinite",
                   }}
                 >
-                  <CreditCard size={40} />
+                  <Smartphone size={40} />
                 </ThemeIcon>
 
                 <Stack gap="xs" align="center">
                   <Text fw={700} size="xl" c="#3D6B2C" ta="center">
-                    Cashback Processing!
+                    OTP Verification
                   </Text>
                   <Text size="sm" c="dimmed" ta="center" maw={300}>
-                    Your cashback of{" "}
+                    An OTP code has been sent to{" "}
                     <Text span fw={600} c="#3D6B2C">
-                      {formatCurrency(amount)}
-                    </Text>{" "}
-                    is being sent to your M-Pesa account.
+                      {maskPhoneNumber(getActivePhoneNumber())}
+                    </Text>
                   </Text>
                 </Stack>
 
-                {/* Payment Instructions */}
-                <Paper
-                  p="md"
-                  radius="md"
-                  style={{
-                    backgroundColor: "#F08C2315",
-                    border: "1px solid #F08C2340",
-                    width: "100%",
-                  }}
-                >
-                  <Stack gap="sm">
-                    <Group gap="xs">
-                      <Loader size="xs" color="#F08C23" />
-                      <Text size="sm" fw={600} c="#F08C23">
-                        Processing cashback...
-                      </Text>
-                    </Group>
-                    <Text size="xs" c="dimmed">
-                      You will receive an M-Pesa confirmation message shortly.
+                {/* OTP Input */}
+                <Box>
+                  <Text size="sm" fw={500} mb="sm" ta="center">
+                    Enter 4-digit OTP
+                  </Text>
+                  <PinInput
+                    size="lg"
+                    length={4}
+                    value={otpValue}
+                    onChange={setOtpValue}
+                    placeholder="○"
+                    type="number"
+                    disabled={isOtpLoading}
+                    error={!!otpError}
+                    style={{ display: "flex", justifyContent: "center" }}
+                  />
+                  {otpError && (
+                    <Text size="xs" c="red" ta="center" mt="xs">
+                      {otpError}
                     </Text>
-                  </Stack>
-                </Paper>
+                  )}
+                </Box>
 
-                {/* Continue Button */}
+                {/* Confirm OTP Button */}
                 <Button
                   size="lg"
                   className="bg-keyman-green"
-                  leftSection={<RefreshCw size={18} />}
-                  onClick={handleContinue}
+                  leftSection={<Shield size={18} />}
+                  onClick={handleOtpSubmit}
+                  loading={isOtpLoading}
+                  disabled={!otpValue || otpValue.length !== 4}
                   fullWidth
                   mt="md"
                 >
-                  Continue
+                  Confirm OTP
                 </Button>
 
                 <Text size="xs" c="dimmed" ta="center">
-                  Click continue to return to the contract
+                  Didn&apos;t receive the code? Check your phone or try again
                 </Text>
               </Stack>
             </div>

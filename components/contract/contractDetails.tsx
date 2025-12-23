@@ -81,6 +81,10 @@ interface ContractDetails {
   end_date?: string;
   total_amount: number;
   contract_duration_in_duration: number;
+  referrer_service_provider: {
+    owner: { wallet_account_id: string; phone: string };
+    name: string;
+  };
 
   contract_amount: number;
   payment_status?: "paid" | "pending" | "partial";
@@ -677,9 +681,9 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   // Confirm cashback claim with payment method
   const confirmClaimCashback = async (
     amount: number,
-    paymentMethod: string,
-    phoneNumber?: string,
-    walletId?: string
+    paymentMethod: string
+    //phoneNumber?: string
+    //walletId?: string
   ): Promise<string | void> => {
     try {
       // Get the payer (contract initiator) wallet ID
@@ -692,22 +696,19 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
       // Determine payee details based on payment method
       let payeeBankCode: string;
-      let payeeAccountId: string;
-      let payeeAccountName: string;
-      let notificationPhone: string;
+      const payeeAccountId: string =
+        contract?.referrer_service_provider?.owner?.wallet_account_id;
+      const payeeAccountName: string =
+        contract?.referrer_service_provider?.name;
+      const notificationPhone: string =
+        contract?.referrer_service_provider?.owner?.phone?.slice(-9);
 
       if (paymentMethod === "wallet") {
         // Wallet to wallet transfer
-        payeeBankCode = "M-PESA"; // Using M-PESA as internal transfer mechanism
-        payeeAccountId = walletId || payerWalletId;
-        payeeAccountName = contract?.service_provider?.name || "Referrer";
-        notificationPhone = contract?.service_provider?.phone?.slice(-9) || "";
+        payeeBankCode = "046"; // Using M-PESA as internal transfer mechanism
       } else {
         // Mobile money transfer (M-PESA/Airtel)
-        payeeBankCode = "M-PESA"; // Default to M-PESA for mobile money
-        payeeAccountId = phoneNumber ? phoneNumber.slice(-9) : ""; // Last 9 digits
-        payeeAccountName = contract?.service_provider?.name || "Referrer";
-        notificationPhone = phoneNumber?.slice(-9) || "";
+        payeeBankCode = "mpesa"; // Default to M-PESA for mobile money
       }
 
       if (!payeeAccountId) {
@@ -730,11 +731,10 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       if (response.status || response.success) {
         if (paymentMethod === "wallet") {
           // Return transaction ID for OTP verification
-          return (
-            response.businessId || response.txId || response.transactionId || ""
-          );
-        } else {
-          notify.success("Cashback claim initiated successfully!");
+          return response.txId;
+        } else if (paymentMethod === "mobile_money") {
+          return response.txId;
+          // notify.success("Cashback claim initiated successfully!");
         }
       } else {
         notify.error(response.message || "Failed to process cashback");
@@ -790,7 +790,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const totalMilestones = contract.milestones?.length || 0;
   const progressPercentage =
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
-  //console.log(contract, "con----");
+  console.log(contract, "con----");
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-UK", {
       year: "numeric",
