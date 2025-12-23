@@ -58,7 +58,7 @@ import { useAppContext } from "@/providers/AppContext";
 import ChatManager from "../chat-manager";
 import { WholePriceList } from "../supplier/priceList";
 import { getSupplierPriceList } from "@/api/supplier";
-import { sendOTP } from "@/api/wallet";
+import { sendOTP, generalTransfer } from "@/api/wallet";
 
 // Use the actual API response structure
 interface ContractDetails {
@@ -682,24 +682,64 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     walletId?: string
   ): Promise<string | void> => {
     try {
-      // TODO: Implement actual API call to claim cashback
-      console.log("Claiming cashback:", {
-        amount,
-        paymentMethod,
-        phoneNumber,
-        walletId,
-        contractCode: contract.contract_code,
-      });
+      // Get the payer (contract initiator) wallet ID
+      const payerWalletId = contract?.initiator?.wallet_account_id;
 
-      // For now, simulate a successful response with a transaction ID
-      // Replace this with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      if (paymentMethod === "wallet") {
-        return "TX123456"; // Return transaction ID for OTP verification
+      if (!payerWalletId) {
+        notify.error("Wallet not found. Please set up your wallet first.");
+        throw new Error("Payer wallet not found");
       }
 
-      notify.success("Cashback claim initiated successfully!");
+      // Determine payee details based on payment method
+      let payeeBankCode: string;
+      let payeeAccountId: string;
+      let payeeAccountName: string;
+      let notificationPhone: string;
+
+      if (paymentMethod === "wallet") {
+        // Wallet to wallet transfer
+        payeeBankCode = "M-PESA"; // Using M-PESA as internal transfer mechanism
+        payeeAccountId = walletId || payerWalletId;
+        payeeAccountName = contract?.service_provider?.name || "Referrer";
+        notificationPhone = contract?.service_provider?.phone?.slice(-9) || "";
+      } else {
+        // Mobile money transfer (M-PESA/Airtel)
+        payeeBankCode = "M-PESA"; // Default to M-PESA for mobile money
+        payeeAccountId = phoneNumber ? phoneNumber.slice(-9) : ""; // Last 9 digits
+        payeeAccountName = contract?.service_provider?.name || "Referrer";
+        notificationPhone = phoneNumber?.slice(-9) || "";
+      }
+
+      if (!payeeAccountId) {
+        notify.error("Recipient account not specified");
+        throw new Error("Payee account not found");
+      }
+
+      // Call generalTransfer API
+      const response = await generalTransfer({
+        payerAccountId: payerWalletId,
+        payeeBankCode: payeeBankCode,
+        payeeAccountId: payeeAccountId,
+        payeeAccountName: payeeAccountName,
+        currency: "KES",
+        amount: amount,
+        remark: `Cashback for contract ${contract?.contract_code || "N/A"}`,
+        payeeMobileForNotification: notificationPhone,
+      });
+
+      if (response.status || response.success) {
+        if (paymentMethod === "wallet") {
+          // Return transaction ID for OTP verification
+          return (
+            response.businessId || response.txId || response.transactionId || ""
+          );
+        } else {
+          notify.success("Cashback claim initiated successfully!");
+        }
+      } else {
+        notify.error(response.message || "Failed to process cashback");
+        throw new Error(response.message || "Transfer failed");
+      }
     } catch (error) {
       console.error("Error claiming cashback:", error);
       notify.error("Failed to claim cashback");
