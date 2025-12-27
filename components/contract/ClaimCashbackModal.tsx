@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { confirmOTP } from "@/api/wallet";
+import MobileMoneyOperatorSelect from "@/components/ui/MobileMoneyOperatorSelect";
 
 interface ClaimCashbackModalProps {
   opened: boolean;
@@ -36,7 +37,8 @@ interface ClaimCashbackModalProps {
     amount: number,
     paymentMethod: string,
     phoneNumber?: string,
-    walletId?: string
+    walletId?: string,
+    networkOperator?: string
   ) => Promise<void | string>;
   initiatorPhone?: string;
   initiatorWalletId?: string;
@@ -68,6 +70,9 @@ const ClaimCashbackModal: React.FC<ClaimCashbackModalProps> = ({
   const [useAlternateWallet, setUseAlternateWallet] = useState(false);
   const [alternateWalletId, setAlternateWalletId] = useState("");
   const [walletError, setWalletError] = useState("");
+  const [networkOperator, setNetworkOperator] = useState<string | null>(
+    "mpesa"
+  );
   // Unified screen state: "form" | "mobile_otp" | "wallet_otp" | "success"
   const [currentScreen, setCurrentScreen] = useState<
     "form" | "mobile_otp" | "wallet_otp" | "success"
@@ -152,6 +157,7 @@ const ClaimCashbackModal: React.FC<ClaimCashbackModalProps> = ({
       setUseAlternateWallet(false);
       setAlternateWalletId("");
       setWalletError("");
+      setNetworkOperator("mpesa");
       setOtpValue("");
       setOtpError("");
       setOtpSuccess(false);
@@ -191,14 +197,19 @@ const ClaimCashbackModal: React.FC<ClaimCashbackModalProps> = ({
         paymentMethod === "mobile_money" ? getActivePhoneNumber() : undefined;
       const walletToUse =
         paymentMethod === "wallet" ? getActiveWalletId() : undefined;
+      const operatorToUse =
+        paymentMethod === "mobile_money"
+          ? networkOperator ?? undefined
+          : undefined;
 
       const result = await onConfirm(
         amount,
         paymentMethod,
         phoneToUse,
-        walletToUse
+        walletToUse,
+        operatorToUse
       );
-      console.log(result, "res---");
+
       // Save txId from the response
       if (result) {
         setTxId(result as string);
@@ -499,7 +510,15 @@ const ClaimCashbackModal: React.FC<ClaimCashbackModalProps> = ({
                           marginLeft: "8px",
                         }}
                       >
-                        <Stack gap="xs">
+                        <Stack gap="sm">
+                          {/* Mobile Money Operator Selection */}
+                          <MobileMoneyOperatorSelect
+                            value={networkOperator}
+                            onChange={setNetworkOperator}
+                            label="Select Operator"
+                            required
+                          />
+
                           {!useAlternateNumber ? (
                             <>
                               <Text size="sm" c="dimmed">
@@ -582,7 +601,7 @@ const ClaimCashbackModal: React.FC<ClaimCashbackModalProps> = ({
           )}
         </Transition>
 
-        {/* Mobile Money OTP Verification Screen */}
+        {/* Mobile Money STK Push Screen */}
         <Transition
           mounted={currentScreen === "mobile_otp"}
           transition="slide-left"
@@ -601,72 +620,171 @@ const ClaimCashbackModal: React.FC<ClaimCashbackModalProps> = ({
               }}
             >
               <Stack gap="lg" align="center" py="xl">
-                {/* OTP Icon */}
-                <ThemeIcon
-                  size={80}
-                  radius="xl"
-                  variant="light"
-                  color="green"
-                  style={{
-                    animation: "pulse 2s infinite",
-                  }}
-                >
-                  <Smartphone size={40} />
-                </ThemeIcon>
+                {/* Phone with notification icon */}
+                <Box style={{ position: "relative" }}>
+                  <ThemeIcon
+                    size={80}
+                    radius="xl"
+                    variant="light"
+                    color="green"
+                    style={{
+                      animation: "pulse 2s infinite",
+                    }}
+                  >
+                    <Smartphone size={40} />
+                  </ThemeIcon>
+                  {/* Notification badge */}
+                  <Box
+                    style={{
+                      position: "absolute",
+                      top: -4,
+                      right: -4,
+                      width: 24,
+                      height: 24,
+                      borderRadius: "50%",
+                      backgroundColor: "#F08C23",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 2px 8px rgba(240, 140, 35, 0.4)",
+                      animation: "pulse 1.5s infinite",
+                    }}
+                  >
+                    <Text size="xs" c="white" fw={700}>
+                      1
+                    </Text>
+                  </Box>
+                </Box>
 
                 <Stack gap="xs" align="center">
                   <Text fw={700} size="xl" c="#3D6B2C" ta="center">
-                    OTP Verification
+                    Check Your Phone
                   </Text>
                   <Text size="sm" c="dimmed" ta="center" maw={300}>
-                    An OTP code has been sent to{" "}
+                    A payment request has been sent to{" "}
                     <Text span fw={600} c="#3D6B2C">
                       {maskPhoneNumber(getActivePhoneNumber())}
                     </Text>
                   </Text>
                 </Stack>
 
-                {/* OTP Input */}
-                <Box>
-                  <Text size="sm" fw={500} mb="sm" ta="center">
-                    Enter 4-digit OTP
-                  </Text>
-                  <PinInput
-                    size="lg"
-                    length={4}
-                    value={otpValue}
-                    onChange={setOtpValue}
-                    placeholder="○"
-                    type="number"
-                    disabled={isOtpLoading}
-                    error={!!otpError}
-                    style={{ display: "flex", justifyContent: "center" }}
-                  />
-                  {otpError && (
-                    <Text size="xs" c="red" ta="center" mt="xs">
-                      {otpError}
-                    </Text>
-                  )}
-                </Box>
+                {/* Instructions */}
+                <Paper
+                  p="md"
+                  radius="md"
+                  withBorder
+                  style={{
+                    backgroundColor: "#3D6B2C08",
+                    borderColor: "#3D6B2C30",
+                    width: "100%",
+                  }}
+                >
+                  <Stack gap="sm">
+                    <Group gap="sm" align="flex-start">
+                      <ThemeIcon
+                        size="sm"
+                        radius="xl"
+                        color="green"
+                        variant="filled"
+                      >
+                        <Text size="xs" fw={700}>
+                          1
+                        </Text>
+                      </ThemeIcon>
+                      <Text size="sm" c="dimmed">
+                        Open the payment prompt on your phone
+                      </Text>
+                    </Group>
+                    <Group gap="sm" align="flex-start">
+                      <ThemeIcon
+                        size="sm"
+                        radius="xl"
+                        color="green"
+                        variant="filled"
+                      >
+                        <Text size="xs" fw={700}>
+                          2
+                        </Text>
+                      </ThemeIcon>
+                      <Text size="sm" c="dimmed">
+                        Enter your{" "}
+                        <Text span fw={600} c="#3D6B2C">
+                          Mobile Money PIN
+                        </Text>{" "}
+                        to confirm
+                      </Text>
+                    </Group>
+                    <Group gap="sm" align="flex-start">
+                      <ThemeIcon
+                        size="sm"
+                        radius="xl"
+                        color="green"
+                        variant="filled"
+                      >
+                        <Text size="xs" fw={700}>
+                          3
+                        </Text>
+                      </ThemeIcon>
+                      <Text size="sm" c="dimmed">
+                        Wait for the confirmation SMS
+                      </Text>
+                    </Group>
+                  </Stack>
+                </Paper>
 
-                {/* Confirm OTP Button */}
+                {/* Loading spinner and status */}
+                <Stack gap="sm" align="center">
+                  <Group gap="xs">
+                    <RefreshCw
+                      size={18}
+                      className="text-keyman-green"
+                      style={{
+                        animation: "spin 1.5s linear infinite",
+                      }}
+                    />
+                    <Text size="sm" c="#3D6B2C" fw={500}>
+                      Awaiting confirmation...
+                    </Text>
+                  </Group>
+                  <Text size="xs" c="dimmed" ta="center">
+                    Complete the payment on your phone, then click continue
+                  </Text>
+                </Stack>
+
+                {/* Continue Button */}
                 <Button
                   size="lg"
                   className="bg-keyman-green"
-                  leftSection={<Shield size={18} />}
-                  onClick={handleOtpSubmit}
+                  leftSection={<CheckCircle size={18} />}
+                  onClick={() => {
+                    setIsOtpLoading(true);
+                    setTimeout(() => {
+                      window.location.reload();
+                    }, 3000);
+                  }}
                   loading={isOtpLoading}
-                  disabled={!otpValue || otpValue.length !== 4}
                   fullWidth
                   mt="md"
                 >
-                  Confirm OTP
+                  {isOtpLoading ? "Please wait..." : "I have completed payment"}
                 </Button>
 
                 <Text size="xs" c="dimmed" ta="center">
-                  Didn&apos;t receive the code? Check your phone or try again
+                  Didn&apos;t receive the prompt? Check your phone or try again
                 </Text>
               </Stack>
+
+              {/* CSS for spin animation */}
+              <style jsx global>{`
+                @keyframes spin {
+                  from {
+                    transform: rotate(0deg);
+                  }
+                  to {
+                    transform: rotate(360deg);
+                  }
+                }
+              `}</style>
             </div>
           )}
         </Transition>

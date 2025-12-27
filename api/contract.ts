@@ -362,3 +362,59 @@ export const payFullContract = async (
     }
   }
 };
+
+/**
+ * Interface for pay cashback request data
+ */
+export interface IPayCashbackData {
+  amount: number;
+  payment_method: "wallet" | "mobile";
+  phone_number?: string;
+  wallet_id?: string;
+  network_operator?: "mpesa" | "airtel_money" | "t_kash" | null;
+}
+
+/**
+ * Interface for pay cashback response
+ */
+export interface IPayCashbackResponse {
+  status: boolean;
+  message: string;
+  data?: unknown;
+  txId?: string;
+  transaction_code?: string;
+}
+
+/**
+ * Pay cashback for a contract
+ * @param contract_id - ID of the contract
+ * @param data - Cashback payment data including amount, payment_method, and optional phone/wallet details
+ * @returns Cashback payment response
+ */
+export const payCashback = async (
+  contract_id: string,
+  data: IPayCashbackData
+): Promise<IPayCashbackResponse> => {
+  try {
+    const response = await AxiosClient.post(
+      ENDPOINTS.contracts.GIVE_CASHBACK(contract_id),
+      data
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          status: false,
+          message: "An error occurred while processing the cashback payment",
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return {
+        status: false,
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+};

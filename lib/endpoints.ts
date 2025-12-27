@@ -98,6 +98,8 @@ export const ENDPOINTS = {
     //`/api/chats/${contract_id}/summarize-chat-milestones`
     PAY_FULL: (contract_id: string) =>
       `/api/keyman-contracts/${contract_id}/pay-full`,
+    GIVE_CASHBACK: (contract_id: string) =>
+      `/api/keyman-contracts/${contract_id}/pay-cashback`,
   },
   wallet: {
     CREATE_WALLET: "/api/user/create-wallet",

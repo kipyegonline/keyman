@@ -213,10 +213,19 @@ export default function ContractPaymentModal({
     setPaymentStep("processing");
 
     try {
+      // Map payment method to network operator for mobile payments
+      const isMobilePayment = ["mpesa", "airtel_money", "t_kash"].includes(
+        values.payment_method
+      );
+      const networkOperator = isMobilePayment
+        ? values.payment_method
+        : undefined;
+
       const response = await payFullContract(contractId, {
         amount: totalAmount,
-        payment_method: values.payment_method,
+        payment_method: isMobilePayment ? "mobile" : values.payment_method,
         phone_number: values.phone_number,
+        ...(networkOperator && { network_operator: networkOperator }),
       });
 
       if (response.status) {

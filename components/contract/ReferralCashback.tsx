@@ -25,6 +25,7 @@ interface ReferralCashbackProps {
   totalAmount: number;
   onClaimCashback?: (amount: number) => void;
   isLoading?: boolean;
+  cashback?: string | null;
 }
 
 /**
@@ -80,6 +81,7 @@ const ReferralCashback: React.FC<ReferralCashbackProps> = ({
   totalAmount,
   onClaimCashback,
   isLoading = false,
+  cashback = null,
 }) => {
   const cashbackOptions = useMemo(
     () => getCashbackOptions(totalAmount),
@@ -106,6 +108,144 @@ const ReferralCashback: React.FC<ReferralCashbackProps> = ({
       // onClaimCashback(selectedCashback);
     }
   };
+
+  // Show success UI when cashback has already been claimed
+  if (cashback !== null) {
+    return (
+      <Paper
+        p="lg"
+        radius="lg"
+        withBorder
+        style={{
+          background: `linear-gradient(135deg, ${KEYMAN_GREEN_LIGHT} 0%, #E8F5E9 50%, #C8E6C9 100%)`,
+          borderColor: KEYMAN_GREEN,
+          overflow: "hidden",
+          position: "relative",
+        }}
+      >
+        {/* Success confetti/sparkle effect overlay */}
+        <Box
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            opacity: 0.1,
+            transform: "rotate(15deg) translate(20%, -30%)",
+          }}
+        >
+          <Gift size={120} color={KEYMAN_GREEN} />
+        </Box>
+
+        <Stack gap="md" style={{ position: "relative", zIndex: 1 }}>
+          {/* Success Header */}
+          <Group justify="center">
+            <Box
+              style={{
+                backgroundColor: KEYMAN_GREEN,
+                borderRadius: "50%",
+                padding: "16px",
+                boxShadow: `0 8px 24px ${KEYMAN_GREEN}50`,
+                animation: "pulse 2s infinite",
+              }}
+            >
+              <Check size={32} color="white" strokeWidth={3} />
+            </Box>
+          </Group>
+
+          {/* Success Message */}
+          <Stack gap="xs" align="center">
+            <Group gap="xs" justify="center">
+              <Text
+                size="lg"
+                fw={700}
+                style={{ color: KEYMAN_GREEN }}
+                ta="center"
+              >
+                Cashback Sent Successfully!
+              </Text>
+              <Sparkles size={20} color={KEYMAN_ORANGE} />
+            </Group>
+
+            <Text size="sm" c="dimmed" ta="center">
+              You&apos;ve rewarded your referrer for connecting you!
+            </Text>
+          </Stack>
+
+          <Divider style={{ borderColor: `${KEYMAN_GREEN}30` }} />
+
+          {/* Cashback Details */}
+          <Paper
+            p="md"
+            radius="md"
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.8)",
+              border: `1px solid ${KEYMAN_GREEN}30`,
+            }}
+          >
+            <Stack gap="sm">
+              <Group justify="space-between" align="center">
+                <Group gap="xs">
+                  <ThemeIcon
+                    size="md"
+                    radius="xl"
+                    style={{ backgroundColor: KEYMAN_ORANGE }}
+                  >
+                    <Users size={14} color="white" />
+                  </ThemeIcon>
+                  <Text size="sm" c="dimmed">
+                    Sent to
+                  </Text>
+                </Group>
+                <Text size="sm" fw={600} style={{ color: KEYMAN_GREEN }}>
+                  {referrerKsNumber}
+                </Text>
+              </Group>
+
+              <Group justify="space-between" align="center">
+                <Group gap="xs">
+                  <ThemeIcon
+                    size="md"
+                    radius="xl"
+                    style={{ backgroundColor: KEYMAN_GREEN }}
+                  >
+                    <Gift size={14} color="white" />
+                  </ThemeIcon>
+                  <Text size="sm" c="dimmed">
+                    Amount
+                  </Text>
+                </Group>
+                <Text size="lg" fw={700} style={{ color: KEYMAN_GREEN }}>
+                  {formatCurrency(Number(cashback))}
+                </Text>
+              </Group>
+            </Stack>
+          </Paper>
+
+          {/* Thank You Badge */}
+          <Group justify="center">
+            <Badge
+              size="lg"
+              variant="filled"
+              pb="md"
+              leftSection={<Check size={14} />}
+              style={{
+                backgroundColor: KEYMAN_GREEN,
+                boxShadow: `0 4px 14px ${KEYMAN_GREEN}40`,
+                padding: "12px 20px",
+              }}
+            >
+              Thank You for Supporting Referrals!
+            </Badge>
+          </Group>
+
+          {/* Footer Note */}
+          <Text size="xs" c="dimmed" ta="center" fs="italic">
+            Your generosity helps grow our community 💚
+          </Text>
+        </Stack>
+      </Paper>
+    );
+  }
 
   // Don't render if no cashback options available
   //(cashbackOptions.length === 0)

@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { confirmOTP } from "@/api/wallet";
+import MobileMoneyOperatorSelect from "@/components/ui/MobileMoneyOperatorSelect";
 
 interface Milestone {
   id: string;
@@ -53,7 +54,8 @@ interface BatchMilestoneStatusModalProps {
     action: string,
     paymentMethod?: string,
     phoneNumber?: string,
-    walletId?: string
+    walletId?: string,
+    networkOperator?: string
   ) => Promise<void | { txId: string }>;
   providerName?: string;
   initiatorName?: string;
@@ -97,6 +99,9 @@ const BatchMilestoneStatusModal: React.FC<BatchMilestoneStatusModalProps> = ({
   const [useAlternateWallet, setUseAlternateWallet] = useState(false);
   const [alternateWalletId, setAlternateWalletId] = useState("");
   const [walletError, setWalletError] = useState("");
+  const [networkOperator, setNetworkOperator] = useState<string | null>(
+    "mpesa"
+  );
   const [otpValue, setOtpValue] = useState("");
   const [isOtpLoading, setIsOtpLoading] = useState(false);
   const [otpError, setOtpError] = useState("");
@@ -124,6 +129,7 @@ const BatchMilestoneStatusModal: React.FC<BatchMilestoneStatusModalProps> = ({
       setUseAlternateWallet(false);
       setAlternateWalletId("");
       setWalletError("");
+      setNetworkOperator("mpesa");
       setOtpValue("");
       setOtpError("");
       setOtpSuccess(false);
@@ -243,12 +249,17 @@ const BatchMilestoneStatusModal: React.FC<BatchMilestoneStatusModalProps> = ({
         isStarting && paymentMethod === "wallet"
           ? getActiveWalletId()
           : undefined;
+      const operatorToUse =
+        isStarting && paymentMethod === "mobile_money"
+          ? networkOperator ?? undefined
+          : undefined;
       const response = await onConfirm(
         milestoneIds,
         action,
         isStarting ? paymentMethod : undefined,
         phoneToUse,
-        walletToUse
+        walletToUse,
+        operatorToUse
       );
       // For starting milestones, show appropriate screen based on payment method
       if (isStarting) {
@@ -640,7 +651,15 @@ const BatchMilestoneStatusModal: React.FC<BatchMilestoneStatusModalProps> = ({
                                   marginLeft: "8px",
                                 }}
                               >
-                                <Stack gap="xs">
+                                <Stack gap="sm">
+                                  {/* Mobile Money Operator Selection */}
+                                  <MobileMoneyOperatorSelect
+                                    value={networkOperator}
+                                    onChange={setNetworkOperator}
+                                    label="Select Operator"
+                                    required
+                                  />
+
                                   {!useAlternateNumber ? (
                                     <>
                                       <Text size="sm" c="dimmed">

@@ -52,13 +52,14 @@ import {
   updateMultipleMilestones,
   createMilestone,
   deleteMilestone,
+  payCashback,
 } from "@/api/contract";
 import { notify } from "@/lib/notifications";
 import { useAppContext } from "@/providers/AppContext";
 import ChatManager from "../chat-manager";
 import { WholePriceList } from "../supplier/priceList";
 import { getSupplierPriceList } from "@/api/supplier";
-import { sendOTP, generalTransfer } from "@/api/wallet";
+import { sendOTP } from "@/api/wallet";
 
 // Use the actual API response structure
 interface ContractDetails {
@@ -67,6 +68,7 @@ interface ContractDetails {
   code: string;
   title: string;
   description?: string;
+  cashback: string | null;
   status:
     | "pending"
     | "active"
@@ -228,7 +230,9 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const [paymentModalOpened, setPaymentModalOpened] = useState(false);
   const [cashbackModalOpened, setCashbackModalOpened] = useState(false);
   const [cashbackAmount, setCashbackAmount] = useState(0);
-  const contractFee = 200;
+  // Contract fee is waived for referred contracts
+  const isReferred = !!contract.contract_code;
+  const contractFee = isReferred ? 0 : 200;
 
   // Batch milestone status change state
   const [batchStatusModalOpened, setBatchStatusModalOpened] = useState(false);
@@ -550,7 +554,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     action: string,
     paymentMethod?: string,
     phoneNumber?: string,
-    walletId?: string
+    walletId?: string,
+    networkOperator?: string
   ) => {
     // Determine the correct action string based on user type and action
     let apiAction = action;
@@ -565,6 +570,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       payment_method?: string;
       phone_number?: string;
       wallet_id?: string;
+      network_operator?: string;
     } = {
       milestones: milestoneIds,
       action: apiAction,
@@ -579,6 +585,9 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       } else if (paymentMethod === "wallet" && walletId) {
         payload.wallet_id = walletId;
       }
+      if (paymentMethod === "mobile_money" && networkOperator) {
+        payload.network_operator = networkOperator;
+      }
     }
 
     await updateMultipleMilestonesMutation.mutateAsync(payload);
@@ -589,7 +598,8 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     _signature: string,
     paymentMethod?: string,
     phoneNumber?: string,
-    walletId?: string
+    walletId?: string,
+    networkOperator?: string
   ) => {
     if (!milestoneForStatusChange) return;
 
@@ -615,6 +625,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         payment_method?: string;
         phone_number?: string;
         wallet_id?: string;
+        network_operator?: string;
       } = {
         action: newStatus,
       };
@@ -627,6 +638,9 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
           payload.phone_number = phoneNumber;
         } else if (paymentMethod === "wallet" && walletId) {
           payload.wallet_id = walletId;
+        }
+        if (paymentMethod === "mobile_money" && networkOperator) {
+          payload.network_operator = networkOperator;
         }
       }
 
@@ -673,7 +687,6 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
   // Handler for claiming cashback
   const handleClaimCashback = (amount: number) => {
-    console.log("Claiming cashback amount:", amount);
     setCashbackAmount(amount);
     setCashbackModalOpened(true);
   };
@@ -681,64 +694,52 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   // Confirm cashback claim with payment method
   const confirmClaimCashback = async (
     amount: number,
-    paymentMethod: string
-    //phoneNumber?: string
-    //walletId?: string
+    paymentMethod: string,
+    phoneNumber?: string,
+    walletId?: string,
+    networkOperator?: string
   ): Promise<string | void> => {
     try {
-      // Get the payer (contract initiator) wallet ID
-      const payerWalletId = contract?.initiator?.wallet_account_id;
+      // Build the payload for payCashback
+      const payload: {
+        amount: number;
+        payment_method: "wallet" | "mobile";
+        phone_number?: string;
+        wallet_id?: string;
+        network_operator?: "mpesa" | "airtel_money" | "t_kash" | null;
+      } = {
+        amount,
+        payment_method: paymentMethod === "mobile_money" ? "mobile" : "wallet",
+      };
 
-      if (!payerWalletId) {
-        notify.error("Wallet not found. Please set up your wallet first.");
-        throw new Error("Payer wallet not found");
+      // Add phone number for mobile money payments
+      if (paymentMethod === "mobile_money" && phoneNumber) {
+        payload.phone_number = phoneNumber;
       }
 
-      // Determine payee details based on payment method
-      let payeeBankCode: string;
-      const payeeAccountId: string =
-        contract?.referrer_service_provider?.owner?.wallet_account_id;
-      const payeeAccountName: string =
-        contract?.referrer_service_provider?.name;
-      const notificationPhone: string =
-        contract?.referrer_service_provider?.owner?.phone?.slice(-9);
-
-      if (paymentMethod === "wallet") {
-        // Wallet to wallet transfer
-        payeeBankCode = "046"; // Using M-PESA as internal transfer mechanism
-      } else {
-        // Mobile money transfer (M-PESA/Airtel)
-        payeeBankCode = "mpesa"; // Default to M-PESA for mobile money
+      // Add wallet ID for wallet payments
+      if (paymentMethod === "wallet" && walletId) {
+        payload.wallet_id = walletId;
       }
 
-      if (!payeeAccountId) {
-        notify.error("Recipient account not specified");
-        throw new Error("Payee account not found");
+      // Add network operator for mobile money payments
+      if (paymentMethod === "mobile_money" && networkOperator) {
+        payload.network_operator = networkOperator as
+          | "mpesa"
+          | "airtel_money"
+          | "t_kash";
       }
 
-      // Call generalTransfer API
-      const response = await generalTransfer({
-        payerAccountId: payerWalletId,
-        payeeBankCode: payeeBankCode,
-        payeeAccountId: payeeAccountId,
-        payeeAccountName: payeeAccountName,
-        currency: "KES",
-        amount: amount,
-        remark: `Cashback for contract ${contract?.contract_code || "N/A"}`,
-        payeeMobileForNotification: notificationPhone,
-      });
+      // Call payCashback API
+      const response = await payCashback(contract.id, payload);
 
-      if (response.status || response.success) {
-        if (paymentMethod === "wallet") {
-          // Return transaction ID for OTP verification
-          return response.txId;
-        } else if (paymentMethod === "mobile_money") {
-          return response.txId;
-          // notify.success("Cashback claim initiated successfully!");
-        }
+      if (response.status) {
+        // Return transaction ID for OTP verification
+        return response.transaction_code;
+        //txId;
       } else {
         notify.error(response.message || "Failed to process cashback");
-        throw new Error(response.message || "Transfer failed");
+        throw new Error(response.message || "Cashback payment failed");
       }
     } catch (error) {
       console.error("Error claiming cashback:", error);
@@ -790,7 +791,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const totalMilestones = contract.milestones?.length || 0;
   const progressPercentage =
     totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
-  console.log(contract, "con----");
+  //console.log(contract, "con----");
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-UK", {
       year: "numeric",
@@ -1494,10 +1495,32 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                         <Group justify="space-between">
                           <Text size="xs" c="dimmed" className="truncate">
                             Contract Fee
+                            {isReferred && (
+                              <Text span size="xs" c="green" fw={600}>
+                                {" "}
+                                (Referral Bonus 🎉)
+                              </Text>
+                            )}
                           </Text>
 
-                          <Text size="xs" fw={500}>
-                            {formatCurrency(contractFee)}
+                          <Text
+                            size="xs"
+                            fw={500}
+                            c={isReferred ? "green" : undefined}
+                            td={isReferred ? "line-through" : undefined}
+                          >
+                            {isReferred ? (
+                              <Group gap="xs">
+                                <Text span td="line-through" c="dimmed">
+                                  {formatCurrency(200)}
+                                </Text>
+                                <Text span c="green" fw={600}>
+                                  FREE
+                                </Text>
+                              </Group>
+                            ) : (
+                              formatCurrency(contractFee)
+                            )}
                           </Text>
                         </Group>
                         <Group justify="space-between" mt="md">
@@ -1555,7 +1578,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                         Pay Full Amount (
                         {formatCurrency(
                           Number(contract.contract_amount) +
-                            (contractFeePaid ? 0 : 200)
+                            (contractFeePaid ? 0 : contractFee)
                         )}
                         )
                       </Button>
@@ -1710,6 +1733,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   //totalAmount={Number(contract.contract_amount) || 0}
                   totalAmount={Number(contract.contract_amount) || 0}
                   onClaimCashback={handleClaimCashback}
+                  cashback={contract?.cashback}
                 />
               )}
             </Stack>
@@ -1788,7 +1812,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         contractId={contract.id}
         contractTitle={contract?.contract_json?.title || "Contract Payment"}
         amount={Number(contract.contract_amount)}
-        contractFee={contractFeePaid ? 0 : 200}
+        contractFee={contractFeePaid ? 0 : contractFee}
         onPaymentSuccess={() => {
           queryClient.invalidateQueries({
             queryKey: ["contract", contract.id],
