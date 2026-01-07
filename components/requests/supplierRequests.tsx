@@ -154,10 +154,6 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
       onMouseEnter={() => setHoveredRow(request.id)}
       onMouseLeave={() => setHoveredRow(null)}
       onClick={() => handleRequestClick(request.id)}
-      onTouchEnd={(e) => {
-        e.preventDefault();
-        //handleRequestClick(request.id);
-      }}
     >
       <Table.Td>{index + 1}</Table.Td>
       <Table.Td>
@@ -261,7 +257,10 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
                 : "hover:bg-gray-100"
             }`}
             style={{ color: hoveredRow === request.id ? "#3D6B2C" : "#666" }}
-            onClick={() => handleRequestClick(request.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRequestClick(request.id);
+            }}
           >
             <Eye size={16} />
           </ActionIcon>
@@ -270,38 +269,62 @@ const SupplierRequestsTable: React.FC<{ requests: RequestDelivery[] }> = ({
     </Table.Tr>
   ));
   const RequestIndicators = (
-    <Flex justify="space-between" align="center" mt="md" p="sm">
+    <Flex
+      justify="space-between"
+      align="flex-start"
+      mt="md"
+      p="sm"
+      direction={{ base: "column", sm: "row" }}
+    >
       <Text size="sm" c="dimmed">
         Showing {requests?.length} requests
       </Text>
-      <Group gap="xs">
-        <Box
-          className="w-3 h-3 rounded-full"
-          style={{ backgroundColor: "#3D6B2C" }}
-        />
-        <Text size="xs" c="dimmed">
-          Active
-        </Text>
-        <Box
-          className="w-3 h-3 rounded-full"
-          style={{ backgroundColor: "#F08C23" }}
-        />
-        <Text size="xs" c="dimmed">
-          Pending
-        </Text>
-        <Box
-          className="w-3 h-3 rounded-full"
-          style={{ backgroundColor: "#388E3C" }}
-        />
-        <Text size="xs" c="dimmed">
-          Completed
-        </Text>
-      </Group>
+      <Flex
+        gap="xs"
+        direction={{ base: "column", sm: "row" }}
+        // align="flex-start"
+      >
+        <Box className="flex items-center gap-2">
+          {" "}
+          <Text size="xs" c="dimmed">
+            Active
+          </Text>
+          <Box
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: "#3D6B2C" }}
+          />
+        </Box>
+        <Box className="flex items-center gap-2">
+          {" "}
+          <Text size="xs" c="dimmed">
+            Pending
+          </Text>
+          <Box
+            className="w-3 h-3 rounded-full "
+            style={{ backgroundColor: "#F08C23" }}
+          />
+        </Box>
+
+        <Box className="flex items-center gap-2">
+          {" "}
+          <Text size="xs" c="dimmed">
+            Completed
+          </Text>
+          <Box
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: "#388E3C" }}
+          />
+        </Box>
+      </Flex>
     </Flex>
   );
 
   return (
-    <Container size={"xl"} py="xl">
+    <Container
+      size={"fluid"}
+      py={{ base: "sm", md: "lg" }}
+      //className="border-red"
+    >
       <Box mb="xl">
         <Group gap="md" mb="md">
           <Box

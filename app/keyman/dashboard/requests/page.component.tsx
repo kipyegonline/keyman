@@ -24,7 +24,6 @@ export default function RequestClientComponent() {
     queryFn: async () => await getRequests(),
   });
 
-  //console.log(requests, "__customer requests__");
   const _requests = React.useMemo(() => {
     if (requests?.requests?.data?.length > 0) {
       return requests?.requests?.data;
@@ -35,7 +34,7 @@ export default function RequestClientComponent() {
 
   if (isLoading) return <LoadingComponent message="Getting your requests" />;
   return (
-    <Container size="lg">
+    <Container size="fluid">
       {false ? (
         <RequestChatWidget
           userToken={token ?? ""}
