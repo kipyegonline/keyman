@@ -26,6 +26,11 @@ export default function RequestItemComponent({
     queryFn: async () => await getRequestDetails(requestId, supplierId),
   });
   const request = payload?.request as RequestDeliveryItem;
+  React.useEffect(() => {
+    if (payload?.status) {
+      document.title = `Request ${request.code} | Keyman Supplier`;
+    }
+  }, [request]);
   const handleRefresh = () => {
     refresh();
   };

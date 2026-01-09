@@ -226,106 +226,123 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
   };
 
   return (
-    <Card shadow="sm" padding="lg" radius="md" className="relative">
-      {/* Sticky Action Bar - appears when milestones are selected */}
-      {selectedMilestones.size > 0 && (
-        <Paper
-          shadow="md"
-          p="sm"
-          mb="md"
-          radius="md"
-          className="sticky top-0 z-10 border"
-          style={{ backgroundColor: "#F8FAFC", borderColor: "#E2E8F0" }}
-        >
-          <Group justify="space-between" align="center">
-            <Group gap="sm">
-              <Badge size="lg" variant="filled" color="orange">
-                {selectedMilestones.size} selected
-              </Badge>
-              <ActionIcon
-                size="sm"
-                variant="subtle"
-                color="gray"
-                onClick={clearSelections}
-              >
-                <X size={16} />
-              </ActionIcon>
-            </Group>
-            <Group gap="sm">
-              {canStartSelected && userType === "customer" && (
-                <Tooltip
-                  label={`Start ${startableMilestones.length} milestone(s)`}
-                  position="top"
-                  withArrow
+    <>
+      <style jsx global>{`
+        @keyframes pulse-glow {
+          0%,
+          100% {
+            box-shadow: 0 2px 8px rgba(255, 140, 0, 0.4);
+            transform: scale(1);
+          }
+          50% {
+            box-shadow: 0 4px 16px rgba(255, 140, 0, 0.6);
+            transform: scale(1.02);
+          }
+        }
+      `}</style>
+      <Card shadow="sm" padding="lg" radius="md" className="relative">
+        {/* Sticky Action Bar - appears when milestones are selected */}
+        {selectedMilestones.size > 0 && (
+          <Paper
+            shadow="md"
+            p="sm"
+            mb="md"
+            radius="md"
+            className="sticky top-0 z-10 border"
+            style={{ backgroundColor: "#F8FAFC", borderColor: "#E2E8F0" }}
+          >
+            <Group justify="space-between" align="center">
+              <Group gap="sm">
+                <Badge size="lg" variant="filled" color="orange">
+                  {selectedMilestones.size} selected
+                </Badge>
+                <ActionIcon
+                  size="sm"
+                  variant="subtle"
+                  color="gray"
+                  onClick={clearSelections}
                 >
-                  <Button
-                    size="xs"
-                    variant="light"
-                    color="green"
-                    leftSection={<Play size={14} />}
-                    onClick={() => {
-                      if (onBatchStatusChange) {
-                        onBatchStatusChange(startableMilestones, "start");
-                        clearSelections();
-                      }
-                    }}
+                  <X size={16} />
+                </ActionIcon>
+              </Group>
+              <Group gap="sm">
+                {canStartSelected && userType === "customer" && (
+                  <Tooltip
+                    label={`Start ${startableMilestones.length} milestone(s)`}
+                    position="top"
+                    withArrow
                   >
-                    Start ({startableMilestones.length})
-                  </Button>
-                </Tooltip>
-              )}
-              {canCompleteSelected && (
-                <Tooltip
-                  label={`Complete ${completableMilestones.length} milestone(s)`}
-                  position="top"
-                  withArrow
-                >
-                  <Button
-                    size="xs"
-                    variant="light"
-                    color="orange"
-                    leftSection={<CheckCircle size={14} />}
-                    onClick={() => {
-                      if (onBatchStatusChange) {
-                        onBatchStatusChange(completableMilestones, "complete");
-                        clearSelections();
-                      }
-                    }}
+                    <Button
+                      size="xs"
+                      variant="light"
+                      color="green"
+                      leftSection={<Play size={14} />}
+                      onClick={() => {
+                        if (onBatchStatusChange) {
+                          onBatchStatusChange(startableMilestones, "start");
+                          clearSelections();
+                        }
+                      }}
+                    >
+                      Start ({startableMilestones.length})
+                    </Button>
+                  </Tooltip>
+                )}
+                {canCompleteSelected && (
+                  <Tooltip
+                    label={`Complete ${completableMilestones.length} milestone(s)`}
+                    position="top"
+                    withArrow
                   >
-                    Complete ({completableMilestones.length})
-                  </Button>
-                </Tooltip>
-              )}
+                    <Button
+                      size="xs"
+                      variant="filled"
+                      color="orange"
+                      leftSection={<CheckCircle size={14} />}
+                      onClick={() => {
+                        if (onBatchStatusChange) {
+                          onBatchStatusChange(
+                            completableMilestones,
+                            "complete"
+                          );
+                          clearSelections();
+                        }
+                      }}
+                    >
+                      Complete ({completableMilestones.length})
+                    </Button>
+                  </Tooltip>
+                )}
+              </Group>
             </Group>
-          </Group>
-        </Paper>
-      )}
-
-      <Group gap="xs" mb="md">
-        <ThemeIcon
-          size="lg"
-          style={{ backgroundColor: "#F08C2315" }}
-          variant="light"
-        >
-          <Target size={20} style={{ color: "#F08C23" }} />
-        </ThemeIcon>
-        <Text fw={600} size="lg" className="text-gray-800">
-          Project Milestones
-        </Text>
-        {milestones.length > 1 && serviceProviderSigningDate !== null && (
-          <Text size="xs" c="dimmed" className="ml-auto">
-            Select milestones to batch update
-          </Text>
+          </Paper>
         )}
-      </Group>
 
-      <ScrollArea.Autosize mah={400}>
-        <Timeline active={completedMilestones} bulletSize={24} lineWidth={2}>
-          {milestones.map((milestone) => {
-            const config = getMilestoneStatusConfig(milestone.status);
-            const IconComponent = config.icon;
-            //mode === "client" &&
-            /*  const clientVisible =
+        <Group gap="xs" mb="md">
+          <ThemeIcon
+            size="lg"
+            style={{ backgroundColor: "#F08C2315" }}
+            variant="light"
+          >
+            <Target size={20} style={{ color: "#F08C23" }} />
+          </ThemeIcon>
+          <Text fw={600} size="lg" className="text-gray-800">
+            Project Milestones
+          </Text>
+          {milestones.length > 1 && serviceProviderSigningDate !== null && (
+            <Text size="xs" c="dimmed" className="ml-auto">
+              Select milestones to batch update
+            </Text>
+          )}
+        </Group>
+
+        <ScrollArea.Autosize mah={400}>
+          <Timeline active={completedMilestones} bulletSize={24} lineWidth={2}>
+            {milestones.map((milestone) => {
+              const config = getMilestoneStatusConfig(milestone.status);
+              const IconComponent = config.icon;
+              //mode === "client" &&
+              /*  const clientVisible =
               userType === "customer" &&
               milestone?.service_provider_completion_date !== null &&
               milestone?.service_provider_completion_date != "" &&
@@ -337,199 +354,209 @@ const MilestoneTimeline: React.FC<MilestoneTimelineProps> = ({
                 milestone?.service_provider_completion_date == null) &&
               milestone.status == "in_progress";*/
 
-            //supplier_completed
-            return (
-              <Timeline.Item
-                key={milestone.id}
-                bullet={
-                  <ThemeIcon
-                    size={24}
-                    radius="xl"
-                    style={{ backgroundColor: config.color }}
-                  >
-                    <IconComponent size={14} color="white" />
-                  </ThemeIcon>
-                }
-                title={
-                  <Group justify="space-between" align="center">
-                    <Text fw={600} size="sm">
-                      {milestone.name}
-                    </Text>
-                    <Text fw={600} size="sm" className="text-gray-800">
-                      {milestone.title}
-                    </Text>
-                    <Group gap="xs" align="center">
-                      <Group gap="xs">
-                        <Badge
-                          variant="light"
-                          style={{
-                            backgroundColor: `${config.color}15`,
-                            color: config.color,
-                          }}
-                          size="sm"
-                        >
-                          {getStatusUpdateText(milestone.status)}
-                        </Badge>
-
-                        {milestone.amount && (
-                          <Badge variant="outline" color="gray" size="sm">
-                            {formatCurrency(milestone.amount)}
+              //supplier_completed
+              return (
+                <Timeline.Item
+                  key={milestone.id}
+                  bullet={
+                    <ThemeIcon
+                      size={24}
+                      radius="xl"
+                      style={{ backgroundColor: config.color }}
+                    >
+                      <IconComponent size={14} color="white" />
+                    </ThemeIcon>
+                  }
+                  title={
+                    <Group justify="space-between" align="center">
+                      <Text fw={600} size="sm">
+                        {milestone.name}
+                      </Text>
+                      <Text fw={600} size="sm" className="text-gray-800">
+                        {milestone.title}
+                      </Text>
+                      <Group gap="xs" align="center">
+                        <Group gap="xs">
+                          <Badge
+                            variant="light"
+                            style={{
+                              backgroundColor: `${config.color}15`,
+                              color: config.color,
+                            }}
+                            size="sm"
+                          >
+                            {getStatusUpdateText(milestone.status)}
                           </Badge>
-                        )}
-                      </Group>
-                      {(milestone.status.toLowerCase() === "pending" ||
-                        milestone.status.toLowerCase() === "in_progress" ||
-                        milestone.status.toLowerCase() ===
-                          "supplier_completed") &&
-                        (canEditMileStone ||
+
+                          {milestone.amount && (
+                            <Badge variant="outline" color="gray" size="sm">
+                              {formatCurrency(milestone.amount)}
+                            </Badge>
+                          )}
+                        </Group>
+                        {(milestone.status.toLowerCase() === "pending" ||
                           milestone.status.toLowerCase() === "in_progress" ||
                           milestone.status.toLowerCase() ===
                             "supplier_completed") &&
-                        serviceProviderSigningDate !== null && (
-                          <>
-                            {milestone.status.toLowerCase() === "pending" &&
-                              userType === "customer" && (
+                          (canEditMileStone ||
+                            milestone.status.toLowerCase() === "in_progress" ||
+                            milestone.status.toLowerCase() ===
+                              "supplier_completed") &&
+                          serviceProviderSigningDate !== null && (
+                            <>
+                              {milestone.status.toLowerCase() === "pending" &&
+                                userType === "customer" && (
+                                  <Button
+                                    size="compact-xs"
+                                    variant="light"
+                                    color="green"
+                                    leftSection={<Play size={12} />}
+                                    onClick={() =>
+                                      onStatusChange &&
+                                      onStatusChange(milestone.id, "start")
+                                    }
+                                    styles={{
+                                      root: {
+                                        fontSize: "11px",
+                                        fontWeight: 500,
+                                        padding: "4px 8px",
+                                      },
+                                    }}
+                                  >
+                                    Start
+                                  </Button>
+                                )}
+                              {/**||
+                                milestone.status.toLowerCase() ===
+                                  "supplier_completed" */}
+                              {(milestone.status.toLowerCase() ===
+                                "in_progress" ||
+                                milestone.status.toLowerCase() ===
+                                  "supplier_completed") && (
                                 <Button
-                                  size="compact-xs"
-                                  variant="light"
-                                  color="green"
-                                  leftSection={<Play size={12} />}
+                                  size="compact-sm"
+                                  variant="filled"
+                                  color="orange"
+                                  leftSection={<CheckCircle size={14} />}
                                   onClick={() =>
                                     onStatusChange &&
-                                    onStatusChange(milestone.id, "start")
+                                    onStatusChange(milestone.id, "complete")
                                   }
                                   styles={{
                                     root: {
-                                      fontSize: "11px",
-                                      fontWeight: 500,
-                                      padding: "4px 8px",
+                                      fontSize: "12px",
+                                      fontWeight: 700,
+                                      padding: "6px 12px",
+                                      boxShadow:
+                                        "0 2px 8px rgba(255, 140, 0, 0.4)",
+                                      border: "2px solid #ff8c00",
+                                      animation: "pulse-glow 2s infinite",
+                                      "@media (max-width: 768px)": {
+                                        padding: "8px 16px",
+                                        fontSize: "13px",
+                                        minHeight: "36px",
+                                      },
                                     },
                                   }}
                                 >
-                                  Start
+                                  ✓ Complete
                                 </Button>
                               )}
-                            {/**||
-                                milestone.status.toLowerCase() ===
-                                  "supplier_completed" */}
-                            {(milestone.status.toLowerCase() ===
-                              "in_progress" ||
-                              milestone.status.toLowerCase() ===
-                                "supplier_completed") && (
-                              <Button
-                                size="compact-xs"
-                                variant="light"
-                                color="orange"
-                                leftSection={<CheckCircle size={12} />}
-                                onClick={() =>
-                                  onStatusChange &&
-                                  onStatusChange(milestone.id, "complete")
-                                }
-                                styles={{
-                                  root: {
-                                    fontSize: "11px",
-                                    fontWeight: 500,
-                                    padding: "4px 8px",
-                                  },
-                                }}
-                              >
-                                Complete
-                              </Button>
-                            )}
-                          </>
-                        )}
-                      {canEditMileStone &&
-                        serviceProviderSigningDate === null &&
-                        (milestone.status.toLowerCase() !== "completed" ||
-                          milestone.status.toLowerCase() !== "failed") && (
-                          <ActionIcon
-                            size="sm"
-                            variant="light"
-                            color="gray"
-                            onClick={() =>
-                              onEditMilestone && onEditMilestone(milestone.id)
-                            }
-                          >
-                            <Edit size={14} />
-                          </ActionIcon>
-                        )}
-                      {canEditMileStone &&
-                        milestone.status.toLowerCase() === "pending" && (
-                          <ActionIcon
-                            size="sm"
-                            variant="light"
-                            color="red"
-                            onClick={() => {
-                              if (onDeleteMilestone) {
-                                if (
-                                  confirm(
-                                    "Are you sure you want to delete this milestone? This action cannot be undone."
-                                  )
-                                ) {
-                                  onDeleteMilestone(milestone.id);
-                                }
+                            </>
+                          )}
+                        {canEditMileStone &&
+                          serviceProviderSigningDate === null &&
+                          (milestone.status.toLowerCase() !== "completed" ||
+                            milestone.status.toLowerCase() !== "failed") && (
+                            <ActionIcon
+                              size="sm"
+                              variant="light"
+                              color="gray"
+                              onClick={() =>
+                                onEditMilestone && onEditMilestone(milestone.id)
                               }
-                            }}
-                          >
-                            <Delete size={14} />
-                          </ActionIcon>
-                        )}
-                      {/* Checkbox for batch selection */}
-                      {serviceProviderSigningDate !== null &&
-                        milestone.status.toLowerCase() !== "completed" && (
-                          <Checkbox
-                            size="sm"
-                            checked={selectedMilestones.has(milestone.id)}
-                            disabled={
-                              !selectedMilestones.has(milestone.id) &&
-                              !canSelectMilestone(milestone.id)
-                            }
-                            onChange={() =>
-                              toggleMilestoneSelection(milestone.id)
-                            }
-                            styles={{
-                              input: {
-                                cursor:
-                                  canSelectMilestone(milestone.id) ||
-                                  selectedMilestones.has(milestone.id)
-                                    ? "pointer"
-                                    : "not-allowed",
-                                borderColor: config.color,
-                              },
-                            }}
-                          />
-                        )}
+                            >
+                              <Edit size={14} />
+                            </ActionIcon>
+                          )}
+                        {canEditMileStone &&
+                          milestone.status.toLowerCase() === "pending" && (
+                            <ActionIcon
+                              size="sm"
+                              variant="light"
+                              color="red"
+                              onClick={() => {
+                                if (onDeleteMilestone) {
+                                  if (
+                                    confirm(
+                                      "Are you sure you want to delete this milestone? This action cannot be undone."
+                                    )
+                                  ) {
+                                    onDeleteMilestone(milestone.id);
+                                  }
+                                }
+                              }}
+                            >
+                              <Delete size={14} />
+                            </ActionIcon>
+                          )}
+                        {/* Checkbox for batch selection */}
+                        {serviceProviderSigningDate !== null &&
+                          milestone.status.toLowerCase() !== "completed" && (
+                            <Checkbox
+                              size="sm"
+                              checked={selectedMilestones.has(milestone.id)}
+                              disabled={
+                                !selectedMilestones.has(milestone.id) &&
+                                !canSelectMilestone(milestone.id)
+                              }
+                              onChange={() =>
+                                toggleMilestoneSelection(milestone.id)
+                              }
+                              styles={{
+                                input: {
+                                  cursor:
+                                    canSelectMilestone(milestone.id) ||
+                                    selectedMilestones.has(milestone.id)
+                                      ? "pointer"
+                                      : "not-allowed",
+                                  borderColor: config.color,
+                                },
+                              }}
+                            />
+                          )}
+                      </Group>
                     </Group>
-                  </Group>
-                }
-              >
-                <Stack gap="xs" mt="xs">
-                  <Text size="sm" c="dimmed" className="leading-relaxed">
-                    {milestone.description}
-                  </Text>
-                  {milestone.due_date && (
-                    <Group gap="xs">
-                      <Calendar size={14} className="text-gray-500" />
-                      <Text size="xs" c="dimmed">
-                        Due: {formatDate(milestone.due_date)}
-                      </Text>
-                    </Group>
-                  )}
-                  {milestone.completion_date && (
-                    <Group gap="xs">
-                      <CheckCircle size={14} className="text-green-600" />
-                      <Text size="xs" className="text-green-600">
-                        Completed: {formatDate(milestone.completion_date)}
-                      </Text>
-                    </Group>
-                  )}
-                </Stack>
-              </Timeline.Item>
-            );
-          })}
-        </Timeline>
-      </ScrollArea.Autosize>
-    </Card>
+                  }
+                >
+                  <Stack gap="xs" mt="xs">
+                    <Text size="sm" c="dimmed" className="leading-relaxed">
+                      {milestone.description}
+                    </Text>
+                    {milestone.due_date && (
+                      <Group gap="xs">
+                        <Calendar size={14} className="text-gray-500" />
+                        <Text size="xs" c="dimmed">
+                          Due: {formatDate(milestone.due_date)}
+                        </Text>
+                      </Group>
+                    )}
+                    {milestone.completion_date && (
+                      <Group gap="xs">
+                        <CheckCircle size={14} className="text-green-600" />
+                        <Text size="xs" className="text-green-600">
+                          Completed: {formatDate(milestone.completion_date)}
+                        </Text>
+                      </Group>
+                    )}
+                  </Stack>
+                </Timeline.Item>
+              );
+            })}
+          </Timeline>
+        </ScrollArea.Autosize>
+      </Card>
+    </>
   );
 };
 

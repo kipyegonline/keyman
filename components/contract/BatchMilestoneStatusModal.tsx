@@ -77,8 +77,8 @@ const BatchMilestoneStatusModal: React.FC<BatchMilestoneStatusModalProps> = ({
   milestones,
   action,
   onConfirm,
-  providerName,
-  initiatorName,
+  //providerName,
+  //initiatorName,
   isLoading = false,
   initiatorPhone = "",
   initiatorWalletId = "",
@@ -337,7 +337,7 @@ const BatchMilestoneStatusModal: React.FC<BatchMilestoneStatusModalProps> = ({
         count > 1 ? "these " + count + " milestones" : "this milestone"
       } and understand the requirements and timeline.`;
     }
-    return `I, ${providerName || initiatorName}, confirm that all work for ${
+    return `I confirm that all work for ${
       count > 1 ? "these " + count + " milestones" : "this milestone"
     } has been completed according to the specified requirements and is ready for review.`;
   };

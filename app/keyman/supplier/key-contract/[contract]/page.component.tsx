@@ -119,7 +119,7 @@ export default function ClientContractPage({
 
   if (!contract) {
     return (
-      <Container className="py-8">
+      <Container className="py-4 md:py-8" size="fluid">
         {breadcrumbs}
         <Alert
           icon={<AlertCircle size={16} />}

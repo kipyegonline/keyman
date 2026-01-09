@@ -571,46 +571,48 @@ const MilestoneStatusChangeModal: React.FC<MilestoneStatusChangeModalProps> = ({
                     </Paper>
                   )}
                   {/* Mobile Money Option */}
-                  <Paper
-                    p="sm"
-                    radius="md"
-                    withBorder
-                    style={{
-                      borderColor:
-                        paymentMethod === "mobile_money"
-                          ? "#3D6B2C"
-                          : "#e0e0e0",
-                      backgroundColor:
-                        paymentMethod === "mobile_money"
-                          ? "#3D6B2C08"
-                          : "white",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                    }}
-                    onClick={() => setPaymentMethod("mobile_money")}
-                  >
-                    <Group justify="space-between">
-                      <Group gap="sm">
-                        <ThemeIcon
-                          size={36}
-                          radius="md"
-                          variant="light"
-                          color="green"
-                        >
-                          <Smartphone size={20} />
-                        </ThemeIcon>
-                        <div>
-                          <Text size="sm" fw={600}>
-                            Mobile Money
-                          </Text>
-                          <Text size="xs" c="dimmed">
-                            Pay via M-Pesa
-                          </Text>
-                        </div>
+                  {isStarting && (
+                    <Paper
+                      p="sm"
+                      radius="md"
+                      withBorder
+                      style={{
+                        borderColor:
+                          paymentMethod === "mobile_money"
+                            ? "#3D6B2C"
+                            : "#e0e0e0",
+                        backgroundColor:
+                          paymentMethod === "mobile_money"
+                            ? "#3D6B2C08"
+                            : "white",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      onClick={() => setPaymentMethod("mobile_money")}
+                    >
+                      <Group justify="space-between">
+                        <Group gap="sm">
+                          <ThemeIcon
+                            size={36}
+                            radius="md"
+                            variant="light"
+                            color="green"
+                          >
+                            <Smartphone size={20} />
+                          </ThemeIcon>
+                          <div>
+                            <Text size="sm" fw={600}>
+                              Mobile Money
+                            </Text>
+                            <Text size="xs" c="dimmed">
+                              Pay via M-Pesa
+                            </Text>
+                          </div>
+                        </Group>
+                        <Radio value="mobile_money" color="green" />
                       </Group>
-                      <Radio value="mobile_money" color="green" />
-                    </Group>
-                  </Paper>
+                    </Paper>
+                  )}
 
                   {/* Mobile Money Details - Collapsible */}
                   <Collapse in={paymentMethod === "mobile_money"}>

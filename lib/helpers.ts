@@ -2,5 +2,5 @@ import { nprogress } from "@mantine/nprogress";
 
 export const navigateTo = () => {
   nprogress.start();
-  setTimeout(() => nprogress.complete(), 3000);
+  setTimeout(() => nprogress.complete(), 4000);
 };

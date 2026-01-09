@@ -25,6 +25,11 @@ export default function RequestItemComponent({
     queryFn: async () => await getRequestDetails(requestId, supplierId, true),
   });
   const request = payload?.request as RequestDeliveryItem;
+  React.useEffect(() => {
+    if (payload?.status) {
+      document.title = `Request ${request.code} | Keyman Supplier`;
+    }
+  }, [request]);
 
   if (isError) return <p>Error...</p>;
   if (isLoading)
