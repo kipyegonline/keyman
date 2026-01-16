@@ -144,7 +144,7 @@ const customStyles = {
   success: "#388E3C",
   gradient: "linear-gradient(135deg, #3D6B2C 0%, #388E3C 100%)",
 };
-
+const minimum = 1000;
 export default function BankTransfer({
   walletData,
   onClose,
@@ -191,7 +191,8 @@ export default function BankTransfer({
           return "Amount must be greater than 0";
         if (amount > parseFloat(walletData.balance))
           return "Insufficient balance";
-        if (amount <= 999999) return "Minimum recommended: KES 1,000,000";
+        if (amount <= minimum)
+          return `Minimum recommended: KES ${minimum.toLocaleString()}`;
         return null;
       },
       paymentPurposeId: (value) =>
@@ -582,8 +583,7 @@ export default function BankTransfer({
                 {...form.getInputProps("amount")}
                 leftSection={<Text size="sm">{walletData.currency}</Text>}
                 type="number"
-                min={1000000}
-                max={availableBalance}
+                // max={availableBalance}
                 styles={{
                   label: { color: customStyles.primary, fontWeight: 500 },
                   input: {

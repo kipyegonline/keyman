@@ -635,11 +635,11 @@ export default function WalletData({
   const handleSendMoney = () => {
     if (!walletData?.balance || +walletData?.balance < 10) {
       notify.error("You have insufficient balance, kindly top up");
-      //return;
+      return;
     }
     setSendMoneyModalOpen(true);
   };
-  // console.log(walletData, "wallet data....");
+  //console.log(walletData, "wallet data....");
   if (isLoading) return <LoadingComponent message="Preparing wallet data..." />;
   return (
     <Container size="lg" py="xl">
