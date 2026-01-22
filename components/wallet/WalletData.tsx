@@ -639,7 +639,7 @@ export default function WalletData({
     }
     setSendMoneyModalOpen(true);
   };
-  //console.log(walletData, "wallet data....");
+  console.log(walletData, "wallet data....");
   if (isLoading) return <LoadingComponent message="Preparing wallet data..." />;
   return (
     <Container size="lg" py="xl">

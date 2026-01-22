@@ -133,7 +133,7 @@ const LocationSelector: React.FC<{
         enableHighAccuracy: true,
         timeout: 15000,
         maximumAge: 0,
-      }
+      },
     );
   }, [onLocationChange]);
 
@@ -367,8 +367,8 @@ const SupplierRegistrationForm: React.FC<{
         value && value.length < 10
           ? "Description must be more than 10 characters"
           : value && value.length > 500
-          ? " must be less than 500 characters"
-          : null,
+            ? " must be less than 500 characters"
+            : null,
       //categories: (value) => (value.length < 1 ? 'Please select a category'  : value.length>2? "Please select 2 categories":null),
     },
   });
@@ -574,9 +574,9 @@ const SupplierRegistrationForm: React.FC<{
                     </Grid.Col>
                     <Grid.Col span={{ base: 12, md: 6 }}>
                       <FileInput
-                        accept="image/png,image/jpeg, image/jpg"
+                        accept="image/png, image/jpeg, image/webp"
                         label="Company logo"
-                        placeholder="business@example.com"
+                        placeholder="Upload your company logo"
                         leftSection={
                           <ImageDown size={16} className="text-[#3D6B2C]" />
                         }
