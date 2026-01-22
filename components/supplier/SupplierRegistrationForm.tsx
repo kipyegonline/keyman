@@ -349,6 +349,7 @@ const SupplierRegistrationForm: React.FC<{
       comments: "",
       referred_by: "",
     },
+    validateInputOnChange: ["photo"],
     validate: {
       name: (value) =>
         value.length < 2 ? "Name must have at least 2 characters" : null,
@@ -362,12 +363,19 @@ const SupplierRegistrationForm: React.FC<{
       longitude: (value) => (value === 0 ? "Please set your location" : null),
       country: (value) =>
         value.length === 0 ? "Please select your country" : null,
-      photo: (value) => (value ? null : "Please upload a business photo"),
+      photo: (value) => {
+        if (!value) return "Please upload a business logo/photo";
+        const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
+        if (!allowedTypes.includes(value.type)) {
+          return "Invalid file format. Please upload PNG, JPEG, or WebP images only";
+        }
+        return null;
+      },
       comments: (value) =>
         value && value.length < 10
           ? "Description must be more than 10 characters"
           : value && value.length > 500
-            ? " must be less than 500 characters"
+            ? "Description must be less than 500 characters"
             : null,
       //categories: (value) => (value.length < 1 ? 'Please select a category'  : value.length>2? "Please select 2 categories":null),
     },
