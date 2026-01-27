@@ -55,13 +55,12 @@ const Sidebar: React.FC<{
 
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "requests", label: "Requests", icon: ClipboardList },
-    { id: "orders", label: "Orders", icon: ShoppingCart },
-
-    { id: "suppliers-near-me", label: "Stores near me", icon: LocateIcon },
-    { id: "keyman-coin", label: "My Coins", icon: Coins },
-    { id: "key-wallet", label: "My Wallet", icon: Wallet },
     { id: "key-contract", label: "My Deals", icon: ReceiptText },
+    { id: "orders", label: "Orders", icon: ShoppingCart },
+    { id: "requests", label: "Requests", icon: ClipboardList },
+    { id: "suppliers-near-me", label: "Stores near me", icon: LocateIcon },
+    { id: "key-wallet", label: "My Wallet", icon: Wallet },
+    { id: "keyman-coin", label: "My Coins", icon: Coins },
 
     //{ id: 'materials', label: 'Materials', icon: Package },
     //{ id: 'settings', label: 'Settings', icon: Settings },
