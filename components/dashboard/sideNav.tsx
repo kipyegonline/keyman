@@ -61,7 +61,7 @@ const Sidebar: React.FC<{
     { id: "suppliers-near-me", label: "Stores near me", icon: LocateIcon },
     { id: "keyman-coin", label: "My Coins", icon: Coins },
     { id: "key-wallet", label: "My Wallet", icon: Wallet },
-    { id: "key-contract", label: "My Contracts", icon: ReceiptText },
+    { id: "key-contract", label: "My Deals", icon: ReceiptText },
 
     //{ id: 'materials', label: 'Materials', icon: Package },
     //{ id: 'settings', label: 'Settings', icon: Settings },
@@ -93,7 +93,7 @@ const Sidebar: React.FC<{
 
     globalThis?.window?.localStorage.setItem(
       "supplier_id",
-      hardware.supplier_detail_id
+      hardware.supplier_detail_id,
     );
     setActiveItem("dashboard");
     router.push(`/keyman/supplier`);

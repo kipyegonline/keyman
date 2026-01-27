@@ -372,7 +372,7 @@ const SupplierRegistrationForm: React.FC<{
         return null;
       },
       comments: (value) =>
-        value && value.length < 10
+        value && value.trim().length < 10
           ? "Description must be more than 10 characters"
           : value && value.length > 500
             ? "Description must be less than 500 characters"

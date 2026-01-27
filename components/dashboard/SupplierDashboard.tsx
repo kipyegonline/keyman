@@ -46,7 +46,7 @@ const Sidebar: React.FC<{
     { id: "requests", label: "Requests near me", icon: ClipboardList },
     { id: "factories", label: "Factories near me", icon: Factory },
     { id: "orders", label: "Orders", icon: ShoppingCart },
-    { id: "key-contract", label: "My Contracts", icon: ReceiptText },
+    { id: "key-contract", label: "My Deals", icon: ReceiptText },
     //{ id: "key-wallet", label: "My Wallet", icon: Wallet },
     { id: "price", label: "Manage my store", icon: DiamondPercent },
     //{ id: "update", label: "Update profile", icon: Settings },
