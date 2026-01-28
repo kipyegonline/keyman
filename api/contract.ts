@@ -29,7 +29,7 @@ export const getContracts = async (supplierId: string) => {
 export const getContractDetails = async (contractId: string) => {
   try {
     const response = await AxiosClient.get(
-      ENDPOINTS.contracts.GET_CONTRACT_DETAILS(contractId)
+      ENDPOINTS.contracts.GET_CONTRACT_DETAILS(contractId),
     );
     return response.data;
   } catch (error) {
@@ -53,7 +53,7 @@ export const downloadContract = async (contractId: string) => {
       ENDPOINTS.contracts.DOWNLOAD_CONTRACT(contractId),
       {
         responseType: "blob", // Important: Handle binary data properly
-      }
+      },
     );
     return {
       status: true,
@@ -85,12 +85,12 @@ export const updateMilestone = async (
     action?: string;
     mode?: string;
     number?: string;
-  }
+  },
 ) => {
   try {
     const response = await AxiosClient.put(
       ENDPOINTS.contracts.UPDATE_MILESTONE(milestoneId),
-      milestoneData
+      milestoneData,
     );
     return response.data;
   } catch (error) {
@@ -117,7 +117,7 @@ export const updateMultipleMilestones = async (payload: {
   try {
     const response = await AxiosClient.post(
       ENDPOINTS.contracts.UPDATE_MULTIPLE_MILESTONES,
-      payload
+      payload,
     );
     return response.data;
   } catch (error) {
@@ -143,12 +143,12 @@ export const deleteMilestone = async (
     amount?: number;
     description?: string;
     action?: string;
-  }
+  },
 ) => {
   try {
     const response = await AxiosClient.delete(
       ENDPOINTS.contracts.UPDATE_MILESTONE(milestoneId),
-      { data: milestoneData }
+      { data: milestoneData },
     );
     return response.data;
   } catch (error) {
@@ -175,12 +175,12 @@ export const updateContract = async (
     contract_duration_in_duration?: number;
     service_provider_signing_date?: string | null;
     contract_json?: string;
-  }
+  },
 ) => {
   try {
     const response = await AxiosClient.put(
       ENDPOINTS.contracts.UPDATE_CONTRACT(contractId),
-      contractData
+      contractData,
     );
     return response.data;
   } catch (error) {
@@ -208,7 +208,7 @@ export const createContract = async (contractData: {
   try {
     const response = await AxiosClient.post(
       ENDPOINTS.contracts.CREATE_CONTRACT,
-      contractData
+      contractData,
     );
     return response.data;
   } catch (error) {
@@ -238,7 +238,7 @@ export const createMilestone = async (milestoneData: {
   try {
     const response = await AxiosClient.post(
       ENDPOINTS.contracts.CREATE_MILESTONE,
-      milestoneData
+      milestoneData,
     );
     return response.data;
   } catch (error) {
@@ -282,11 +282,11 @@ export interface ISuggestedMilestonesResponse {
  * @returns Suggested milestones response
  */
 export const getSuggestedMilestones = async (
-  contractId: string
+  contractId: string,
 ): Promise<ISuggestedMilestonesResponse> => {
   try {
     const response = await AxiosClient.post(
-      ENDPOINTS.contracts.GET_SUGGESTED_MILESTONES(contractId)
+      ENDPOINTS.contracts.GET_SUGGESTED_MILESTONES(contractId),
     );
     return response.data;
   } catch (error) {
@@ -337,12 +337,12 @@ export interface IPayFullContractResponse {
  */
 export const payFullContract = async (
   contract_id: string,
-  data: IPayFullContractData
+  data: IPayFullContractData,
 ): Promise<IPayFullContractResponse> => {
   try {
     const response = await AxiosClient.post(
       ENDPOINTS.contracts.PAY_FULL(contract_id),
-      data
+      data,
     );
     return response.data;
   } catch (error) {
@@ -393,12 +393,12 @@ export interface IPayCashbackResponse {
  */
 export const payCashback = async (
   contract_id: string,
-  data: IPayCashbackData
+  data: IPayCashbackData,
 ): Promise<IPayCashbackResponse> => {
   try {
     const response = await AxiosClient.post(
       ENDPOINTS.contracts.GIVE_CASHBACK(contract_id),
-      data
+      data,
     );
     return response.data;
   } catch (error) {
@@ -407,6 +407,52 @@ export const payCashback = async (
         error.response?.data || {
           status: false,
           message: "An error occurred while processing the cashback payment",
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return {
+        status: false,
+        message: "An unexpected error occurred",
+      };
+    }
+  }
+};
+
+export interface IRaiseComplaintData {
+  contract_id: string;
+  milestone_id: string;
+  reason: string;
+  summary: string;
+}
+
+export interface IRaiseComplaintResponse {
+  status: boolean;
+  message: string;
+  data?: unknown;
+}
+
+/**
+ * Raise a complaint against a contract
+ * @param contract_id - ID of the contract
+ * @param data - Complaint data including milestone_id, reason, and summary
+ * @returns Complaint submission response
+ */
+export const raiseComplaint = async (
+  data: IRaiseComplaintData,
+): Promise<IRaiseComplaintResponse> => {
+  try {
+    const response = await AxiosClient.post(
+      ENDPOINTS.contracts.RAISE_COMPLAINT,
+      data,
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          status: false,
+          message: "An error occurred while submitting the complaint",
         }
       );
     } else {

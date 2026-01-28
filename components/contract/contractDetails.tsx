@@ -29,6 +29,7 @@ import {
   Download,
   Share2,
   AlertCircle,
+  AlertTriangle,
   Activity,
   MoreVertical,
   Plus,
@@ -46,6 +47,8 @@ import AddLabourModal from "./AddLabourModal";
 import ContractPaymentModal from "./ContractPaymentModal";
 import ReferralCashback from "./ReferralCashback";
 import ClaimCashbackModal from "./ClaimCashbackModal";
+import RaiseComplaintModal from "./RaiseComplaintModal";
+import DisputedContractBanner from "./DisputedContractBanner";
 import {
   updateContract,
   updateMilestone,
@@ -53,6 +56,7 @@ import {
   createMilestone,
   deleteMilestone,
   payCashback,
+  raiseComplaint,
 } from "@/api/contract";
 import { notify } from "@/lib/notifications";
 import { useAppContext } from "@/providers/AppContext";
@@ -211,7 +215,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const { user } = useAppContext();
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState<Milestone | null>(
-    null
+    null,
   );
   const [editContractModalOpened, setEditContractModalOpened] = useState(false);
   const [notifying, setNotifying] = useState(false);
@@ -230,6 +234,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const [paymentModalOpened, setPaymentModalOpened] = useState(false);
   const [cashbackModalOpened, setCashbackModalOpened] = useState(false);
   const [cashbackAmount, setCashbackAmount] = useState(0);
+  const [complaintModalOpened, setComplaintModalOpened] = useState(false);
   // Contract fee is waived for referred contracts
   const isReferred = !!contract.contract_code;
   const contractFee = isReferred ? 0 : 200;
@@ -276,7 +281,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     onError: (error: Error) => {
       console.error("Error deleting milestone:", error);
       notify.error(
-        error.message || "An error occurred while deleting the milestone"
+        error.message || "An error occurred while deleting the milestone",
       );
     },
   });
@@ -372,7 +377,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       description: string;
       amount?: number;
       action?: string;
-    }
+    },
   ) => {
     return new Promise<void>((resolve, reject) => {
       updateMilestoneMutation.mutate(
@@ -380,7 +385,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         {
           onSuccess: () => resolve(),
           onError: (error) => reject(error),
-        }
+        },
       );
     });
   };
@@ -456,7 +461,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       title: string;
       contract_amount: number;
       contract_duration_in_duration: number;
-    }
+    },
   ) => {
     try {
       const payload = {
@@ -490,7 +495,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   };
   const notifyProvider = async (
     role: "client" | "service_provider",
-    isSilent = false
+    isSilent = false,
   ) => {
     if (!isSilent) {
       if (!confirm(`Notify ${role}?`)) return;
@@ -522,7 +527,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
 
   const handleMilestoneStatusChange = (
     milestoneId: string,
-    action: "start" | "complete"
+    action: "start" | "complete",
     //currentStatus: string
   ) => {
     const milestone = contract.milestones?.find((m) => m.id === milestoneId);
@@ -536,10 +541,10 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   // Handler for batch milestone status change
   const handleBatchMilestoneStatusChange = (
     milestoneIds: string[],
-    action: "start" | "complete"
+    action: "start" | "complete",
   ) => {
     const milestones = contract.milestones?.filter((m) =>
-      milestoneIds.includes(m.id)
+      milestoneIds.includes(m.id),
     );
     if (milestones && milestones.length > 0) {
       setMilestonesForBatchChange(milestones);
@@ -555,7 +560,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     paymentMethod?: string,
     phoneNumber?: string,
     walletId?: string,
-    networkOperator?: string
+    networkOperator?: string,
   ) => {
     // Determine the correct action string based on user type and action
     let apiAction = action;
@@ -599,7 +604,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     paymentMethod?: string,
     phoneNumber?: string,
     walletId?: string,
-    networkOperator?: string
+    networkOperator?: string,
   ) => {
     if (!milestoneForStatusChange) return;
 
@@ -697,7 +702,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     paymentMethod: string,
     phoneNumber?: string,
     walletId?: string,
-    networkOperator?: string
+    networkOperator?: string,
   ): Promise<string | void> => {
     try {
       // Build the payload for payCashback
@@ -786,7 +791,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const statusConfig = getStatusConfig(contract.status);
   const completedMilestones =
     contract.milestones?.filter(
-      (m: Milestone) => m.status.toLowerCase() === "completed"
+      (m: Milestone) => m.status.toLowerCase() === "completed",
     ).length || 0;
   const totalMilestones = contract.milestones?.length || 0;
   const progressPercentage =
@@ -846,7 +851,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
   const projectDates = getProjectDates();
   const projectDuration = calculateDuration(
     projectDates.startDate,
-    projectDates.endDate
+    projectDates.endDate,
   );
   const openChatManager = () => {
     setChatOpen(true);
@@ -876,7 +881,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     return contract.milestones?.some(
       (milestone) =>
         // milestone.status.toLowerCase() === "in_progress" ||
-        milestone.status.toLowerCase() === "pending"
+        milestone.status.toLowerCase() === "pending",
       // milestone.status.toLowerCase() === "failed"
     );
   }, [contract?.milestones]);
@@ -890,14 +895,14 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
     return false;
   }, []);
   const unpaidMilestones = contract.milestones?.every(
-    (milestone) => milestone.status.toLowerCase() === "pending"
+    (milestone) => milestone.status.toLowerCase() === "pending",
   );
   const contractFeePaid = React.useMemo(
     () =>
       contract.milestones?.some(
-        (milestone) => milestone.status.toLowerCase() === "in_progress"
+        (milestone) => milestone.status.toLowerCase() === "in_progress",
       ),
-    [contract.milestones]
+    [contract.milestones],
   );
 
   // console.log(contract, "tract");
@@ -957,6 +962,27 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
       </Alert>
     );
   };
+
+  // Early return for disputed contracts
+  if (contract.status.toLowerCase() === "disputed") {
+    return (
+      <DisputedContractBanner
+        contractTitle={contract?.contract_json?.title}
+        contractCode={contract.code}
+        disputeRaisedAt={contract.updated_at}
+        initiatorName={contract?.initiator?.name}
+        providerName={contract?.service_provider?.name}
+        onContactSupport={() => {
+          // TODO: Implement contact support
+          window.open("tel:+254700000000", "_self");
+        }}
+        onViewDetails={() => {
+          // TODO: Implement view details
+          console.log("View complaint details");
+        }}
+      />
+    );
+  }
 
   return (
     <Box>
@@ -1489,7 +1515,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                                   {formatCurrency(milestone.amount)}
                                 </Text>
                               </Group>
-                            )
+                            ),
                         )}
                         <Divider my="sm" />
                         <Group justify="space-between">
@@ -1529,7 +1555,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                           </Text>
                           <Text size="lg" fw={700} className="text-green-700">
                             {formatCurrency(
-                              Number(contract.contract_amount) + contractFee
+                              Number(contract.contract_amount) + contractFee,
                             )}
                           </Text>
                         </Group>
@@ -1578,7 +1604,7 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                         Pay Full Amount (
                         {formatCurrency(
                           Number(contract.contract_amount) +
-                            (contractFeePaid ? 0 : contractFee)
+                            (contractFeePaid ? 0 : contractFee),
                         )}
                         )
                       </Button>
@@ -1635,6 +1661,17 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
                   >
                     {isDownloading ? "Downloading..." : "Download Contract"}
                   </Button>
+                  {contractFeePaid && (
+                    <Button
+                      fullWidth
+                      variant="outline"
+                      color="orange"
+                      leftSection={<AlertTriangle size={16} />}
+                      onClick={() => setComplaintModalOpened(true)}
+                    >
+                      Raise Complaint
+                    </Button>
+                  )}
                   <Box>
                     <Text size="sm" c="dimmed">
                       Contract Status
@@ -1852,6 +1889,32 @@ const ContractDetails: React.FC<ContractDetailsProps> = ({
         onConfirm={confirmClaimCashback}
         initiatorPhone={contract?.service_provider?.phone}
         initiatorWalletId={contract?.initiator?.wallet_account_id}
+      />
+
+      {/* Raise Complaint Modal */}
+      <RaiseComplaintModal
+        opened={complaintModalOpened}
+        onClose={() => setComplaintModalOpened(false)}
+        contractId={contract.id}
+        milestones={contract.milestones || []}
+        onSubmit={async (data) => {
+          const response = await raiseComplaint(data);
+          if (response.status) {
+            notify.success("Complaint submitted successfully");
+            queryClient.invalidateQueries({
+              queryKey: ["contract", contract.id],
+            });
+            queryClient.invalidateQueries({
+              queryKey: ["contracts"],
+            });
+            refresh();
+            setComplaintModalOpened(false);
+          } else {
+            notify.error(response.message || "Failed to submit complaint");
+            throw new Error(response.message);
+          }
+        }}
+        usertype={userType}
       />
     </Box>
   );
