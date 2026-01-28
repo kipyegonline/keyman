@@ -125,12 +125,32 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
   // Get theme based on supplier type
   const theme = useMemo(
     () => getSupplierTheme(supplier?.type),
-    [supplier?.type]
+    [supplier?.type],
   );
+
+  // Helper function to convert YouTube URL to embed format
+  const getYouTubeEmbedUrl = (url: string): string | null => {
+    if (!url) return null;
+
+    // Handle various YouTube URL formats
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/)([\w-]+)/,
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return `https://www.youtube.com/embed/${match[1]}`;
+      }
+    }
+    return null;
+  };
+
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(supplier?.youtube_link || "");
 
   const handleContractClick = (
     id: string | undefined,
-    isVerified: number | undefined
+    isVerified: number | undefined,
   ) => {
     if (isVerified !== 0) {
       setShowContract(true);
@@ -443,6 +463,32 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               </Text>
             </div>
           </div>
+
+          {/* YouTube Promo Video Section */}
+          {youtubeEmbedUrl && (
+            <div className="mt-4">
+              <div className="flex items-center gap-2 mb-3">
+                <ThemeIcon variant="light" color="red" size="sm">
+                  <Youtube className="w-3 h-3" />
+                </ThemeIcon>
+                <Text size="sm" className="font-medium text-gray-900">
+                  Promo Video
+                </Text>
+              </div>
+              <div
+                className="relative w-full rounded-lg overflow-hidden shadow-lg"
+                style={{ paddingBottom: "56.25%" }}
+              >
+                <iframe
+                  src={youtubeEmbedUrl}
+                  title={`${supplier?.name} Promo Video`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute top-0 left-0 w-full h-full border-0 rounded-lg"
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <Divider my="md" />

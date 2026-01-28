@@ -116,8 +116,8 @@ const MainContent: React.FC = () => {
     setActiveItem("suppliers-near-me");
     router.push(
       `/keyman/dashboard/suppliers-near-me?q=${encodeURIComponent(
-        trimmedQuery
-      )}`
+        trimmedQuery,
+      )}`,
     );
   };
 
@@ -130,7 +130,7 @@ const MainContent: React.FC = () => {
   const handlePaymentSuccess = () => {
     notify.success(
       "Your payment will reflect on your account soon.",
-      "Validating payment"
+      "Validating payment",
     );
     //lets refetch payment after 2 seconds
     setTimeout(() => refetch(), 2000);
@@ -149,6 +149,7 @@ const MainContent: React.FC = () => {
     router.push("/keyman/dashboard/key-contract");
   };
   const isSupplier = user && "supplier_details" in user;
+  console.log(user);
   return (
     <Container
       fluid

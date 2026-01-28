@@ -60,12 +60,12 @@ import {
 
 import { CoinBalance, SupplierDetails } from "@/types";
 import { notify } from "@/lib/notifications";
-import { inviteUserToSupplier } from "@/api/supplier";
+import { inviteUserToSupplier, updateSupplierDetails } from "@/api/supplier";
 import SocialShare from "@/lib/SocilalShareComponent";
 import KeyContractBanner from "../contract/contractBanner";
 import { navigateTo } from "@/lib/helpers";
 import { useRouter } from "next/navigation";
-//import PaymentModal from "../Tokens";
+import YouTubePromoModal from "./YouTubePromoModal";
 
 type Props = { supplierDetails: SupplierDetails; balance: CoinBalance };
 type Stafftype = "staff" | "service_provider";
@@ -85,6 +85,7 @@ const SupplierDashboard: React.FC<Props> = ({
 
   const [animateCards, setAnimateCards] = useState(false);
   const [contract, setContract] = useState(false);
+  const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   const router = useRouter();
 
   // Mock data - replace with your actual API data
@@ -210,6 +211,27 @@ const SupplierDashboard: React.FC<Props> = ({
     router.push("/keyman/supplier/key-contract");
   };
 
+  const handleYouTubeLinkSubmit = async (youtubeLink: string) => {
+    const supplierId = localStorage.getItem("supplier_id");
+    if (!supplierId) {
+      notify.error("Supplier ID not found");
+      throw new Error("Supplier ID not found");
+    }
+
+    const formData = new FormData();
+    formData.append("youtube_link", youtubeLink);
+
+    const response = await updateSupplierDetails(supplierId, formData);
+
+    if (response.status) {
+      notify.success("Promo video link saved successfully!");
+      setShowYouTubeModal(false);
+    } else {
+      notify.error(response.message || "Failed to save video link");
+      throw new Error(response.message || "Failed to save video link");
+    }
+  };
+
   const StaffMemberInvitation = (
     <Modal
       opened={inviteModalOpen}
@@ -289,6 +311,14 @@ const SupplierDashboard: React.FC<Props> = ({
         </Group>
       </Stack>
     </Modal>
+  );
+
+  const YouTubePromoSection = (
+    <YouTubePromoModal
+      opened={showYouTubeModal}
+      onClose={() => setShowYouTubeModal(false)}
+      onSubmit={handleYouTubeLinkSubmit}
+    />
   );
 
   const StatCard = ({
@@ -504,6 +534,20 @@ const SupplierDashboard: React.FC<Props> = ({
                         className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"
                       >
                         Keycontract
+                      </Button>
+                    </div>
+                    <div>
+                      <Button
+                        size="md"
+                        variant="outline"
+                        onClick={() => setShowYouTubeModal(true)}
+                        leftSection={<Youtube size={20} />}
+                        style={{ borderColor: "#FF0000", color: "#FF0000" }}
+                        className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                      >
+                        {_supplierInfo?.youtube_link
+                          ? "Update Promo Video"
+                          : "Add Promo Video"}
                       </Button>
                     </div>
                     {/* Social Media Links */}
@@ -765,7 +809,7 @@ const SupplierDashboard: React.FC<Props> = ({
                                   >
                                     {category?.item_category?.name}
                                   </Badge>
-                                )
+                                ),
                               )}
                             </Group>
                           </Grid.Col>
@@ -1151,6 +1195,7 @@ const SupplierDashboard: React.FC<Props> = ({
       </Grid>
 
       {StaffMemberInvitation}
+      {YouTubePromoSection}
     </div>
   );
 };
