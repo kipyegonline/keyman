@@ -12,13 +12,13 @@ import {
   Checkbox,
   Flex,
 } from "@mantine/core";
-import { User, Building, Shield, CreditCard } from "lucide-react";
+import { User, Building, Shield, CreditCard, Wallet } from "lucide-react";
 import { useState } from "react";
 import PaymentDetailsModal from "./PaymentDetailsModal";
 
 interface WalletTypeSelectionProps {
   onTypeSelect: (data: {
-    type: "personal" | "business";
+    type: "personal" | "business" | "current_with_name";
     payment_method: string;
     phone_number: string;
   }) => void;
@@ -32,17 +32,19 @@ function WalletTypeSelection({
   success = null,
 }: WalletTypeSelectionProps) {
   const [selectedType, setSelectedType] = useState<
-    "personal" | "business" | null
+    "personal" | "business" | "current_with_name" | null
   >(null);
   const [paymentModalOpened, setPaymentModalOpened] = useState(false);
 
-  const handleTypeSelect = (type: "personal" | "business") => {
+  const handleTypeSelect = (
+    type: "personal" | "business" | "current_with_name",
+  ) => {
     setSelectedType(type);
     setPaymentModalOpened(true);
   };
 
   const handlePaymentSubmit = (data: {
-    type: "personal" | "business";
+    type: "personal" | "business" | "current_with_name";
     payment_method: string;
     phone_number: string;
   }) => {
@@ -143,6 +145,82 @@ function WalletTypeSelection({
                       checked={selectedType === "personal"}
                       onChange={() =>
                         !isLoading && handleTypeSelect("personal")
+                      }
+                      color="#3D6B2C"
+                      size="md"
+                      disabled={isLoading}
+                    />
+                  </Group>
+                </div>
+              </Flex>
+            </Card>
+          </Grid.Col>
+
+          {/* Current Account with Name Option */}
+          <Grid.Col span={{ base: 12 }}>
+            <Card
+              className="h-full border-2 border-gray-200 hover:border-green-400 hover:shadow-lg transition-all duration-300 cursor-pointer"
+              radius="lg"
+              p={{ base: "md", md: "xl" }}
+              onClick={() =>
+                !isLoading && handleTypeSelect("current_with_name")
+              }
+              style={{
+                borderColor:
+                  selectedType === "current_with_name" ? "#3D6B2C" : "#E9ECEF",
+                backgroundColor:
+                  selectedType === "current_with_name" ? "#3D6B2C05" : "white",
+              }}
+            >
+              <Flex
+                gap="lg"
+                align={{ base: "center", md: "flex-start" }}
+                direction={{ base: "column", md: "row" }}
+              >
+                {/* Left side - Icon */}
+                <div className="flex-shrink-0">
+                  <ThemeIcon
+                    size={60}
+                    radius="xl"
+                    style={{
+                      backgroundColor:
+                        selectedType === "current_with_name"
+                          ? "#3D6B2C"
+                          : "#3D6B2C15",
+                      color:
+                        selectedType === "current_with_name"
+                          ? "white"
+                          : "#3D6B2C",
+                    }}
+                    className="mb-4"
+                  >
+                    <Wallet size={30} />
+                  </ThemeIcon>
+                </div>
+
+                {/* Right side - Content and Checkbox */}
+                <div className="flex-1">
+                  <Group
+                    justify="space-between"
+                    align="flex-start"
+                    className="mb-3"
+                  >
+                    <div>
+                      <Group gap="sm" align="center" className="mb-2">
+                        <Title order={3} style={{ color: "#3D6B2C" }}>
+                          Current Account with Name
+                        </Title>
+                      </Group>
+                      <Text size="sm" c="dimmed">
+                        Premium named account for enhanced credibility and
+                        personalized banking experience
+                      </Text>
+                    </div>
+
+                    <Checkbox
+                      checked={selectedType === "current_with_name"}
+                      onChange={() =>
+                        !isLoading && handleTypeSelect("current_with_name")
                       }
                       color="#3D6B2C"
                       size="md"

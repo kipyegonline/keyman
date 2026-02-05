@@ -17,9 +17,9 @@ import { CreditCard, Phone, DollarSign } from "lucide-react";
 interface PaymentDetailsModalProps {
   opened: boolean;
   onClose: () => void;
-  walletType: "personal" | "business";
+  walletType: "personal" | "business" | "current_with_name";
   onSubmit: (data: {
-    type: "personal" | "business";
+    type: "personal" | "business" | "current_with_name";
     payment_method: string;
     phone_number: string;
   }) => void;
@@ -125,7 +125,11 @@ export default function PaymentDetailsModal({
                 size="sm"
                 style={{
                   backgroundColor:
-                    walletType === "personal" ? "#3D6B2C" : "#F08C23",
+                    walletType === "personal"
+                      ? "#3D6B2C"
+                      : walletType === "current_with_name"
+                        ? "#3D6B2C"
+                        : "#F08C23",
                 }}
                 variant="filled"
               >
@@ -133,11 +137,20 @@ export default function PaymentDetailsModal({
               </ThemeIcon>
               <Text fw={600} size="sm" className="text-blue-800">
                 Wallet Type:{" "}
-                {walletType === "personal" ? "Personal" : "Business"} Wallet
+                {walletType === "personal"
+                  ? "Personal"
+                  : walletType === "current_with_name"
+                    ? "Current Account with Name"
+                    : "Business"}{" "}
+                Wallet
               </Text>
             </Group>
             <Text size="sm" c="dimmed">
-              Complete the payment details to activate your {walletType} wallet
+              Complete the payment details to activate your{" "}
+              {walletType === "current_with_name"
+                ? "current account"
+                : walletType}{" "}
+              wallet
             </Text>
           </Paper>
 

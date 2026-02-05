@@ -95,7 +95,7 @@ export const createCurrentAccount = async (formData: FormData) => {
 };
 
 export const initializeWallet = async (data: {
-  type: "personal" | "business";
+  type: "personal" | "business" | "current_with_name";
   payment_method: string;
   phone_number: string;
 }) => {
@@ -121,7 +121,7 @@ export const initializeWallet = async (data: {
 
 export const sendOTP = async (
   phoneNumber: string,
-  otpType: "email" | "sms" = "email"
+  otpType: "email" | "sms" = "email",
 ) => {
   try {
     const endpoint = ENDPOINTS.wallet.SEND_OTP;
@@ -149,7 +149,7 @@ export const sendOTP = async (
 export const confirmOTP = async (
   otp: string,
   businessId?: string,
-  phoneNumber?: string
+  phoneNumber?: string,
 ) => {
   try {
     const endpoint = ENDPOINTS.wallet.CONFIRM_OTP;

@@ -38,7 +38,7 @@ interface WalletOnboardingProps {
   onboardingRequestId: string;
   otpConfirmed: boolean;
   refresh: () => void;
-  accountType: "personal" | "business";
+  accountType: "personal" | "business" | "current_with_name";
 }
 
 export default function WalletOnboarding({
@@ -55,7 +55,7 @@ export default function WalletOnboarding({
   const router = useRouter();
   const getStepIcon = (
     status: string,
-    IconComponent: React.FC<LucideProps>
+    IconComponent: React.FC<LucideProps>,
   ) => {
     if (status === "completed") {
       return <CheckCircle size={20} color="#4CAF50" />;
@@ -70,16 +70,19 @@ export default function WalletOnboarding({
 
   const getProgressPercentage = () => {
     const completedSteps = onboardingSteps.filter(
-      (step) => step.status === "completed"
+      (step) => step.status === "completed",
     ).length;
     const inProgressSteps = onboardingSteps.filter(
-      (step) => step.status === "in-progress"
+      (step) => step.status === "in-progress",
     ).length;
     return (
       ((completedSteps + inProgressSteps * 0.5) / onboardingSteps.length) * 100
     );
   };
-  if (otpConfirmed && accountType === "personal")
+  if (
+    (otpConfirmed && accountType === "personal") ||
+    (otpConfirmed && accountType === "current_with_name")
+  )
     return (
       <Container size="md" py="xl">
         <Stack gap="xl">
@@ -178,8 +181,8 @@ export default function WalletOnboarding({
                             step.status === "completed"
                               ? "#4CAF50"
                               : step.status === "in-progress"
-                              ? "#F08C23"
-                              : "#gray",
+                                ? "#F08C23"
+                                : "#gray",
                           color: "white",
                         }}
                         variant={step.status === "pending" ? "light" : "filled"}
@@ -188,8 +191,8 @@ export default function WalletOnboarding({
                         {step.status === "completed"
                           ? "Done"
                           : step.status === "in-progress"
-                          ? "Processing"
-                          : "Waiting"}
+                            ? "Processing"
+                            : "Waiting"}
                       </Badge>
                     </Group>
                   </Paper>
