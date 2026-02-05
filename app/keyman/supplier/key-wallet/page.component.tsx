@@ -38,7 +38,7 @@ export default function WalletClientComponent() {
 
   const initializeWalletMutation = useMutation({
     mutationFn: (data: {
-      type: "personal" | "business";
+      type: "personal" | "business" | "current_with_name";
       payment_method: string;
       phone_number: string;
     }) => initializeWallet(data),
@@ -46,7 +46,7 @@ export default function WalletClientComponent() {
       if (response.status) {
         refresh();
         notify.success(
-          "Payment initiated successfully! Please complete the payment on your phone."
+          "Payment initiated successfully! Please complete the payment on your phone.",
         );
         setSuccess(1);
         queryClient.invalidateQueries({ queryKey: ["wallet"] });
@@ -63,7 +63,7 @@ export default function WalletClientComponent() {
   });
 
   const handleWalletTypeSelect = (data: {
-    type: "personal" | "business";
+    type: "personal" | "business" | "current_with_name";
     payment_method: string;
     phone_number: string;
   }) => {
