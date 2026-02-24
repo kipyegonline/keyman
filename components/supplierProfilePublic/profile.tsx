@@ -154,13 +154,12 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
   ) => {
     if (isVerified !== 0) {
       setShowContract(true);
+      navigateTo();
+      setActiveItem("key-contract");
+      router.push(`/keyman/dashboard/key-contract/create?keyman_id=${id}`);
     } else {
       setShowUnverifiedModal(true);
     }
-
-    navigateTo();
-    setActiveItem("key-contract");
-    router.push(`/keyman/dashboard/key-contract/create?keyman_id=${id}`);
   };
 
   const handleAcceptUnverified = () => {
@@ -274,7 +273,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
     [...Array(supplier?.supplier_rating)].map((_, i) => (
       <Star key={i} className="w-4 h-4 text-yellow-500 fill-yellow-500" />
     ));
-
+  console.log("Supplier Data:", supplier);
   return (
     <div className="w-full h-full bg-white">
       {showContract && (
@@ -303,6 +302,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               variant="outline"
               className="!animate-pulse"
               size="sm"
+              display="none"
               onClick={() =>
                 handleContractClick(supplier?.id, supplier?.is_user_verified)
               }
@@ -489,6 +489,21 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               </div>
             </div>
           )}
+        </div>
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            className={` ${supplier?.is_user_verified === 0 ? "!bg-gray-200 " : "!animate-pulse"}`}
+            size="sm"
+            onClick={() =>
+              handleContractClick(supplier?.id, supplier?.is_user_verified)
+            }
+            rightSection={
+              <PepiconsPencilHandshakeCircle className="w-8 h-8 bg-green !animation-pulse" />
+            }
+          >
+            Get secure contract with {supplier?.name}
+          </Button>
         </div>
 
         <Divider my="md" />

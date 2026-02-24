@@ -299,6 +299,8 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
             <Button
               variant="light"
               size="sm"
+              display="none"
+              className={`!animate-pulse ${supplier?.is_user_verified === 0 ? "!bg-gray-300 " : ""}`}
               onClick={() =>
                 handleContractClick(supplier?.id, supplier?.is_user_verified)
               }
@@ -498,6 +500,22 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
               </Text>
             </div>
           </div>
+        </div>
+        <div className="flex justify-center">
+          <Button
+            variant="light"
+            size="sm"
+            className={` ${supplier?.is_user_verified === 0 ? "!bg-gray-300 " : "!animate-pulse"}`}
+            onClick={() =>
+              handleContractClick(supplier?.id, supplier?.is_user_verified)
+            }
+            //className="!animate-pulse"
+            rightSection={
+              <PepiconsPencilHandshakeCircle className="w-8 h-8  !animation-pulse" />
+            }
+          >
+            Get secure contract with {supplier?.name}
+          </Button>
         </div>
 
         <Divider my="md" />

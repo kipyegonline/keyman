@@ -239,33 +239,33 @@ const MainContent: React.FC<{ stores?: ISupplierContact[] }> = ({
       <Flex
         mb="xl"
         //className="border-red"
-        gap={{ base: "sm", md: "md" }}
+        gap={{ base: "xs", md: "sm" }}
         direction={{ base: "column", md: "row" }}
         align={{ base: "stretch", md: "center" }}
       >
         <Button
-          size="lg"
+          size="sm"
           onClick={handleRequestItem}
-          leftSection={<Plus size={20} />}
+          leftSection={<Plus size={14} />}
           className="bg-gradient-to-r from-[#F08C23] to-[#3D6B2C] hover:shadow-lg transition-all duration-200 transform hover:scale-105"
         >
           Request Item
         </Button>
         <Button
-          size="lg"
+          size="sm"
           variant="outline"
           onClick={() => setOpen(true)}
-          leftSection={<CreditCard size={20} />}
+          leftSection={<CreditCard size={14} />}
           color="gray"
           className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"
         >
           Top Up coins
         </Button>
         <Button
-          size="lg"
+          size="sm"
           variant="filled"
           onClick={handleContract}
-          leftSection={<ReceiptText size={20} />}
+          leftSection={<ReceiptText size={14} />}
           color="keymanOrange"
           className="hover:shadow-lg transition-all duration-200 transform hover:scale-105"
         >
@@ -283,7 +283,7 @@ const MainContent: React.FC<{ stores?: ISupplierContact[] }> = ({
         }
         url="/keyman/dashboard/suppliers-near-me/"
         browseUrl="/keyman/dashboard/suppliers-near-me"
-        limit={searchQuery.trim() ? filteredStores.length : 8}
+        limit={searchQuery.trim() ? filteredStores.length : 16}
         emptyMessage={
           searchQuery.trim()
             ? `No stores matched "${searchQuery.trim()}" — try a different keyword or browse all stores.`

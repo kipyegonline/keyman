@@ -10,7 +10,7 @@ interface StoreGridProps {
   stores: ISupplierContact[];
   url?: string;
   title?: string;
-  /** Max number of stores to display. Defaults to 8 (2 rows × 4 cols) */
+  /** Max number of stores to display. Defaults to 16 (4 rows × 4 cols) */
   limit?: number;
   browseUrl?: string;
   /** When provided, shown instead of rendering nothing on empty results */
@@ -21,7 +21,7 @@ const StoreGrid: React.FC<StoreGridProps> = ({
   stores,
   url = "/keyman/dashboard/suppliers-near-me/",
   title = "Stores Near You",
-  limit = 8,
+  limit = 16,
   browseUrl = "/keyman/dashboard/suppliers-near-me",
   emptyMessage,
 }) => {

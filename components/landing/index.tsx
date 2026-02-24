@@ -21,9 +21,10 @@ import { useRouter } from "next/navigation";
 import { Image } from "@mantine/core";
 //import SuppliersNearMeCTA from "./SuppliersNearMeCT";
 import KeymanBanner from "../Banner";
-import { getBannerssNearMe } from "@/api/requests";
+import { getBannerssNearMe, getSuppliersNearMe } from "@/api/requests";
 import { useQuery } from "@tanstack/react-query";
-import SuppliersNearMe from "../supplier/SuppliersNearMe";
+import { StoreGrid } from "@/components/store-cards";
+import { ISupplierContact } from "@/components/supplier/profiles/types";
 import ForexRatesBoard from "../wallet/ForexRatesBoard";
 
 // Hero Section Component
@@ -458,6 +459,14 @@ const KeymanLanding: React.FC = () => {
       getBannerssNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0),
     enabled: !!userLocation,
   });
+
+  const { data: _nearbySuppliers } = useQuery({
+    queryKey: ["landing_stores_near_me", userLocation?.lat, userLocation?.lng],
+    queryFn: async () =>
+      getSuppliersNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0),
+    enabled: !!userLocation,
+    refetchOnWindowFocus: false,
+  });
   // Get user location on component mount
   useEffect(() => {
     const getCurrentLocation = () => {
@@ -484,7 +493,7 @@ const KeymanLanding: React.FC = () => {
           enableHighAccuracy: true,
           timeout: 10000,
           maximumAge: 600000,
-        }
+        },
       );
     };
 
@@ -497,6 +506,13 @@ const KeymanLanding: React.FC = () => {
     }
     return [];
   }, [_banners]);
+
+  const nearbyStores = React.useMemo<ISupplierContact[]>(() => {
+    if (_nearbySuppliers?.suppliers?.length > 0) {
+      return _nearbySuppliers.suppliers;
+    }
+    return [];
+  }, [_nearbySuppliers]);
   const createElement = (style: HTMLElement) => {
     style.textContent = `
       @keyframes fade-in {
@@ -544,14 +560,20 @@ const KeymanLanding: React.FC = () => {
       <div className="pt-18"></div>
 
       <AnimatedHeroSection />
+      <StoreGrid
+        stores={nearbyStores}
+        title="Stores Near You"
+        url="/suppliers-near-me/"
+        browseUrl="/suppliers-near-me"
+        limit={16}
+      />
       <ForexRatesBoard />
       <div className="py-4">
         <KeymanBanner banners={banners} />
       </div>
-      <SuppliersNearMe url="/suppliers-near-me/" />
 
       <RegistrationSection darkMode={darkMode} />
-      {/** <AskKeymanSection darkMode={darkMode} />*/}
+
       <HeroSection darkMode={darkMode} />
       <RequestOrderSection darkMode={darkMode} />
       <TokenSystemSection darkMode={darkMode} />
