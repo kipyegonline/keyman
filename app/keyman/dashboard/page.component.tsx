@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import MainContent from "@/components/dashboard/content";
 import KeymanBanner from "@/components/Banner";
 import { useQuery } from "@tanstack/react-query";
-import { getBannerssNearMe } from "@/api/requests";
+import { getBannerssNearMe, getSuppliersNearMe } from "@/api/requests";
+import { ISupplierContact } from "@/components/supplier/profiles/types";
 
 export default function UserDashboardComponent() {
   const [userLocation, setUserLocation] = useState<{
@@ -18,6 +19,25 @@ export default function UserDashboardComponent() {
       getBannerssNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0),
     enabled: !!userLocation,
   });
+
+  const { data: _nearbySuppliers } = useQuery({
+    queryKey: [
+      "dashboard_stores_near_me",
+      userLocation?.lat,
+      userLocation?.lng,
+    ],
+    queryFn: async () =>
+      getSuppliersNearMe(userLocation?.lat ?? 0, userLocation?.lng ?? 0),
+    enabled: !!userLocation,
+    refetchOnWindowFocus: false,
+  });
+
+  const nearbyStores = React.useMemo<ISupplierContact[]>(() => {
+    if (_nearbySuppliers?.suppliers?.length > 0) {
+      return _nearbySuppliers.suppliers;
+    }
+    return [];
+  }, [_nearbySuppliers]);
   // Get user location on component mount
   useEffect(() => {
     const getCurrentLocation = () => {
@@ -44,7 +64,7 @@ export default function UserDashboardComponent() {
           enableHighAccuracy: true,
           timeout: 10000,
           maximumAge: 600000,
-        }
+        },
       );
     };
 
@@ -62,7 +82,7 @@ export default function UserDashboardComponent() {
     <div>
       <KeymanBanner banners={banners} />
 
-      <MainContent />
+      <MainContent stores={nearbyStores} />
     </div>
   );
 }

@@ -45,8 +45,12 @@ import { Order } from "@/types/orders";
 import KeyContractBanner from "../contract/contractBanner";
 import ForexRatesBoard from "../wallet/ForexRatesBoard";
 import ForexTicker from "../wallet/ForexTicker";
+import { StoreGrid } from "@/components/store-cards";
+import { ISupplierContact } from "@/components/supplier/profiles/types";
 // Main Content Component
-const MainContent: React.FC = () => {
+const MainContent: React.FC<{ stores?: ISupplierContact[] }> = ({
+  stores = [],
+}) => {
   const [searchQuery, setSearchQuery] = useState("");
   const { darkMode: isDark, user, setActiveItem } = useAppContext();
   const router = useRouter();
@@ -79,6 +83,19 @@ const MainContent: React.FC = () => {
       return orders?.orders;
     } else return [];
   }, [orders]);
+
+  const filteredStores = React.useMemo<ISupplierContact[]>(() => {
+    if (!searchQuery.trim()) return stores;
+    const q = searchQuery.toLowerCase();
+    return stores.filter(
+      (store) =>
+        store.name.toLowerCase().includes(q) ||
+        store.keyman_number.toLowerCase().includes(q) ||
+        store.email.toLowerCase().includes(q) ||
+        (store.comments !== null && store.comments?.toLowerCase().includes(q)),
+    );
+  }, [stores, searchQuery]);
+
   const stats = [
     {
       label: "Active Orders",
@@ -149,7 +166,7 @@ const MainContent: React.FC = () => {
     router.push("/keyman/dashboard/key-contract");
   };
   const isSupplier = user && "supplier_details" in user;
-  console.log(user);
+
   return (
     <Container
       fluid
@@ -255,6 +272,24 @@ const MainContent: React.FC = () => {
           Keycontract
         </Button>
       </Flex>
+
+      {/* Stores Near You */}
+      <StoreGrid
+        stores={filteredStores}
+        title={
+          searchQuery.trim()
+            ? `Results for "${searchQuery.trim()}"`
+            : "Stores Near You"
+        }
+        url="/keyman/dashboard/suppliers-near-me/"
+        browseUrl="/keyman/dashboard/suppliers-near-me"
+        limit={searchQuery.trim() ? filteredStores.length : 8}
+        emptyMessage={
+          searchQuery.trim()
+            ? `No stores matched "${searchQuery.trim()}" — try a different keyword or browse all stores.`
+            : undefined
+        }
+      />
 
       {/* Stats Grid */}
       <Grid mb="xl">

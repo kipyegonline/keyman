@@ -70,7 +70,7 @@ const SuppliersNearMe: React.FC<{
       getSuppliersNearMe(
         userLocation?.lat ?? 0,
         userLocation?.lng ?? 0,
-        400000
+        400000,
       ),
     enabled: !!userLocation && useExtendedSearch,
   });
@@ -105,7 +105,9 @@ const SuppliersNearMe: React.FC<{
             .includes(searchQuery.toLowerCase()) ||
           supplier.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
           (supplier.comments !== null &&
-            supplier.comments.toLowerCase().includes(searchQuery.toLowerCase()))
+            supplier.comments
+              .toLowerCase()
+              .includes(searchQuery.toLowerCase())),
       );
     if (currentSuppliers?.suppliers) return currentSuppliers?.suppliers;
     else return [];
@@ -115,7 +117,7 @@ const SuppliersNearMe: React.FC<{
   useEffect(() => {
     const getCurrentLocation = () => {
       if (!navigator.geolocation) {
-        setLocationError("Geolocation is not supported by this browser");
+        setLocationError("Geolocation is not supported by this browser ");
         setLoading(false);
         return;
       }
@@ -129,7 +131,8 @@ const SuppliersNearMe: React.FC<{
         (error) => {
           console.log(error);
           setLocationError(
-            "Unable to retrieve your location. Try again later."
+            "Unable to retrieve your location. Try again later. " +
+              error.message,
           );
           setLoading(false);
         },
@@ -137,7 +140,7 @@ const SuppliersNearMe: React.FC<{
           enableHighAccuracy: true,
           timeout: 10000,
           maximumAge: 600000,
-        }
+        },
       );
     };
 
@@ -169,7 +172,7 @@ const SuppliersNearMe: React.FC<{
     navigateTo();
     setActiveItem("key-contract");
     router.push(
-      `/keyman/dashboard/key-contract/create?keyman_id=${supplier.id}`
+      `/keyman/dashboard/key-contract/create?keyman_id=${supplier.id}`,
     );
   };
   const perPage = 25,
@@ -338,8 +341,8 @@ const SuppliersNearMe: React.FC<{
         {/* Results Counter */}
         <Group justify="space-between" align="center">
           <Text size="md" c="dimmed">
-            {filteredSuppliers.length} supplier
-            {filteredSuppliers.length !== 1 ? "s" : ""} found
+            {filteredSuppliers?.length} supplier
+            {filteredSuppliers?.length !== 1 ? "s" : ""} found
           </Text>
           {userLocation && (
             <Group gap="xs">
@@ -367,7 +370,7 @@ const SuppliersNearMe: React.FC<{
 
         {/* Suppliers Grid */}
         <Grid>
-          {paginatedSuppliers.map((supplier, index: number) => (
+          {paginatedSuppliers?.map((supplier, index: number) => (
             <Grid.Col key={supplier.id} span={{ base: 12, md: 6, lg: 4 }}>
               <Transition
                 mounted={true}
@@ -407,7 +410,7 @@ const SuppliersNearMe: React.FC<{
           ))}
         </Grid>
         <Box my="md">
-          {filteredSuppliers.length > perPage && (
+          {filteredSuppliers?.length > perPage && (
             <Pagination
               total={total}
               onChange={(num) => {
@@ -420,7 +423,7 @@ const SuppliersNearMe: React.FC<{
         </Box>
 
         {/* No Results State */}
-        {filteredSuppliers.length === 0 && !loading && (
+        {filteredSuppliers?.length === 0 && !loading && (
           <Paper
             p="xl"
             radius="lg"
