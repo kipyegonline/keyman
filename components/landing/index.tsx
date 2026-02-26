@@ -560,13 +560,17 @@ const KeymanLanding: React.FC = () => {
       <div className="pt-18"></div>
 
       <AnimatedHeroSection />
-      <StoreGrid
-        stores={nearbyStores}
-        title="Stores Near You"
-        url="/suppliers-near-me/"
-        browseUrl="/suppliers-near-me"
-        limit={16}
-      />
+      <div className="px-4 sm:px-6 lg:px-8">
+        <StoreGrid
+          stores={nearbyStores}
+          title="Stores Near You"
+          url="/suppliers-near-me/"
+          browseUrl="/suppliers-near-me"
+          limit={16}
+          paginate
+          searchable
+        />
+      </div>
       <ForexRatesBoard />
       <div className="py-4">
         <KeymanBanner banners={banners} />

@@ -283,7 +283,8 @@ const MainContent: React.FC<{ stores?: ISupplierContact[] }> = ({
         }
         url="/keyman/dashboard/suppliers-near-me/"
         browseUrl="/keyman/dashboard/suppliers-near-me"
-        limit={searchQuery.trim() ? filteredStores.length : 16}
+        limit={16}
+        paginate
         emptyMessage={
           searchQuery.trim()
             ? `No stores matched "${searchQuery.trim()}" — try a different keyword or browse all stores.`

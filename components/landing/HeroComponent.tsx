@@ -6,10 +6,13 @@ import {
   Zap,
   Building2,
   ShoppingCart,
+  CheckCircle2,
+  Plug,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@mantine/core";
+import { Button, Modal, TextInput, Stack, Text } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { useAppContext } from "@/providers/AppContext";
 //import DashboardSearch from "../keyman-bot/DashboardSearch";
 
@@ -17,6 +20,8 @@ const AnimatedHeroSection: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
+  // darkMode kept for when AskKeymanSection is re-enabled
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { darkMode } = useAppContext();
   useEffect(() => {
     setIsVisible(true);
@@ -150,7 +155,7 @@ const AnimatedHeroSection: React.FC = () => {
   };
 
   return (
-    <section className="relative min-h-screen  mb-4 md:mb-8 bg-gradient-to-br from-gray-50 via-white to-orange-50 overflow-hidden ">
+    <section className="relative mb-2 md:mb-4 lg:mb-0 bg-gradient-to-br from-gray-50 via-white to-orange-50 overflow-hidden ">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-[#3D6B2C]/10 to-[#4CAF50]/10 rounded-full blur-3xl floating-animation"></div>
@@ -165,10 +170,10 @@ const AnimatedHeroSection: React.FC = () => {
       </div>
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="min-h-screen grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+        <div className="py-20 lg:py-2 lg:min-h-[55vh] grid lg:grid-cols-2 gap-8 lg:gap-10 items-center">
           {/* Left Content Section */}
           <div
-            className={`space-y-8 ${
+            className={`space-y-6 lg:space-y-8 ${
               isVisible ? "animate-slideInLeft" : "opacity-0"
             }`}
             onMouseMove={handleMouseMove}
@@ -192,8 +197,8 @@ const AnimatedHeroSection: React.FC = () => {
             {/* Main Headline */}
             <div className="space-y-4">
               <div className="relative">
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
-                  <div className="text-gradient mb-2">BUY SMART.</div>
+                <h1 className="text-4xl sm:text-5xl lg:text-5xl font-bold leading-tight">
+                  <div className="text-gradient mb-2">BUY SAFE.</div>
                   <div className="text-gradient">BUILD SMART.</div>
                 </h1>
 
@@ -231,8 +236,8 @@ const AnimatedHeroSection: React.FC = () => {
                 }`}
                 style={{ animationDelay: "0.3s" }}
               >
-                Compare prices, shop with confidence, and get your order
-                delivered to site.
+                Trade with verified suppliers. Pay through secure escrow. Build
+                with confidence.
               </p>
             </div>
 
@@ -259,7 +264,7 @@ const AnimatedHeroSection: React.FC = () => {
                       isHovering ? "rotate-12 scale-110" : ""
                     }`}
                   />
-                  <span>Get Started</span>
+                  <span>Start Building Safely</span>
                   <ArrowRight
                     className={`w-6 h-6 transition-transform duration-300 ${
                       isHovering ? "translate-x-2" : ""
@@ -275,7 +280,7 @@ const AnimatedHeroSection: React.FC = () => {
               </p>
             </div>
 
-            {/* Stats or Features */}
+            {/* Stats or Features 
             <div
               className={`grid grid-cols-3 gap-4 pt-8 ${
                 isVisible ? "animate-fadeInUp" : "opacity-0"
@@ -298,6 +303,7 @@ const AnimatedHeroSection: React.FC = () => {
                 </div>
               ))}
             </div>
+            */}
           </div>
 
           {/* Right Image Section */}
@@ -306,9 +312,9 @@ const AnimatedHeroSection: React.FC = () => {
               isVisible ? "animate-slideInRight" : "opacity-0"
             }`}
           >
-            {/* Floating Icons */}
+            {/* Floating sparkle — hidden on mobile to avoid overlapping cards */}
             <div
-              className="absolute left-1/2 top-4 parallax-element  "
+              className="absolute left-1/2 top-4 parallax-element hidden sm:block"
               style={{
                 transform: `translate(${mousePosition.x * 0.5}px, ${
                   mousePosition.y * 0.5
@@ -317,9 +323,13 @@ const AnimatedHeroSection: React.FC = () => {
             >
               <Sparkles className="w-6 h-6 text-[#F08C23] animate-bounce-slow " />
             </div>
+            {/*  <AskKeymanSection darkMode={darkMode} compact />*/}
 
-            <AskKeymanSection darkMode={darkMode} />
-            <QualityAssured />
+            {/* Info Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 sm:mt-6 lg:mt-3 pb-4 lg:pb-0">
+              <WhatIsKeymanStoreCard />
+              <KeymanPlugCard />
+            </div>
           </div>
         </div>
       </div>
@@ -328,7 +338,7 @@ const AnimatedHeroSection: React.FC = () => {
       <div className="absolute bottom-0 left-0 right-0">
         <svg
           viewBox="0 0 1440 120"
-          className="w-full h-16 sm:h-20 lg:h-24 fill-white"
+          className="w-full h-16 sm:h-20 lg:h-12 fill-white"
         >
           <path d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,64C960,75,1056,85,1152,80C1248,75,1344,53,1392,42.7L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z"></path>
         </svg>
@@ -339,58 +349,66 @@ const AnimatedHeroSection: React.FC = () => {
 
 export default AnimatedHeroSection;
 
-// Ask Keyman Section Component
-const AskKeymanSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
+// Ask Keyman Section Component — kept ready for re-use
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const AskKeymanSection: React.FC<{ darkMode: boolean; compact?: boolean }> = ({
+  darkMode,
+  compact = false,
+}) => {
   const router = useRouter();
-  const cardStyles = "rounded-3xl p-8 shadow-2xl ";
+  const cardStyles = "rounded-2xl shadow-xl";
 
   const handleSearch = () => {
-    // Navigate to suppliers page
     router.push(`/suppliers-near-me`);
   };
 
   return (
     <section
-      className={`py-16 px-4    sm:px-6 lg:px-8 ${cardStyles}  ${
-        darkMode ? "bg-gray-800" : "bg-white"
-      }`}
+      className={`${
+        compact ? "py-5 px-5" : "py-16 px-4 sm:px-6 lg:px-8"
+      } ${cardStyles} ${darkMode ? "bg-gray-800" : "bg-white"}`}
     >
-      <div className="max-w-6xl mx-auto text-center space-y-4">
-        <div className="space-y-4">
+      <div className="max-w-6xl mx-auto text-center space-y-2">
+        <div className="space-y-1">
           <h2
-            className={`text-3xl md:text-4xl font-bold ${
+            className={`${
+              compact ? "text-xl" : "text-3xl md:text-4xl"
+            } font-bold ${
               darkMode ? "text-white" : "text-gray-900"
             } text-transparent bg-clip-text bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50]`}
           >
             KEYMAN
           </h2>
-          <p
-            className={`text-lg ${
-              darkMode ? "text-gray-300" : "text-gray-600"
-            }`}
-          >
-            Your platform for trusted construction products and pros.
-          </p>
+          {!compact && (
+            <p
+              className={`text-lg ${
+                darkMode ? "text-gray-300" : "text-gray-600"
+              }`}
+            >
+              Your platform for trusted construction products and pros.
+            </p>
+          )}
         </div>
 
-        <div className="space-y-4">
-          <h3
-            className={`text-xl font-semibold ${
-              darkMode ? "text-white" : "text-gray-900"
-            }`}
-          >
-            Ask Keyman
-          </h3>
+        <div className="space-y-2">
+          {!compact && (
+            <h3
+              className={`text-xl font-semibold ${
+                darkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              Ask Keyman
+            </h3>
+          )}
 
           <div className="relative max-w-2xl mx-auto">
-            {/*<DashboardSearch />*/}
             <div className="flex justify-center">
               <Button
                 onClick={handleSearch}
-                size="lg"
+                size={compact ? "sm" : "lg"}
                 radius="md"
                 className="bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50] hover:shadow-lg transition-all duration-200"
-                rightSection={<ArrowRight className="w-5 h-5" />}
+                rightSection={<ArrowRight className="w-4 h-4" />}
               >
                 Search Suppliers
               </Button>
@@ -402,72 +420,198 @@ const AskKeymanSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
   );
 };
 
-export const RightSection = () => {
+// Green card: What Is a Keyman Store?
+const WhatIsKeymanStoreCard: React.FC = () => {
+  const features = [
+    "A unique KS Number",
+    "A public profile",
+    "Verified badge option",
+    "Secure payment access",
+    "Reputation history",
+    "Ability to receive orders safely",
+  ];
+  const storeTypes = [
+    "A hardware shop",
+    "A fundi (plumber, mason, electrician, painter)",
+    "A professional (engineer, architect, QS, surveyor)",
+    "A supplier or manufacturer",
+  ];
+
   return (
-    <div className="relative h-96 sm:h-[500px] lg:h-[600px] hidden rounded-3xl overflow-hidden group">
-      {/* Main Image Container */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#F08C23] to-orange-400 rounded-3xl transform group-hover:scale-105 transition-transform duration-700">
-        {/* Construction Tools Illustration */}
-        <div className="absolute inset-0 flex items-center justify-center p-8">
-          <div className="relative w-full h-full">
-            {/* Yellow Cable/Wire */}
-            <div className="absolute top-8 left-8 right-8">
-              <div
-                className="h-8 bg-yellow-400 rounded-full shadow-lg transform group-hover:scale-110 transition-transform duration-500"
-                style={{
-                  clipPath: "polygon(0 40%, 100% 40%, 95% 60%, 5% 60%)",
-                }}
-              ></div>
-            </div>
-
-            {/* Orange Hard Hat */}
-            <div className="absolute top-16 right-12 w-24 h-20 bg-gradient-to-b from-orange-500 to-orange-600 rounded-t-full shadow-xl transform group-hover:rotate-6 group-hover:scale-110 transition-all duration-500"></div>
-
-            {/* Construction Tools */}
-            <div className="absolute bottom-16 left-8 right-8 h-32 bg-gradient-to-r from-gray-600 to-gray-700 rounded-lg shadow-2xl transform group-hover:translate-y-2 transition-transform duration-500">
-              {/* Tool handles and details */}
-              <div className="absolute top-4 left-4 right-4 h-4 bg-yellow-600 rounded opacity-80"></div>
-              <div className="absolute bottom-4 left-4 w-16 h-8 bg-red-600 rounded shadow-md"></div>
-              <div className="absolute bottom-4 right-4 w-12 h-12 bg-blue-600 rounded-full shadow-md"></div>
-            </div>
-
-            {/* Floating Particles */}
-            {[...Array(6)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute w-2 h-2 bg-white/30 rounded-full floating-animation"
-                style={{
-                  top: `${20 + i * 10}%`,
-                  left: `${15 + i * 12}%`,
-                  animationDelay: `${i * 0.3}s`,
-                }}
-              ></div>
-            ))}
-          </div>
-        </div>
-
-        {/* Overlay Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent group-hover:from-black/30 transition-all duration-500"></div>
+    <div className="rounded-2xl bg-gradient-to-br from-[#3D6B2C] to-[#4CAF50] p-4 text-white shadow-lg flex flex-col gap-2">
+      <div className="flex items-center gap-2 mb-1">
+        <Building2 className="w-5 h-5 flex-shrink-0" />
+        <span className="font-bold text-sm leading-tight">
+          What Is a Keyman Store?
+        </span>
       </div>
-
-      {/* Decorative Elements */}
-      <div className="absolute -top-4 -right-4 w-8 h-8 bg-[#4CAF50] rounded-full animate-bounce-slow"></div>
-      <div
-        className="absolute -bottom-4 -left-4 w-6 h-6 bg-[#F08C23] rounded-full floating-animation"
-        style={{ animationDelay: "1s" }}
-      ></div>
+      <p className="text-xs text-green-100 leading-relaxed">
+        Your digital business space on KeymanStores. It can be:
+      </p>
+      <ul className="text-xs text-green-100 space-y-0.5 mb-1">
+        {storeTypes.map((t) => (
+          <li key={t} className="flex items-start gap-1">
+            <span className="mt-0.5 text-green-300">•</span>
+            <span>{t}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-xs font-semibold text-white">Your store has:</p>
+      <ul className="text-xs text-green-100 space-y-0.5">
+        {features.map((f) => (
+          <li key={f} className="flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3 flex-shrink-0 text-green-300" />
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
-const QualityAssured = () => {
+
+// Orange card: Become a Keyman Plug
+const KeymanPlugCard: React.FC = () => {
+  const [opened, { open, close }] = useDisclosure(false);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const subject = encodeURIComponent("Join as a Keyman Plug");
+    const body = encodeURIComponent(
+      `Name: ${name}\nPhone: ${phone}\nEmail: ${email}`,
+    );
+    window.open(`mailto:info@keymanstores.com?subject=${subject}&body=${body}`);
+    setSubmitted(true);
+  };
+
+  const perks = [
+    "Work from your phone",
+    "No capital required",
+    "Earn commission per verified store",
+    "Be part of Kenya's trusted construction network",
+  ];
+
   return (
-    <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg transform group-hover:scale-105 transition-transform duration-300">
-      <div className="flex items-center space-x-2">
-        <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-        <span className="text-sm font-semibold text-gray-800">
-          Quality Assured
-        </span>
+    <>
+      <Modal
+        opened={opened}
+        onClose={() => {
+          close();
+          setSubmitted(false);
+        }}
+        title={
+          <span className="font-bold text-[#F08C23]">
+            💼 Join as a Keyman Plug
+          </span>
+        }
+        centered
+        radius="md"
+      >
+        {submitted ? (
+          <Stack align="center" py="md" gap="sm">
+            <CheckCircle2 className="w-12 h-12 text-green-500" />
+            <Text fw={600} ta="center">
+              Your email client has been opened!
+            </Text>
+            <Text size="sm" c="dimmed" ta="center">
+              Send the email to complete your application. We&apos;ll reach out
+              to you shortly.
+            </Text>
+            <Button
+              variant="light"
+              color="orange"
+              onClick={() => {
+                close();
+                setSubmitted(false);
+              }}
+            >
+              Done
+            </Button>
+          </Stack>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <Stack gap="sm">
+              <Text size="sm" c="dimmed">
+                Fill in your details and we&apos;ll contact you to get you
+                started.
+              </Text>
+              <TextInput
+                label="Full Name"
+                placeholder="e.g. Jane Mwangi"
+                required
+                value={name}
+                onChange={(e) => setName(e.currentTarget.value)}
+                radius="md"
+              />
+              <TextInput
+                label="Phone Number"
+                placeholder="e.g. 0712 345 678"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.currentTarget.value)}
+                radius="md"
+              />
+              <TextInput
+                label="Email Address"
+                type="email"
+                placeholder="e.g. jane@email.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.currentTarget.value)}
+                radius="md"
+              />
+              <Button
+                type="submit"
+                fullWidth
+                radius="md"
+                style={{ backgroundColor: "#F08C23" }}
+              >
+                Send Application
+              </Button>
+              <Text size="xs" c="dimmed" ta="center">
+                Or call / WhatsApp:{" "}
+                <a
+                  href="https://wa.me/254757539000"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-orange-500 font-medium"
+                >
+                  0757 539 000
+                </a>
+              </Text>
+            </Stack>
+          </form>
+        )}
+      </Modal>
+
+      <div className="rounded-2xl bg-gradient-to-br from-[#F08C23] to-orange-400 p-4 text-white shadow-lg flex flex-col gap-2">
+        <div className="flex items-center gap-2 mb-1">
+          <Plug className="w-5 h-5 flex-shrink-0" />
+          <span className="font-bold text-sm leading-tight">
+            Become a Keyman Plug
+          </span>
+        </div>
+        <p className="text-xs text-orange-100 leading-relaxed">
+          Earn money helping stores join and trade safely.
+        </p>
+        <ul className="text-xs text-orange-100 space-y-0.5 flex-1">
+          {perks.map((p) => (
+            <li key={p} className="flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3 flex-shrink-0 text-orange-200" />
+              <span>{p}</span>
+            </li>
+          ))}
+        </ul>
+        <button
+          onClick={open}
+          className="mt-2 w-full bg-white text-[#F08C23] font-bold text-xs py-2 px-3 rounded-xl hover:bg-orange-50 transition-colors duration-200 shadow-sm"
+        >
+          Join as a Plug →
+        </button>
       </div>
-    </div>
+    </>
   );
 };
