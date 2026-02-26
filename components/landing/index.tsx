@@ -31,7 +31,7 @@ import ForexRatesBoard from "../wallet/ForexRatesBoard";
 const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
   return (
     <section
-      className={`pt-20 pb-16 px-4 sm:px-6  lg:px-8 ${
+      className={`pt-20 pb-4 px-4 sm:px-6  lg:px-8 ${
         darkMode ? "bg-gray-900" : "bg-gradient-to-br from-gray-50 to-white"
       }`}
     >
@@ -61,7 +61,7 @@ const HeroSection: React.FC<{ darkMode: boolean }> = ({ darkMode }) => {
             </div>
 
             <Link
-              href="/accounnt/login"
+              href="/account/login"
               className=" w-[80%] md:w-60 group bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50] text-white px-8 py-4 rounded-xl font-medium text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center space-x-2"
             >
               <span>Order Now</span>

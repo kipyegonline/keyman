@@ -119,7 +119,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
   const [shareSuccess, setShareSuccess] = useState(false);
   const [showContract, setShowContract] = useState(false);
   const [showUnverifiedModal, setShowUnverifiedModal] = useState(false);
-  const { setActiveItem } = useAppContext();
+  const { setActiveItem, user } = useAppContext();
 
   const router = useRouter();
   // Get theme based on supplier type
@@ -160,10 +160,6 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
     } else {
       setShowUnverifiedModal(true);
     }
-  };
-
-  const handleAcceptUnverified = () => {
-    setShowContract(true);
   };
 
   const handleViewLocation = () => {
@@ -638,8 +634,9 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
       <UnverifiedContractModal
         opened={showUnverifiedModal}
         onClose={() => setShowUnverifiedModal(false)}
-        onAccept={handleAcceptUnverified}
         supplierName={supplier?.name}
+        storeId={String(supplier?.id ?? "")}
+        userId={user?.id ?? ""}
       />
     </div>
   );

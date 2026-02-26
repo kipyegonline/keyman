@@ -464,3 +464,29 @@ export const raiseComplaint = async (
     }
   }
 };
+
+export const notifyUnverifiedContractRequest = async (payload: {
+  store_id: string;
+  user_id: string | number;
+  message?: string;
+}) => {
+  try {
+    const response = await AxiosClient.post(
+      ENDPOINTS.contracts.NOTIFY_UNVERIFIED_REQUEST,
+      payload,
+    );
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      return (
+        error.response?.data || {
+          status: false,
+          message: "An error occurred while sending your request",
+        }
+      );
+    } else {
+      console.error("An unexpected error occurred:", error);
+      return { status: false, message: "An unexpected error occurred" };
+    }
+  }
+};

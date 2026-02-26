@@ -118,7 +118,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
   const [shareSuccess, setShareSuccess] = useState(false);
   const [showContract, setShowContract] = useState(false);
   const [showUnverifiedModal, setShowUnverifiedModal] = useState(false);
-  const { setActiveItem } = useAppContext();
+  const { setActiveItem, user } = useAppContext();
   const router = useRouter();
 
   // Get theme based on supplier type
@@ -133,16 +133,12 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
   ) => {
     if (isVerified !== 0) {
       setShowContract(true);
+      navigateTo();
+      setActiveItem("key-contract");
+      router.push(`/keyman/dashboard/key-contract/create?keyman_id=${id}`);
     } else {
       setShowUnverifiedModal(true);
     }
-    navigateTo();
-    setActiveItem("key-contract");
-    router.push(`/keyman/dashboard/key-contract/create?keyman_id=${id}`);
-  };
-
-  const handleAcceptUnverified = () => {
-    setShowContract(true);
   };
 
   // Helper function to convert YouTube URL to embed format
@@ -676,8 +672,9 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
       <UnverifiedContractModal
         opened={showUnverifiedModal}
         onClose={() => setShowUnverifiedModal(false)}
-        onAccept={handleAcceptUnverified}
         supplierName={supplier?.name}
+        storeId={String(supplier?.id ?? "")}
+        userId={user?.id ?? ""}
       />
     </div>
   );
