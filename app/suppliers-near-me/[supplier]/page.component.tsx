@@ -105,13 +105,13 @@ export default function SupplierClientComponent({
     let selectedLocation;
     if (!isGuest) {
       selectedLocation = locations?.projects?.find(
-        (loc: Project) => loc.id === location
+        (loc: Project) => loc.id === location,
       );
     } else {
       selectedLocation = await getCurrentLocation();
       const result = await login(
         process.env.NEXT_PUBLIC_GUEST_EMAIL as string,
-        process.env.NEXT_PUBLIC_GUEST_PASSWORD as string
+        process.env.NEXT_PUBLIC_GUEST_PASSWORD as string,
       );
       if (result.status) {
         localStorage.setItem("auth_token", result?.token ?? "");
@@ -245,6 +245,9 @@ export default function SupplierClientComponent({
       </Breadcrumbs>
       <div className=" p-4 ">
         <Grid>
+          <Grid.Col span={{ base: 12, md: 5 }}>
+            {_supplier ? <SupplierProfile supplier={_supplier} /> : null}
+          </Grid.Col>
           <Grid.Col span={{ base: 12, md: 7 }}>
             {" "}
             <div className=" ">
@@ -270,13 +273,13 @@ export default function SupplierClientComponent({
                           }
                           handleIncreaseQuantity={() => {
                             const currentQty = getItemQuantity(
-                              item.id as string
+                              item.id as string,
                             );
                             updateQuantity(item.id as string, currentQty + 1);
                           }}
                           handleDecreaseQuantity={() => {
                             const currentQty = getItemQuantity(
-                              item.id as string
+                              item.id as string,
                             );
                             updateQuantity(item.id as string, currentQty - 1);
                           }}
@@ -300,9 +303,6 @@ export default function SupplierClientComponent({
                 <div className=" text-gray-500">No price list available</div>
               )}
             </div>
-          </Grid.Col>
-          <Grid.Col span={{ base: 12, md: 5 }}>
-            {_supplier ? <SupplierProfile supplier={_supplier} /> : null}
           </Grid.Col>
         </Grid>
       </div>

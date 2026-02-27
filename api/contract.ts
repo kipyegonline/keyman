@@ -470,10 +470,12 @@ export const notifyUnverifiedContractRequest = async (payload: {
   user_id: string | number;
   message?: string;
 }) => {
+  const defaultMessage = `potential customer ${payload.user_id ?? ""} has visited your profile but couldnt create a contract with you since you are not verified. `;
+  const message = defaultMessage + (payload.message || "");
   try {
     const response = await AxiosClient.post(
-      ENDPOINTS.contracts.NOTIFY_UNVERIFIED_REQUEST,
-      payload,
+      ENDPOINTS.contracts.NOTIFY_UNVERIFIED_REQUEST(payload.store_id),
+      { message },
     );
     return response.data;
   } catch (error) {

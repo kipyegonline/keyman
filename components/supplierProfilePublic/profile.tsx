@@ -269,7 +269,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
     [...Array(supplier?.supplier_rating)].map((_, i) => (
       <Star key={i} className="w-4 h-4 text-yellow-500 fill-yellow-500" />
     ));
-  console.log("Supplier Data:", supplier);
+
   return (
     <div className="w-full h-full bg-white">
       {showContract && (

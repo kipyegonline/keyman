@@ -13,6 +13,7 @@ import {
 } from "@mantine/core";
 import { AlertCircle, CheckCircle, X, Send } from "lucide-react";
 import { notifyUnverifiedContractRequest } from "@/api/contract";
+import { notify } from "@/lib/notifications";
 
 interface UnverifiedContractModalProps {
   opened: boolean;
@@ -52,9 +53,10 @@ const UnverifiedContractModal: React.FC<UnverifiedContractModalProps> = ({
     });
     if (res?.status === false) {
       setStatus("error");
-      setErrorMsg(res.message || "Something went wrong. Please try again.");
+      setErrorMsg(res?.message || "Something went wrong. Please try again.");
     } else {
       setStatus("success");
+      notify.success("Your request has been sent to the supplier!");
       setTimeout(() => handleClose(), 3000);
     }
   };

@@ -101,7 +101,8 @@ export const ENDPOINTS = {
     GIVE_CASHBACK: (contract_id: string) =>
       `/api/keyman-contracts/${contract_id}/pay-cashback`,
     RAISE_COMPLAINT: `/api/disputes`,
-    NOTIFY_UNVERIFIED_REQUEST: `/api/keyman-contracts/unverified-request`,
+    NOTIFY_UNVERIFIED_REQUEST: (supplier_detail_id: string) =>
+      `/api/supplier/${supplier_detail_id}/message`,
   },
   wallet: {
     CREATE_WALLET: "/api/user/create-wallet",
