@@ -12,9 +12,13 @@ import {
   Sparkles,
   ArrowRight,
   CheckCircle,
+  CheckCircle2,
   Globe,
   Zap,
+  Plug,
 } from "lucide-react";
+import { Button, Modal, TextInput, Stack, Text } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { NavigationComponent } from "@/components/ui/Navigation";
 
 export default function AboutPage() {
@@ -233,6 +237,38 @@ export default function AboutPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Info Cards Section */}
+      <section
+        id="info-cards"
+        className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white"
+      >
+        <div className="max-w-5xl mx-auto">
+          <div
+            className={`text-center mb-10 sm:mb-14 ${
+              isVisible ? "animate-fadeInUp" : "opacity-0"
+            }`}
+          >
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
+              <span className="gradient-text">Be Part of Keyman</span>
+            </h2>
+            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto">
+              Whether you&apos;re a buyer, seller, agent, or professional —
+              there&apos;s a place for you on Keyman Stores.
+            </p>
+          </div>
+
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 ${
+              isVisible ? "animate-fadeInUp" : "opacity-0"
+            }`}
+            style={{ animationDelay: "0.3s" }}
+          >
+            <WhatIsKeymanStoreCard />
+            <KeymanPlugCard />
           </div>
         </div>
       </section>
@@ -617,3 +653,205 @@ export default function AboutPage() {
     </div>
   );
 }
+
+// ── Info Cards ─────────────────────────────────────────────────────────────
+
+const WhatIsKeymanStoreCard: React.FC = () => {
+  const features = [
+    "A unique KS Number",
+    "A public profile",
+    "Verified badge option",
+    "Secure payment access",
+    "Reputation history",
+    "Ability to receive orders safely",
+  ];
+  const storeTypes = [
+    "A hardware shop",
+    "A fundi (plumber, mason, electrician, painter)",
+    "A professional (engineer, architect, QS, surveyor)",
+    "A supplier or manufacturer",
+  ];
+
+  return (
+    <div className="rounded-3xl bg-gradient-to-br from-[#3D6B2C] to-[#4CAF50] p-6 sm:p-8 text-white shadow-xl flex flex-col gap-4 w-full">
+      <div className="flex items-center gap-3 mb-1">
+        <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0">
+          <Building2 className="w-6 h-6" />
+        </div>
+        <span className="font-bold text-xl leading-tight">
+          What Is a Keyman Store?
+        </span>
+      </div>
+      <p className="text-sm sm:text-base text-green-100 leading-relaxed">
+        Your digital business space on KeymanStores. It can be:
+      </p>
+      <ul className="text-sm sm:text-base text-green-100 space-y-2 mb-1">
+        {storeTypes.map((t) => (
+          <li key={t} className="flex items-start gap-2">
+            <span className="mt-1 text-green-300 flex-shrink-0">•</span>
+            <span>{t}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-sm sm:text-base font-semibold text-white">
+        Your store has:
+      </p>
+      <ul className="text-sm sm:text-base text-green-100 space-y-2">
+        {features.map((f) => (
+          <li key={f} className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-green-300" />
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+const KeymanPlugCard: React.FC = () => {
+  const [opened, { open, close }] = useDisclosure(false);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const subject = encodeURIComponent("Join as a Keyman Plug");
+    const body = encodeURIComponent(
+      `Name: ${name}\nPhone: ${phone}\nEmail: ${email}`,
+    );
+    window.open(`mailto:info@keymanstores.com?subject=${subject}&body=${body}`);
+    setSubmitted(true);
+  };
+
+  const perks = [
+    "Work from your phone",
+    "No capital required",
+    "Earn commission per verified store",
+    "Be part of Kenya's trusted construction network",
+  ];
+
+  return (
+    <>
+      <Modal
+        opened={opened}
+        onClose={() => {
+          close();
+          setSubmitted(false);
+        }}
+        title={
+          <span className="font-bold text-[#F08C23]">
+            💼 Join as a Keyman Plug
+          </span>
+        }
+        centered
+        radius="md"
+      >
+        {submitted ? (
+          <Stack align="center" py="md" gap="sm">
+            <CheckCircle2 className="w-12 h-12 text-green-500" />
+            <Text fw={600} ta="center">
+              Your email client has been opened!
+            </Text>
+            <Text size="sm" c="dimmed" ta="center">
+              Send the email to complete your application. We&apos;ll reach out
+              to you shortly.
+            </Text>
+            <Button
+              variant="light"
+              color="orange"
+              onClick={() => {
+                close();
+                setSubmitted(false);
+              }}
+            >
+              Done
+            </Button>
+          </Stack>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <Stack gap="sm">
+              <Text size="sm" c="dimmed">
+                Fill in your details and we&apos;ll contact you to get you
+                started.
+              </Text>
+              <TextInput
+                label="Full Name"
+                placeholder="e.g. Jane Mwangi"
+                required
+                value={name}
+                onChange={(e) => setName(e.currentTarget.value)}
+                radius="md"
+              />
+              <TextInput
+                label="Phone Number"
+                placeholder="e.g. 0712 345 678"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.currentTarget.value)}
+                radius="md"
+              />
+              <TextInput
+                label="Email Address"
+                type="email"
+                placeholder="e.g. jane@email.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.currentTarget.value)}
+                radius="md"
+              />
+              <Button
+                type="submit"
+                fullWidth
+                radius="md"
+                style={{ backgroundColor: "#F08C23" }}
+              >
+                Send Application
+              </Button>
+              <Text size="xs" c="dimmed" ta="center">
+                Or call / WhatsApp:{" "}
+                <a
+                  href="https://wa.me/254757539000"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-orange-500 font-medium"
+                >
+                  0757 539 000
+                </a>
+              </Text>
+            </Stack>
+          </form>
+        )}
+      </Modal>
+
+      <div className="rounded-3xl bg-gradient-to-br from-[#F08C23] to-orange-400 p-6 sm:p-8 text-white shadow-xl flex flex-col gap-4 w-full">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center flex-shrink-0">
+            <Plug className="w-6 h-6" />
+          </div>
+          <span className="font-bold text-xl leading-tight">
+            Become a Keyman Plug
+          </span>
+        </div>
+        <p className="text-sm sm:text-base text-orange-100 leading-relaxed">
+          Earn money helping stores join and trade safely.
+        </p>
+        <ul className="text-sm sm:text-base text-orange-100 space-y-3 flex-1">
+          {perks.map((p) => (
+            <li key={p} className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-orange-200" />
+              <span>{p}</span>
+            </li>
+          ))}
+        </ul>
+        <button
+          onClick={open}
+          className="mt-4 w-full bg-white text-[#F08C23] font-bold text-sm py-3 px-4 rounded-2xl hover:bg-orange-50 transition-colors duration-200 shadow-md"
+        >
+          Join as a Plug →
+        </button>
+      </div>
+    </>
+  );
+};

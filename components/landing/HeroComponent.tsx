@@ -6,13 +6,10 @@ import {
   Zap,
   Building2,
   ShoppingCart,
-  CheckCircle2,
-  Plug,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button, Modal, TextInput, Stack, Text } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { Button } from "@mantine/core";
 import { useAppContext } from "@/providers/AppContext";
 //import DashboardSearch from "../keyman-bot/DashboardSearch";
 
@@ -21,7 +18,6 @@ const AnimatedHeroSection: React.FC = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   // darkMode kept for when AskKeymanSection is re-enabled
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { darkMode } = useAppContext();
   useEffect(() => {
     setIsVisible(true);
@@ -323,13 +319,7 @@ const AnimatedHeroSection: React.FC = () => {
             >
               <Sparkles className="w-6 h-6 text-[#F08C23] animate-bounce-slow " />
             </div>
-            {/*  <AskKeymanSection darkMode={darkMode} compact />*/}
-
-            {/* Info Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-8 sm:mt-6 lg:mt-3 pb-4 lg:pb-0">
-              <WhatIsKeymanStoreCard />
-              <KeymanPlugCard />
-            </div>
+            <AskKeymanSection darkMode={darkMode} />
           </div>
         </div>
       </div>
@@ -350,7 +340,6 @@ const AnimatedHeroSection: React.FC = () => {
 export default AnimatedHeroSection;
 
 // Ask Keyman Section Component — kept ready for re-use
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const AskKeymanSection: React.FC<{ darkMode: boolean; compact?: boolean }> = ({
   darkMode,
   compact = false,
@@ -359,7 +348,7 @@ const AskKeymanSection: React.FC<{ darkMode: boolean; compact?: boolean }> = ({
   const cardStyles = "rounded-2xl shadow-xl";
 
   const handleSearch = () => {
-    router.push(`/suppliers-near-me`);
+    router.push(`/about#info-cards`);
   };
 
   return (
@@ -391,7 +380,7 @@ const AskKeymanSection: React.FC<{ darkMode: boolean; compact?: boolean }> = ({
         </div>
 
         <div className="space-y-2">
-          {!compact && (
+          {!compact && false && (
             <h3
               className={`text-xl font-semibold ${
                 darkMode ? "text-white" : "text-gray-900"
@@ -410,208 +399,12 @@ const AskKeymanSection: React.FC<{ darkMode: boolean; compact?: boolean }> = ({
                 className="bg-gradient-to-r from-[#3D6B2C] to-[#4CAF50] hover:shadow-lg transition-all duration-200"
                 rightSection={<ArrowRight className="w-4 h-4" />}
               >
-                Search Suppliers
+                Learn More
               </Button>
             </div>
           </div>
         </div>
       </div>
     </section>
-  );
-};
-
-// Green card: What Is a Keyman Store?
-const WhatIsKeymanStoreCard: React.FC = () => {
-  const features = [
-    "A unique KS Number",
-    "A public profile",
-    "Verified badge option",
-    "Secure payment access",
-    "Reputation history",
-    "Ability to receive orders safely",
-  ];
-  const storeTypes = [
-    "A hardware shop",
-    "A fundi (plumber, mason, electrician, painter)",
-    "A professional (engineer, architect, QS, surveyor)",
-    "A supplier or manufacturer",
-  ];
-
-  return (
-    <div className="rounded-2xl bg-gradient-to-br from-[#3D6B2C] to-[#4CAF50] p-4 text-white shadow-lg flex flex-col gap-2">
-      <div className="flex items-center gap-2 mb-1">
-        <Building2 className="w-5 h-5 flex-shrink-0" />
-        <span className="font-bold text-sm leading-tight">
-          What Is a Keyman Store?
-        </span>
-      </div>
-      <p className="text-xs text-green-100 leading-relaxed">
-        Your digital business space on KeymanStores. It can be:
-      </p>
-      <ul className="text-xs text-green-100 space-y-0.5 mb-1">
-        {storeTypes.map((t) => (
-          <li key={t} className="flex items-start gap-1">
-            <span className="mt-0.5 text-green-300">•</span>
-            <span>{t}</span>
-          </li>
-        ))}
-      </ul>
-      <p className="text-xs font-semibold text-white">Your store has:</p>
-      <ul className="text-xs text-green-100 space-y-0.5">
-        {features.map((f) => (
-          <li key={f} className="flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3 flex-shrink-0 text-green-300" />
-            <span>{f}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
-// Orange card: Become a Keyman Plug
-const KeymanPlugCard: React.FC = () => {
-  const [opened, { open, close }] = useDisclosure(false);
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const subject = encodeURIComponent("Join as a Keyman Plug");
-    const body = encodeURIComponent(
-      `Name: ${name}\nPhone: ${phone}\nEmail: ${email}`,
-    );
-    window.open(`mailto:info@keymanstores.com?subject=${subject}&body=${body}`);
-    setSubmitted(true);
-  };
-
-  const perks = [
-    "Work from your phone",
-    "No capital required",
-    "Earn commission per verified store",
-    "Be part of Kenya's trusted construction network",
-  ];
-
-  return (
-    <>
-      <Modal
-        opened={opened}
-        onClose={() => {
-          close();
-          setSubmitted(false);
-        }}
-        title={
-          <span className="font-bold text-[#F08C23]">
-            💼 Join as a Keyman Plug
-          </span>
-        }
-        centered
-        radius="md"
-      >
-        {submitted ? (
-          <Stack align="center" py="md" gap="sm">
-            <CheckCircle2 className="w-12 h-12 text-green-500" />
-            <Text fw={600} ta="center">
-              Your email client has been opened!
-            </Text>
-            <Text size="sm" c="dimmed" ta="center">
-              Send the email to complete your application. We&apos;ll reach out
-              to you shortly.
-            </Text>
-            <Button
-              variant="light"
-              color="orange"
-              onClick={() => {
-                close();
-                setSubmitted(false);
-              }}
-            >
-              Done
-            </Button>
-          </Stack>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <Stack gap="sm">
-              <Text size="sm" c="dimmed">
-                Fill in your details and we&apos;ll contact you to get you
-                started.
-              </Text>
-              <TextInput
-                label="Full Name"
-                placeholder="e.g. Jane Mwangi"
-                required
-                value={name}
-                onChange={(e) => setName(e.currentTarget.value)}
-                radius="md"
-              />
-              <TextInput
-                label="Phone Number"
-                placeholder="e.g. 0712 345 678"
-                required
-                value={phone}
-                onChange={(e) => setPhone(e.currentTarget.value)}
-                radius="md"
-              />
-              <TextInput
-                label="Email Address"
-                type="email"
-                placeholder="e.g. jane@email.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.currentTarget.value)}
-                radius="md"
-              />
-              <Button
-                type="submit"
-                fullWidth
-                radius="md"
-                style={{ backgroundColor: "#F08C23" }}
-              >
-                Send Application
-              </Button>
-              <Text size="xs" c="dimmed" ta="center">
-                Or call / WhatsApp:{" "}
-                <a
-                  href="https://wa.me/254757539000"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-orange-500 font-medium"
-                >
-                  0757 539 000
-                </a>
-              </Text>
-            </Stack>
-          </form>
-        )}
-      </Modal>
-
-      <div className="rounded-2xl bg-gradient-to-br from-[#F08C23] to-orange-400 p-4 text-white shadow-lg flex flex-col gap-2">
-        <div className="flex items-center gap-2 mb-1">
-          <Plug className="w-5 h-5 flex-shrink-0" />
-          <span className="font-bold text-sm leading-tight">
-            Become a Keyman Plug
-          </span>
-        </div>
-        <p className="text-xs text-orange-100 leading-relaxed">
-          Earn money helping stores join and trade safely.
-        </p>
-        <ul className="text-xs text-orange-100 space-y-0.5 flex-1">
-          {perks.map((p) => (
-            <li key={p} className="flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3 flex-shrink-0 text-orange-200" />
-              <span>{p}</span>
-            </li>
-          ))}
-        </ul>
-        <button
-          onClick={open}
-          className="mt-2 w-full bg-white text-[#F08C23] font-bold text-xs py-2 px-3 rounded-xl hover:bg-orange-50 transition-colors duration-200 shadow-sm"
-        >
-          Join as a Plug →
-        </button>
-      </div>
-    </>
   );
 };
