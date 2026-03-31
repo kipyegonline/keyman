@@ -272,7 +272,7 @@ const SupplierProfile: React.FC<{ supplier: SupplierInfo }> = ({
 
   return (
     <div className="w-full h-full bg-white">
-      {showContract && (
+      {showContract && false && (
         <ContractChatBot
           userToken={token ?? ""}
           sessionId={token ?? ""}

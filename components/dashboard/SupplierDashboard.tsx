@@ -19,7 +19,7 @@ import {
   Tooltip,
   Stack,
 } from "@mantine/core";
-import { User, X, Menu as MenuIcon } from "lucide-react";
+import { User, X, Menu as MenuIcon, ArrowLeftRight } from "lucide-react";
 import { Hammer } from "lucide-react";
 import { useAppContext } from "@/providers/AppContext";
 import { useRouter } from "next/navigation";
@@ -50,7 +50,6 @@ const Sidebar: React.FC<{
     //{ id: "key-wallet", label: "My Wallet", icon: Wallet },
     { id: "price", label: "Manage my store", icon: DiamondPercent },
     //{ id: "update", label: "Update profile", icon: Settings },
-    { id: "customer", label: "Customer Profile", icon: User },
   ];
   const handleSupplyRoute = () => {
     navigateTo();
@@ -185,6 +184,62 @@ const Sidebar: React.FC<{
             );
           })}
         </Stack>
+      </Box>
+
+      {/* Profile Switcher */}
+      <Box mb="sm">
+        <hr
+          className={`border-0 border-t mb-3 ${
+            isDark ? "border-t-gray-700" : "border-t-white/30"
+          }`}
+        />
+        <Tooltip
+          label="Switch to Personal Profile"
+          position="right"
+          disabled={!isCollapsed}
+        >
+          <UnstyledButton
+            onClick={handleSupplyRoute}
+            className="w-full rounded-xl overflow-hidden transition-all duration-200 hover:scale-[1.02] active:scale-95"
+            style={{
+              background: isDark
+                ? "linear-gradient(135deg, #1e3a12 0%, #14290d 100%)"
+                : "linear-gradient(135deg, #3D6B2C 0%, #295219 100%)",
+              border: "2px solid rgba(255,255,255,0.25)",
+              boxShadow: "0 4px 14px rgba(61, 107, 44, 0.4)",
+            }}
+          >
+            <Box p="xs" className="flex items-center gap-2">
+              <Box className="relative flex-shrink-0">
+                <Box
+                  className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: "rgba(255,255,255,0.2)" }}
+                >
+                  <User size={16} className="text-white" />
+                </Box>
+                <Box
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
+                  style={{
+                    background: "#F08C23",
+                    boxShadow: "0 0 6px rgba(240, 140, 35, 0.8)",
+                  }}
+                >
+                  <ArrowLeftRight size={8} className="text-white" />
+                </Box>
+              </Box>
+              {!isCollapsed && (
+                <Box className="flex-1 min-w-0">
+                  <Text size="xs" c="rgba(255,255,255,0.75)" fw={500}>
+                    Switch to
+                  </Text>
+                  <Text size="sm" fw={700} c="white">
+                    Personal Profile
+                  </Text>
+                </Box>
+              )}
+            </Box>
+          </UnstyledButton>
+        </Tooltip>
       </Box>
 
       {/* User Profile */}

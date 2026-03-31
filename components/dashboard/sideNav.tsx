@@ -19,7 +19,13 @@ import {
   Stack,
 } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { User, X, Menu as MenuIcon, ShoppingCart } from "lucide-react";
+import {
+  User,
+  X,
+  Menu as MenuIcon,
+  ShoppingCart,
+  ArrowLeftRight,
+} from "lucide-react";
 import { Hammer } from "lucide-react";
 import { useAppContext } from "@/providers/AppContext";
 import { usePathname, useRouter } from "next/navigation";
@@ -229,20 +235,54 @@ const Sidebar: React.FC<{
             />
           ) : (
             hardwares.map((hardware: HardWare) => (
-              <>
-                <MenuItem
-                  key={hardware.id}
-                  item={{
-                    label: hardware?.detail?.name,
-                    id: hardware?.detail?.id,
+              <Tooltip
+                key={hardware.id}
+                label={`Switch to: ${hardware?.detail?.name}`}
+                position="right"
+                disabled={!isCollapsed}
+              >
+                <UnstyledButton
+                  onClick={() => handleHardware(hardware)}
+                  className="w-full rounded-xl overflow-hidden transition-all duration-200 hover:scale-[1.02] active:scale-95"
+                  style={{
+                    background: isDark
+                      ? "linear-gradient(135deg, #92400e 0%, #78350f 100%)"
+                      : "linear-gradient(135deg, #F08C23 0%, #c96f10 100%)",
+                    border: "2px solid rgba(255,255,255,0.25)",
+                    boxShadow: "0 4px 14px rgba(240, 140, 35, 0.4)",
                   }}
-                  isCollapsed={isCollapsed}
-                  isActive={false}
-                  isDark={isDark}
-                  Icon={User}
-                  handleItemClick={() => handleHardware(hardware)}
-                />
-              </>
+                >
+                  <Box p="xs" className="flex items-center gap-2">
+                    <Box className="relative flex-shrink-0">
+                      <Box
+                        className="w-8 h-8 rounded-lg flex items-center justify-center"
+                        style={{ background: "rgba(255,255,255,0.2)" }}
+                      >
+                        <Hammer size={16} className="text-white" />
+                      </Box>
+                      <Box
+                        className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
+                        style={{
+                          background: "#22c55e",
+                          boxShadow: "0 0 6px rgba(34, 197, 94, 0.8)",
+                        }}
+                      >
+                        <ArrowLeftRight size={8} className="text-white" />
+                      </Box>
+                    </Box>
+                    {!isCollapsed && (
+                      <Box className="flex-1 min-w-0">
+                        <Text size="xs" c="rgba(255,255,255,0.75)" fw={500}>
+                          Switch to store
+                        </Text>
+                        <Text size="sm" fw={700} c="white" className="truncate">
+                          {hardware?.detail?.name}
+                        </Text>
+                      </Box>
+                    )}
+                  </Box>
+                </UnstyledButton>
+              </Tooltip>
             ))
           )}
         </Stack>
